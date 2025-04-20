@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  db:
+    image: mariadb:latest
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: auth_db
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./back-end
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./front-end
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:5000
+
+volumes:
+  mariadb_data:
