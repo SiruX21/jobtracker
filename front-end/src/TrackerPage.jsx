@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie"; // For managing cookies
 import companySuggestions from "./data/companySuggestions"; // Import the suggestions
 
 const statuses = {
@@ -9,6 +11,16 @@ const statuses = {
 };
 
 function TrackerPage() {
+  const navigate = useNavigate();
+
+  // Verify login state
+  useEffect(() => {
+    const authToken = Cookies.get("authToken");
+    if (!authToken) {
+      navigate("/"); // Redirect to login page if not logged in
+    }
+  }, [navigate]);
+
   const getCurrentDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0]; // Format as YYYY-MM-DD

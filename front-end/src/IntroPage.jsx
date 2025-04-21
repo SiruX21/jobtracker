@@ -1,86 +1,102 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
+import axios from "axios"; // For API requests
+import Cookies from "js-cookie"; // For managing cookies
+import config from "./config"; // Import the global config
 
 function IntroPage({ darkMode, toggleTheme }) {
   const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleNavigation = () => {
-    navigate("/track");
+  // Handle input changes
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Validate email
+  const isValidEmail = (email) => {
+    return email.includes("@");
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(""); // Clear previous errors
+
+    // Validate email
+    if (!isValidEmail(formData.username)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        // Login request
+        const response = await axios.post(`${config.API_BASE_URL}/login`, formData);
+        Cookies.set("authToken", response.data.token, { expires: 1 }); // Save token in a cookie
+        navigate("/track"); // Navigate to the tracker page
+      } else {
+        // Registration request
+        await axios.post(`${config.API_BASE_URL}/register`, formData);
+        setIsLogin(true); // Switch to login after successful registration
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "An error occurred");
+    }
   };
 
   return (
     <div className={`min-h-screen ${darkMode ? "dark:bg-gray-900" : "bg-gray-100"} flex flex-col items-center justify-center`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="mt-8 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-lg shadow-lg w-full max-w-md">
-        {isLogin ? (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Login</h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleNavigation}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-              >
-                Login
-              </button>
-            </form>
+        <h2 className="text-2xl font-bold mb-4">{isLogin ? "Login" : "Sign Up"}</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          {!isLogin && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Username</label>
+              <input
+                type="text"
+                name="username"
+                placeholder="Enter your username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
+          )}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Email</label>
+            <input
+              type="text"
+              name="username"
+              placeholder="Enter your email"
+              value={formData.username}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+            />
           </div>
-        ) : (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter your name"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleNavigation}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-              >
-                Sign Up
-              </button>
-            </form>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+            />
           </div>
-        )}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+          >
+            {isLogin ? "Login" : "Sign Up"}
+          </button>
+        </form>
         <div className="mt-4 text-center">
           {isLogin ? (
             <p>
