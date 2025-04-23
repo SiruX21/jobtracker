@@ -18,6 +18,8 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+    environment: 
+      - CORS_ALLOWED_ORIGIN=http://localhost:5173 
 
   frontend:
     build:
