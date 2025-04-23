@@ -121,7 +121,7 @@ function IntroPage({ darkMode, toggleTheme }) {
             </p>
           ) : (
             <p>
-              Already have an account?{" "}
+              Test Commit?{" "}
               <button
                 onClick={() => setIsLogin(true)}
                 className="text-blue-600 hover:underline"
