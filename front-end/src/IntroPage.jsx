@@ -111,7 +111,7 @@ function IntroPage({ darkMode, toggleTheme }) {
         <div className="mt-4 text-center">
           {isLogin ? (
             <p>
-              Don't have an account?{" "}
+              Don't have an accountishnt?{" "}
               <button
                 onClick={() => setIsLogin(false)}
                 className="text-blue-600 hover:underline"
