@@ -35,6 +35,20 @@ function IntroPage({ darkMode, toggleTheme }) {
     setResendSuccess("");
   };
 
+  // Function to switch between login and signup modes
+  const switchToLogin = () => {
+    setIsLogin(true);
+    setFormData({ ...formData, confirmPassword: "" }); // Clear confirm password
+    setError("");
+    setResendSuccess("");
+  };
+
+  const switchToSignup = () => {
+    setIsLogin(false);
+    setError("");
+    setResendSuccess("");
+  };
+
   // Handle resend verification email
   const handleResendVerification = async () => {
     if (resendLoading) return;
@@ -97,9 +111,8 @@ function IntroPage({ darkMode, toggleTheme }) {
           username: formData.email, // Use email as username
           password: formData.password
         });
-        setIsLogin(true);
-        setFormData({ email: formData.email, password: "", confirmPassword: "" });
-        setError("");
+        switchToLogin();
+        setError("Registration successful! Please check your email for verification.");
         // Show success message briefly
         setTimeout(() => {
           setError("");
@@ -131,18 +144,23 @@ function IntroPage({ darkMode, toggleTheme }) {
         {error && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg animate-slideDown">
             <p className="text-sm">{error}</p>
-            {error.toLowerCase().includes("verify your email") && isLogin && isValidEmail(formData.email) && (
-              <div className="mt-2 flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={handleResendVerification}
-                  disabled={resendLoading}
-                  className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold transition-all duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed`}
-                >
-                  {resendLoading ? "Sending..." : "Resend Verification Email"}
-                </button>
-                {resendSuccess && <span className="text-green-600 dark:text-green-400 mt-1 text-sm">{resendSuccess}</span>}
-              </div>
+          </div>
+        )}
+
+        {/* Streamlined Resend Email Section */}
+        {error && error.toLowerCase().includes("verify your email") && isLogin && isValidEmail(formData.email) && (
+          <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg animate-slideDown">
+            <p className="text-orange-700 dark:text-orange-300 text-sm mb-2">Please verify your email before logging in</p>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendLoading}
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-800/30 border border-orange-300 dark:border-orange-600 rounded-md hover:bg-orange-200 dark:hover:bg-orange-700/30 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendLoading ? "Sending..." : "Resend Verification Email"}
+            </button>
+            {resendSuccess && (
+              <p className="text-green-600 dark:text-green-400 mt-2 text-xs">{resendSuccess}</p>
             )}
           </div>
         )}
@@ -187,29 +205,39 @@ function IntroPage({ darkMode, toggleTheme }) {
           </div>
 
           {/* Confirm Password Field for Sign Up */}
-          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            !isLogin ? 'max-h-24 opacity-100 mb-4' : 'max-h-0 opacity-0'
-          }`}>
-            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Confirm Password</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required={!isLogin}
-                className="w-full p-3 pr-14 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200 ease-in-out transform focus:scale-105 hover:shadow-md"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-4 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200 ease-in-out transform hover:scale-110"
-              >
-                {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
-              </button>
+          {!isLogin && (
+            <div className="mb-4 animate-slideInRight">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                  className={`w-full p-3 pr-14 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200 ease-in-out transform focus:scale-105 hover:shadow-md ${
+                    formData.confirmPassword && formData.password !== formData.confirmPassword
+                      ? 'border-red-300 dark:border-red-600'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-4 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200 ease-in-out transform hover:scale-110"
+                >
+                  {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+                </button>
+              </div>
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">Passwords do not match</p>
+              )}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                <p className="mt-1 text-sm text-green-600 dark:text-green-400">✓ Passwords match</p>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Submit Button */}
           <button
@@ -238,7 +266,7 @@ function IntroPage({ darkMode, toggleTheme }) {
               <p className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
                 <button
-                  onClick={() => setIsLogin(false)}
+                  onClick={switchToSignup}
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-all duration-200 ease-in-out transform hover:scale-105 hover:underline"
                 >
                   Create one now
@@ -248,7 +276,7 @@ function IntroPage({ darkMode, toggleTheme }) {
               <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}
                 <button
-                  onClick={() => setIsLogin(true)}
+                  onClick={switchToLogin}
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-all duration-200 ease-in-out transform hover:scale-105 hover:underline"
                 >
                   Sign in here
