@@ -115,26 +115,30 @@ class LogoService {
   /**
    * Fetch logo from backend API
    * @param {string} companyName - Company name
-   * @returns {Promise<string>} - Logo URL (internal API URL)
+   * @returns {Promise<string>} - Logo URL (direct image endpoint)
    */
   async fetchLogoFromAPI(companyName) {
-    // First, get the URL from the backend (this triggers caching)
-    const response = await fetch(`${API_BASE_URL}/api/logos/url/${encodeURIComponent(companyName)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      // Return the internal API URL (no tokens exposed)
-      return `${API_BASE_URL}${data.logo_url}`;
-    } else if (response.status === 404) {
-      // Logo not found, return fallback
+    // Use the direct image endpoint (this triggers caching and returns the image)
+    const logoUrl = `${API_BASE_URL}/api/logos/company/${encodeURIComponent(companyName)}`;
+    
+    // Test if the logo exists by making a HEAD request
+    try {
+      const response = await fetch(logoUrl, {
+        method: 'HEAD'
+      });
+      
+      if (response.ok) {
+        // Logo exists, return the direct URL
+        return logoUrl;
+      } else if (response.status === 404) {
+        // Logo not found, return fallback
+        return this.getFallbackLogo(companyName);
+      } else {
+        throw new Error(`Failed to fetch logo: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Error checking logo for ${companyName}:`, error);
       return this.getFallbackLogo(companyName);
-    } else {
-      throw new Error(`Failed to fetch logo: ${response.status}`);
     }
   }
 
