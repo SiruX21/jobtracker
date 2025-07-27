@@ -15,23 +15,27 @@ def verify_email_page():
     
     if "error" in result:
         # In a real app, you might redirect to a frontend page with error message
+        from app.config import Config
+        frontend_url = Config.get_frontend_url()
         return f"""
         <html>
             <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
                 <h2 style="color: #dc2626;">Email Verification Failed</h2>
                 <p>{result["error"]}</p>
-                <a href="http://localhost:3000" style="color: #2563eb;">Go to Login</a>
+                <a href="{frontend_url}" style="color: #2563eb;">Go to Login</a>
             </body>
         </html>
         """, result["code"]
     
     # Success - redirect to frontend with success message
+    from app.config import Config
+    frontend_url = Config.get_frontend_url()
     return f"""
     <html>
         <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
             <h2 style="color: #16a34a;">Email Verified Successfully!</h2>
             <p>Your email has been verified. You can now log in to your account.</p>
-            <a href="http://localhost:3000" style="color: #2563eb; text-decoration: none; background: #2563eb; color: white; padding: 10px 20px; border-radius: 5px;">Go to Login</a>
+            <a href="{frontend_url}" style="color: #2563eb; text-decoration: none; background: #2563eb; color: white; padding: 10px 20px; border-radius: 5px;">Go to Login</a>
         </body>
     </html>
     """

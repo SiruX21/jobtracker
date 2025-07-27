@@ -18,7 +18,9 @@ def format_date(date):
 
 
 def send_verification_email(user_email, token):
-    verification_link = f"http://localhost:5000/verify_email?token={token}"
+    from app.config import Config
+    backend_url = Config.get_backend_url()
+    verification_link = f"{backend_url}/verify_email?token={token}"
     # Logic to send email using an email service
     return verification_link
 
