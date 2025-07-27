@@ -4,12 +4,64 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from './config';
 import Header from './Header';
+import { getLogo } from './services/logoService';
 import { 
   FaUsers, FaBriefcase, FaChartBar, FaCog, FaPlus, FaEdit, FaTrash,
   FaSearch, FaFilter, FaDownload, FaUpload, FaUserShield, FaEye,
   FaCheck, FaTimes, FaExclamationTriangle, FaInfoCircle, FaSync,
   FaDatabase, FaMemory, FaServer, FaCloudDownloadAlt
 } from 'react-icons/fa';
+
+// Component to render company logos with fallback
+const CompanyLogo = ({ companyName, size = "w-10 h-10" }) => {
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const loadLogo = async () => {
+      if (companyName) {
+        try {
+          setLoading(true);
+          const logo = await getLogo(companyName);
+          setLogoUrl(logo);
+        } catch (err) {
+          console.error('Error loading logo:', err);
+          setError(true);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadLogo();
+  }, [companyName]);
+
+  if (loading) {
+    return (
+      <div className={`${size} bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center animate-pulse`}>
+        <FaBriefcase className="w-5 h-5 text-gray-400" />
+      </div>
+    );
+  }
+
+  if (error || !logoUrl) {
+    return (
+      <div className={`${size} bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center`}>
+        <FaBriefcase className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={logoUrl}
+      alt={`${companyName} logo`}
+      className={`${size} rounded-full object-cover border-2 border-gray-200 dark:border-gray-600`}
+      onError={() => setError(true)}
+    />
+  );
+};
 
 function AdminPanel({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
@@ -635,9 +687,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
                       <div key={job.id} className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <div className="flex items-center space-x-3">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                              <FaBriefcase className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
+                            <CompanyLogo companyName={job.company_name} />
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">{job.company_name}</p>
@@ -934,18 +984,23 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     {jobs.map((job) => (
                       <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {job.company_name}
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 mr-3">
+                              <CompanyLogo companyName={job.company_name} size="w-8 h-8" />
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {job.position_title}
-                            </div>
-                            {job.location && (
-                              <div className="text-xs text-gray-400 dark:text-gray-500">
-                                {job.location}
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {job.company_name}
                               </div>
-                            )}
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {job.position_title}
+                              </div>
+                              {job.location && (
+                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                  {job.location}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
