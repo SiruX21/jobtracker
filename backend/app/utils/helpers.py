@@ -1,3 +1,24 @@
+import mariadb
+import functools
+
+def with_db_retry(func):
+    """Decorator to automatically retry database operations on connection failure"""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                return func(*args, **kwargs)
+            except mariadb.Error as e:
+                if attempt < max_retries - 1 and ("server has gone away" in str(e).lower() or 
+                                                  "connection" in str(e).lower() or
+                                                  "lost connection" in str(e).lower()):
+                    print(f"Database connection lost, retrying operation... (attempt {attempt + 1})")
+                    continue
+                raise
+        return func(*args, **kwargs)
+    return wrapper
+
 def generate_token(user_id):
     import jwt
     import datetime

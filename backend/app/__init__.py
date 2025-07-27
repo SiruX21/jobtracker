@@ -2,10 +2,38 @@ from flask import Flask
 from flask_cors import CORS
 import mariadb
 import os
+import threading
+import functools
 from .config import Config, config
 
-db_conn = None
-db_cursor = None
+# Thread-local storage for database connections
+db_local = threading.local()
+
+def db_operation(func):
+    """Decorator to handle database operations with automatic retry on connection failure"""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                return func(*args, **kwargs)
+            except mariadb.Error as e:
+                if attempt < max_retries - 1 and ("server has gone away" in str(e).lower() or 
+                                                  "connection" in str(e).lower()):
+                    print(f"Database connection lost, retrying... (attempt {attempt + 1})")
+                    # Force reconnection on next get_db() call
+                    if hasattr(db_local, 'connection'):
+                        try:
+                            db_local.connection.close()
+                        except:
+                            pass
+                        delattr(db_local, 'connection')
+                    if hasattr(db_local, 'cursor'):
+                        delattr(db_local, 'cursor')
+                    continue
+                raise
+        return func(*args, **kwargs)
+    return wrapper
 
 def create_app():
     app = Flask(__name__)
@@ -44,18 +72,45 @@ def create_app():
     
     return app
 
-def init_db():
-    global db_conn, db_cursor
+def get_db():
+    """Get database connection with automatic reconnection"""
+    if not hasattr(db_local, 'connection') or not hasattr(db_local, 'cursor'):
+        create_db_connection()
+    
+    # Test if connection is still alive
     try:
-        db_conn = mariadb.connect(
+        db_local.cursor.execute("SELECT 1")
+    except (mariadb.Error, AttributeError):
+        # Connection is dead, recreate it
+        create_db_connection()
+    
+    return db_local.connection, db_local.cursor
+
+def create_db_connection():
+    """Create a new database connection for the current thread"""
+    try:
+        db_local.connection = mariadb.connect(
             user=Config.DB_USER,
             password=Config.DB_PASSWORD,
             host=Config.DB_HOST,
             port=Config.DB_PORT,
             database=Config.DB_NAME,
-            autocommit=True
+            autocommit=True,
+            connect_timeout=10,
+            read_timeout=10,
+            write_timeout=10
         )
-        db_cursor = db_conn.cursor(dictionary=True)
+        db_local.cursor = db_local.connection.cursor(dictionary=True)
+        print(f"Database connection created for thread {threading.current_thread().ident}")
+    except mariadb.Error as e:
+        print(f"Error connecting to MariaDB Platform: {e}")
+        raise
+
+def init_db():
+    """Initialize database and create tables"""
+    try:
+        # Create initial connection to set up tables
+        create_db_connection()
         print("Database connection successful")
         
         # Create tables
@@ -66,9 +121,11 @@ def init_db():
         exit(1)
 
 def create_tables():
+    """Create database tables if they don't exist"""
+    conn, cursor = get_db()
     try:
         # Users table with email verification
-        db_cursor.execute("""
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(255) UNIQUE NOT NULL,
@@ -84,7 +141,7 @@ def create_tables():
         print("Users table checked/created successfully.")
 
         # Job applications table
-        db_cursor.execute("""
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS job_applications (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -105,6 +162,3 @@ def create_tables():
     except mariadb.Error as e:
         print(f"Error during table creation: {e}")
         exit(1)
-
-def get_db():
-    return db_conn, db_cursor
