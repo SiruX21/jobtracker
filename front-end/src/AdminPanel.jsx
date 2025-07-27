@@ -4,7 +4,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from './config';
 import Header from './Header';
-import { getLogo } from './services/logoService';
+import { getCompanyLogo } from './services/logoService';
 import { 
   FaUsers, FaBriefcase, FaChartBar, FaCog, FaPlus, FaEdit, FaTrash,
   FaSearch, FaFilter, FaDownload, FaUpload, FaUserShield, FaEye,
@@ -23,7 +23,7 @@ const CompanyLogo = ({ companyName, size = "w-10 h-10" }) => {
       if (companyName) {
         try {
           setLoading(true);
-          const logo = await getLogo(companyName);
+          const logo = await getCompanyLogo(companyName);
           setLogoUrl(logo);
         } catch (err) {
           console.error('Error loading logo:', err);
