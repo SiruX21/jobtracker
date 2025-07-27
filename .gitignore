@@ -7,7 +7,6 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-.docker-compose.yml
 downloads/
 eggs/
 .eggs/
@@ -22,7 +21,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-docker-compose.yml
 # Virtual environments
 .env
 .venv
@@ -240,7 +238,6 @@ public
 # Docker
 .dockerignore
 docker-compose.override.yml
-docker-compose.yml
 
 # OS generated files
 .DS_Store
