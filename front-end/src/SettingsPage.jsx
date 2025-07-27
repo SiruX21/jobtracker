@@ -84,15 +84,21 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const checkAdminStatus = async () => {
     try {
       const token = Cookies.get('authToken');
-      if (!token) return;
+      if (!token) {
+        console.log('No auth token found for admin check');
+        return;
+      }
 
+      console.log('Checking admin status with token:', token.substring(0, 20) + '...');
       const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log('Admin check successful:', response.status);
       // If we get here without an error, user is admin
       setIsAdmin(true);
     } catch (error) {
+      console.log('Admin check failed:', error.response?.status, error.response?.data);
       setIsAdmin(false);
     }
   };
