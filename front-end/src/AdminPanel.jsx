@@ -572,12 +572,12 @@ function AdminPanel({ darkMode, toggleTheme }) {
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Users */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-xl transition-all duration-300 group">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-t-lg group-hover:from-blue-100/70 group-hover:to-indigo-100/70 dark:group-hover:from-blue-900/30 dark:group-hover:to-indigo-900/30 transition-all duration-300">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center group-hover:text-blue-900 dark:group-hover:text-blue-100 transition-colors duration-300">
-                    <FaUsers className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300" />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                    <FaUsers className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
                     Recent Users
-                    <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 group-hover:scale-105 transition-all duration-300">
+                    <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full">
                       {dashboardData.recent_activity.users.length}
                     </span>
                   </h3>
@@ -585,49 +585,48 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <div className="p-6">
                   <div className="space-y-3">
                     {dashboardData.recent_activity.users.map((user) => (
-                      <div key={user.id} className="group relative flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ease-out cursor-pointer backdrop-blur-sm">
-                        {/* Animated background glow effect */}
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/0 to-indigo-400/0 group-hover:from-blue-400/20 group-hover:to-indigo-400/20 transition-all duration-500 ease-out"></div>
-                        
-                        <div className="relative flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-xl flex items-center justify-center group-hover:scale-125 group-hover:rotate-6 group-hover:bg-gradient-to-br group-hover:from-blue-200 group-hover:to-indigo-200 dark:group-hover:from-blue-800/70 dark:group-hover:to-indigo-800/70 transition-all duration-300 ease-out shadow-sm group-hover:shadow-xl">
-                              <FaUsers className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300" />
+                      <div key={user.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-left group cursor-pointer">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                                <FaUsers className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                              </div>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{user.username}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">{user.email}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                                Joined {new Date(user.created_at).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-900 dark:group-hover:text-blue-100 transition-colors duration-300 truncate group-hover:font-bold">{user.username}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 truncate">{user.email}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors duration-300">
-                              Joined {new Date(user.created_at).toLocaleDateString()}
-                            </p>
+                          <div className="flex items-center space-x-2">
+                            {user.role === 'admin' && (
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700 shadow-sm">
+                                <FaUserShield className="w-3 h-3 mr-1.5" />
+                                Admin
+                              </span>
+                            )}
+                            {user.email_verified ? (
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm">
+                                <FaCheck className="w-3 h-3 mr-1.5" />
+                                Verified
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm">
+                                <FaTimes className="w-3 h-3 mr-1.5" />
+                                Unverified
+                              </span>
+                            )}
+                            <button
+                              onClick={() => setSelectedUser(user)}
+                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                            >
+                              <FaEye className="w-3 h-3 mr-1.5" />
+                              View
+                            </button>
                           </div>
-                        </div>
-                        <div className="relative flex items-center space-x-2 opacity-70 group-hover:opacity-100 transition-all duration-300">
-                          {user.role === 'admin' && (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700 shadow-sm group-hover:shadow-lg group-hover:scale-110 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 group-hover:border-red-300 dark:group-hover:border-red-600 transition-all duration-300 animate-pulse group-hover:animate-none">
-                              <FaUserShield className="w-3 h-3 mr-1.5 group-hover:scale-125 transition-transform duration-300" />
-                              Admin
-                            </span>
-                          )}
-                          {user.email_verified ? (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm group-hover:shadow-lg group-hover:scale-110 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 group-hover:border-emerald-300 dark:group-hover:border-emerald-600 transition-all duration-300">
-                              <FaCheck className="w-3 h-3 mr-1.5 group-hover:scale-125 transition-transform duration-300" />
-                              Verified
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm group-hover:shadow-lg group-hover:scale-110 group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 group-hover:border-orange-300 dark:group-hover:border-orange-600 transition-all duration-300 animate-pulse group-hover:animate-bounce">
-                              <FaTimes className="w-3 h-3 mr-1.5 group-hover:scale-125 transition-transform duration-300" />
-                              Unverified
-                            </span>
-                          )}
-                          <button
-                            onClick={() => setSelectedUser(user)}
-                            className="inline-flex items-center px-4 py-2 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-xl text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-xl hover:scale-125 hover:-translate-y-1 hover:border-blue-400 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-300 ease-out transform group-hover:animate-pulse"
-                          >
-                            <FaEye className="w-3 h-3 mr-2 group-hover:scale-125 transition-transform duration-300" />
-                            View
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -636,12 +635,12 @@ function AdminPanel({ darkMode, toggleTheme }) {
               </div>
 
               {/* Recent Jobs */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-xl transition-all duration-300 group">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-t-lg group-hover:from-purple-100/70 group-hover:to-pink-100/70 dark:group-hover:from-purple-900/30 dark:group-hover:to-pink-900/30 transition-all duration-300">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center group-hover:text-purple-900 dark:group-hover:text-purple-100 transition-colors duration-300">
-                    <FaBriefcase className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300 group-hover:scale-110 transition-all duration-300" />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                    <FaBriefcase className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
                     Recent Job Applications
-                    <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 group-hover:scale-105 transition-all duration-300">
+                    <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">
                       {dashboardData.recent_activity.jobs.length}
                     </span>
                   </h3>
@@ -649,52 +648,51 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <div className="p-6">
                   <div className="space-y-3">
                     {dashboardData.recent_activity.jobs.map((job) => (
-                      <div key={job.id} className="group relative flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ease-out cursor-pointer backdrop-blur-sm">
-                        {/* Animated background glow effect */}
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400/0 to-pink-400/0 group-hover:from-purple-400/20 group-hover:to-pink-400/20 transition-all duration-500 ease-out"></div>
-                        
-                        <div className="relative flex items-center space-x-4 min-w-0 flex-1">
-                          <div className="flex-shrink-0">
-                            <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl shadow-md flex items-center justify-center overflow-hidden group-hover:scale-125 group-hover:rotate-6 group-hover:shadow-xl group-hover:bg-purple-50 dark:group-hover:bg-purple-900/30 transition-all duration-300 ease-out">
-                              <img 
-                                src={getCompanyLogoSync(job.company_name)} 
-                                alt={job.company_name}
-                                className="w-8 h-8 object-contain group-hover:scale-125 group-hover:rotate-3 transition-all duration-300"
-                                onError={(e) => {
-                                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`;
-                                }}
-                              />
+                      <div key={job.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 text-left group cursor-pointer">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 min-w-0 flex-1">
+                            <div className="flex-shrink-0">
+                              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors overflow-hidden">
+                                <img 
+                                  src={getCompanyLogoSync(job.company_name)} 
+                                  alt={job.company_name}
+                                  className="w-8 h-8 object-contain"
+                                  onError={(e) => {
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`;
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{job.company_name}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">{job.position_title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                                Applied by <span className="font-medium">{job.username}</span> • {new Date(job.applied_date).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-900 dark:group-hover:text-purple-100 transition-colors duration-300 truncate group-hover:font-bold">{job.company_name}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 truncate">{job.position_title}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors duration-300">
-                              Applied by <span className="font-medium group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">{job.username}</span> • {new Date(job.applied_date).toLocaleDateString()}
-                            </p>
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${
+                              job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
+                                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700' :
+                              job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
+                                'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-700' :
+                              job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 
+                                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' :
+                              job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 
+                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-700' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                            }`}>
+                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                                job.status?.toLowerCase() === 'applied' ? 'bg-blue-500' :
+                                job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 'bg-amber-500' :
+                                job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 'bg-emerald-500' :
+                                job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 'bg-red-500' :
+                                'bg-gray-500'
+                              }`}></div>
+                              {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'Unknown'}
+                            </span>
                           </div>
-                        </div>
-                        <div className="relative flex items-center space-x-2 opacity-70 group-hover:opacity-100 transition-all duration-300">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 ${
-                            job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
-                              'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 group-hover:border-blue-300 dark:group-hover:border-blue-600 animate-pulse group-hover:animate-bounce' :
-                            job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
-                              'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-700 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50 group-hover:border-amber-300 dark:group-hover:border-amber-600 animate-pulse group-hover:animate-bounce' :
-                            job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 
-                              'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 group-hover:border-emerald-300 dark:group-hover:border-emerald-600 animate-pulse group-hover:animate-bounce' :
-                            job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 
-                              'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-700 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 group-hover:border-red-300 dark:group-hover:border-red-600 animate-pulse group-hover:animate-bounce' :
-                              'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-900/50 group-hover:border-gray-300 dark:group-hover:border-gray-600'
-                          }`}>
-                            <div className={`w-2 h-2 rounded-full mr-2 group-hover:scale-150 group-hover:animate-ping transition-all duration-300 ${
-                              job.status?.toLowerCase() === 'applied' ? 'bg-blue-500' :
-                              job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 'bg-amber-500' :
-                              job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 'bg-emerald-500' :
-                              job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 'bg-red-500' :
-                              'bg-gray-500'
-                            }`}></div>
-                            {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'Unknown'}
-                          </span>
                         </div>
                       </div>
                     ))}
