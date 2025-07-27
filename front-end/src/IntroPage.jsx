@@ -181,7 +181,7 @@ function IntroPage({ darkMode, toggleTheme }) {
             </div>
             {resendSuccess && (
               <div className="mt-2 flex items-center space-x-1">
-                <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-3 w-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
                 <p className="text-green-600 dark:text-green-400 text-xs">{resendSuccess}</p>

@@ -23,6 +23,11 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   
+  // Account deletion
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
     localStorage.getItem('developerMode') === 'true'
@@ -135,7 +140,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
     setTimeout(() => setMessage({ text: '', type: '' }), 5000);
   };
 
-  const handlePasswordChange = async (e) => {
+    const handlePasswordChange = async (e) => {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
@@ -151,19 +156,80 @@ function SettingsPage({ darkMode, toggleTheme }) {
     setLoading(true);
     try {
       const authToken = Cookies.get("authToken");
-      await axios.put(`${API_BASE_URL}/auth/change-password`, {
-        currentPassword,
-        newPassword
-      }, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/change-password`,
+        {
+          currentPassword,
+          newPassword
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       
+      showMessage('Password changed successfully', 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      showMessage('Password changed successfully', 'success');
+      
     } catch (error) {
-      showMessage(error.response?.data?.message || 'Failed to change password', 'error');
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      } else {
+        showMessage(error.response?.data?.message || 'Failed to change password', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      showMessage('Please type "DELETE" to confirm account deletion', 'error');
+      return;
+    }
+    
+    if (!deletePassword) {
+      showMessage('Password is required to delete your account', 'error');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.delete(
+        `${API_BASE_URL}/auth/delete-account`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          data: {
+            password: deletePassword
+          }
+        }
+      );
+      
+      showMessage('Account deleted successfully. You will be redirected to the login page.', 'success');
+      
+      // Clear all user data and redirect after a short delay
+      setTimeout(() => {
+        Cookies.remove("authToken");
+        localStorage.clear();
+        navigate("/auth");
+      }, 2000);
+      
+    } catch (error) {
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      } else {
+        showMessage(error.response?.data?.message || 'Failed to delete account', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -378,6 +444,111 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </button>
                       </div>
                     </form>
+                  </div>
+
+                  {/* Account Deletion Section */}
+                  <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center">
+                      <FaExclamationTriangle className="mr-2" />
+                      Danger Zone
+                    </h3>
+                    <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                      Once you delete your account, there is no going back. This action is permanent and will delete all your job applications and data.
+                    </p>
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <FaTrash className="mr-2" />
+                      Delete Account
+                    </button>
+                  </div>
+                )}
+
+                {/* Delete Account Modal */}
+                {showDeleteModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 relative">
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-red-800 dark:text-red-400 flex items-center">
+                          <FaExclamationTriangle className="mr-2" />
+                          Delete Account
+                        </h2>
+                        <button 
+                          onClick={() => {
+                            setShowDeleteModal(false);
+                            setDeletePassword('');
+                            setDeleteConfirmText('');
+                          }} 
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <FaTimes size={24} />
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                          <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                            <strong>This action cannot be undone.</strong>
+                          </p>
+                          <p className="text-sm text-red-600 dark:text-red-400">
+                            This will permanently delete:
+                          </p>
+                          <ul className="text-sm text-red-600 dark:text-red-400 mt-2 list-disc list-inside">
+                            <li>Your account and profile</li>
+                            <li>All your job applications</li>
+                            <li>All your saved data and preferences</li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Type "DELETE" to confirm
+                          </label>
+                          <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="DELETE"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Enter your password to confirm
+                          </label>
+                          <input
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            placeholder="Your password"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-4">
+                          <button
+                            onClick={() => {
+                              setShowDeleteModal(false);
+                              setDeletePassword('');
+                              setDeleteConfirmText('');
+                            }}
+                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleDeleteAccount}
+                            disabled={loading || deleteConfirmText !== 'DELETE' || !deletePassword}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                          >
+                            <FaTrash className="mr-2" />
+                            {loading ? 'Deleting...' : 'Delete Account'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 

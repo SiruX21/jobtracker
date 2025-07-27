@@ -145,6 +145,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const [companySuggestionsList, setCompanySuggestionsList] = useState([]);
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState([]);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [jobTitleSearchTerm, setJobTitleSearchTerm] = useState("");
   const [companyLogoLoading, setCompanyLogoLoading] = useState("");
   const [autoLogos, setAutoLogos] = useState({});
   const [showStatsConfig, setShowStatsConfig] = useState(false);
@@ -211,6 +212,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
     setIsAddModalOpen(false);
     setCurrentStep(1);
     setCompanySearchTerm("");
+    setJobTitleSearchTerm("");
   };
 
   const openEditModal = (job, index) => {
@@ -230,6 +232,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setEditingJob(null);
+    setJobTitleSearchTerm("");
   };
 
   const nextStep = () => {
@@ -378,11 +381,22 @@ function TrackerPage({ darkMode, toggleTheme }) {
   useEffect(() => {
     if (newJob.company_name) {
       const suggestions = getJobTitleSuggestions(newJob.company_name);
-      setJobTitleSuggestions(suggestions.map(title => ({ value: title, label: title })));
+      // Get unique job titles from existing jobs for the same company
+      const existingTitles = [...new Set(jobs
+        .filter(job => job.company_name.toLowerCase() === newJob.company_name.toLowerCase())
+        .map(job => job.job_title)
+        .filter(Boolean)
+      )];
+      
+      // Combine predefined suggestions with user's existing job titles
+      const allTitles = [...new Set([...suggestions, ...existingTitles])];
+      setJobTitleSuggestions(allTitles.map(title => ({ value: title, label: title })));
     } else {
-      setJobTitleSuggestions([]);
+      // Show common job titles from all user's existing jobs
+      const uniqueTitles = [...new Set(jobs.map(job => job.job_title).filter(Boolean))];
+      setJobTitleSuggestions(uniqueTitles.map(title => ({ value: title, label: title })));
     }
-  }, [newJob.company_name]);
+  }, [newJob.company_name, jobs]);
 
   // Auto-load company logo with faster 300ms delay
   useEffect(() => {
@@ -458,6 +472,29 @@ function TrackerPage({ darkMode, toggleTheme }) {
           isLoading: companyLogoLoading === companySearchTerm
         };
         options = [newCompanyOption, ...options];
+      }
+    }
+    
+    return options;
+  };
+
+  // Enhanced job title search with dynamic options
+  const getJobTitleOptions = () => {
+    let options = [...jobTitleSuggestions];
+    
+    // If user is typing and no exact match exists, add option to create new job title
+    if (jobTitleSearchTerm && jobTitleSearchTerm.length > 1) {
+      const exactMatch = options.find(option => 
+        option.label.toLowerCase() === jobTitleSearchTerm.toLowerCase()
+      );
+      
+      if (!exactMatch) {
+        const newJobTitleOption = {
+          value: jobTitleSearchTerm,
+          label: jobTitleSearchTerm,
+          isNew: true
+        };
+        options = [newJobTitleOption, ...options];
       }
     }
     
@@ -1197,9 +1234,15 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         Job Title
                       </label>
                       <Select
-                        options={jobTitleSuggestions}
-                        value={jobTitleSuggestions.find(option => option.value === newJob.job_title)}
-                        onChange={(selectedOption) => setNewJob({ ...newJob, job_title: selectedOption?.value || '' })}
+                        options={getJobTitleOptions()}
+                        value={getJobTitleOptions().find(option => option.value === newJob.job_title)}
+                        onChange={(selectedOption) => {
+                          setNewJob({ ...newJob, job_title: selectedOption?.value || '' });
+                          setJobTitleSearchTerm("");
+                        }}
+                        onInputChange={(inputValue) => {
+                          setJobTitleSearchTerm(inputValue);
+                        }}
                         placeholder="Select or type job title..."
                         isClearable
                         isSearchable
@@ -1211,11 +1254,16 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         menuPortalTarget={document.body}
                         className="react-select-container"
                         classNamePrefix="react-select"
-                        onInputChange={(inputValue) => {
-                          if (inputValue && !jobTitleSuggestions.find(option => option.value === inputValue)) {
-                            setNewJob({ ...newJob, job_title: inputValue });
-                          }
-                        }}
+                        formatOptionLabel={(option) => (
+                          <div className="flex items-center">
+                            <span>{option.label}</span>
+                            {option.isNew && (
+                              <span className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                New
+                              </span>
+                            )}
+                          </div>
+                        )}
                       />
                     </div>
 
@@ -1428,11 +1476,37 @@ function TrackerPage({ darkMode, toggleTheme }) {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Job Title
                       </label>
-                      <input
-                        type="text"
-                        value={newJob.job_title}
-                        onChange={(e) => setNewJob({ ...newJob, job_title: e.target.value })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                      <Select
+                        options={getJobTitleOptions()}
+                        value={getJobTitleOptions().find(option => option.value === newJob.job_title)}
+                        onChange={(selectedOption) => {
+                          setNewJob({ ...newJob, job_title: selectedOption?.value || '' });
+                          setJobTitleSearchTerm("");
+                        }}
+                        onInputChange={(inputValue) => {
+                          setJobTitleSearchTerm(inputValue);
+                        }}
+                        placeholder="Select or type job title..."
+                        isClearable
+                        isSearchable
+                        styles={{
+                          ...customSelectStyles,
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 })
+                        }}
+                        menuPortalTarget={document.body}
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        formatOptionLabel={(option) => (
+                          <div className="flex items-center">
+                            <span>{option.label}</span>
+                            {option.isNew && (
+                              <span className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                New
+                              </span>
+                            )}
+                          </div>
+                        )}
                       />
                     </div>
                   </div>

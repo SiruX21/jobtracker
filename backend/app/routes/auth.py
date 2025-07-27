@@ -301,3 +301,70 @@ def change_password():
     except Exception as e:
         print(f"Unexpected error during password change: {e}")
         return jsonify({"message": "Failed to change password"}), 500
+
+@auth_bp.route('/delete-account', methods=['DELETE', 'OPTIONS'])
+def delete_account():
+    if request.method == 'OPTIONS':
+        response = create_cors_response()
+        return response
+    
+    token = None
+    if 'Authorization' in request.headers:
+        auth_header = request.headers['Authorization']
+        try:
+            token = auth_header.split(" ")[1]
+        except IndexError:
+            return jsonify({"message": "Bearer token malformed"}), 401
+
+    if not token:
+        return jsonify({"message": "Token is missing!"}), 401
+
+    try:
+        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (data['sub'],))
+        current_user = cursor.fetchone()
+        if not current_user:
+            return jsonify({"message": "Token is invalid or user not found"}), 401
+        if not current_user['email_verified']:
+            return jsonify({"message": "Email not verified"}), 403
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token has expired!"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Token is invalid!"}), 401
+    except mariadb.Error as e:
+        print(f"Database error during token verification: {e}")
+        return jsonify({"message": "Could not verify token due to server error"}), 500
+    except Exception as e:
+        print(f"Unexpected error during token verification: {e}")
+        return jsonify({"message": "Could not verify token"}), 500
+    
+    request_data = request.json
+    password = request_data.get("password")
+    
+    if not password:
+        return jsonify({"message": "Password is required to delete account"}), 400
+    
+    try:
+        import bcrypt
+        conn, cursor = get_db()
+        
+        # Verify password
+        if not bcrypt.checkpw(password.encode('utf-8'), current_user['password'].encode('utf-8')):
+            return jsonify({"message": "Password is incorrect"}), 400
+        
+        # Delete user's job applications first (due to foreign key constraint)
+        cursor.execute("DELETE FROM job_applications WHERE user_id = ?", (current_user['id'],))
+        
+        # Delete the user account
+        cursor.execute("DELETE FROM users WHERE id = ?", (current_user['id'],))
+        conn.commit()
+        
+        return jsonify({"message": "Account deleted successfully"}), 200
+        
+    except mariadb.Error as e:
+        print(f"Database error during account deletion: {e}")
+        return jsonify({"message": "Failed to delete account due to server error"}), 500
+    except Exception as e:
+        print(f"Unexpected error during account deletion: {e}")
+        return jsonify({"message": "Failed to delete account"}), 500

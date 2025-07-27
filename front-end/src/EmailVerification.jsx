@@ -9,6 +9,7 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
   const [message, setMessage] = useState('');
+  const [hasVerified, setHasVerified] = useState(false); // Prevent duplicate calls
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -19,8 +20,17 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
       return;
     }
 
+    // Prevent duplicate verification attempts
+    if (hasVerified) {
+      return;
+    }
+
     // Verify the email token
     const verifyEmail = async () => {
+      if (hasVerified) return; // Double check
+      
+      setHasVerified(true); // Mark as attempted
+      
       try {
         const response = await axios.get(`${API_BASE_URL}/auth/verify-email?token=${token}`);
         
@@ -44,7 +54,7 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
     };
 
     verifyEmail();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, hasVerified]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
@@ -87,12 +97,12 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
           {status === 'success' && (
             <div className="text-center space-y-6 animate-fadeIn">
               <div className="relative">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 shadow-lg">
-                  <svg className="h-8 w-8 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 shadow-lg">
+                  <svg className="h-6 w-6 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                   </svg>
                 </div>
-                <div className="absolute -inset-2 bg-green-400/20 rounded-full animate-ping"></div>
+                <div className="absolute -inset-1 bg-green-400/20 rounded-full animate-ping"></div>
               </div>
               
               <div className="space-y-3">
