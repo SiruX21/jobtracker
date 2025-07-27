@@ -16,6 +16,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Profile settings
   const [currentPassword, setCurrentPassword] = useState('');
@@ -64,10 +65,11 @@ function SettingsPage({ darkMode, toggleTheme }) {
     console.log('Auth token found, loading profile'); // Debug log
     setIsAuthenticated(true);
     loadUserProfile();
-    if (developerMode) {
+    checkAdminStatus();
+    if (developerMode && isAdmin) {
       loadDeveloperInfo();
     }
-  }, [navigate, developerMode]);
+  }, [navigate, developerMode, isAdmin]);
 
   const loadUserProfile = async () => {
     try {
@@ -84,6 +86,22 @@ function SettingsPage({ darkMode, toggleTheme }) {
       console.error('Error loading user profile:', error);
       console.error('Error response:', error.response); // Debug log
       showMessage('Failed to load user profile', 'error');
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      const token = Cookies.get('token');
+      if (!token) return;
+
+      const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // If we get here without an error, user is admin
+      setIsAdmin(true);
+    } catch (error) {
+      setIsAdmin(false);
     }
   };
 
@@ -348,7 +366,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                 {[
                   { id: 'profile', name: 'Profile & Security', icon: FaUser },
                   { id: 'preferences', name: 'Preferences', icon: FaCog },
-                  { id: 'developer', name: 'Developer Tools', icon: FaCode }
+                  ...(isAdmin ? [{ id: 'developer', name: 'Developer Tools', icon: FaCode }] : [])
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -633,24 +651,33 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </select>
                       </div>
 
-                      {/* Developer Mode */}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Show technical information and debugging tools</p>
+                      {/* Developer Mode - Admin Only */}
+                      {/* Admin Panel - Admin Only */}
+                      {isAdmin ? (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                          >
+                            <FaCode className="mr-2" />
+                            Open Admin Panel
+                          </button>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={developerMode}
-                            onChange={(e) => handleSettingChange('developerMode', e.target.checked)}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-
-                      {/* Export Data */}
+                      ) : (
+                        <div className="flex items-center justify-between opacity-50">
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Admin access required</p>
+                          </div>
+                          <div className="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed">
+                            Admin Only
+                          </div>
+                        </div>
+                      )}                      {/* Export Data */}
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                           onClick={exportData}
@@ -664,24 +691,44 @@ function SettingsPage({ darkMode, toggleTheme }) {
                   </div>
                 )}
 
-                {/* Developer Tools Tab */}
-                {activeTab === 'developer' && (
+                {/* Developer Tools Tab - Admin Only */}
+                {activeTab === 'developer' && isAdmin && (
                   <div className="p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Developer Tools</h2>
                     
-                    {!developerMode ? (
-                      <div className="text-center py-8">
-                        <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
-                        <button
-                          onClick={() => handleSettingChange('developerMode', true)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                          Enable Developer Mode
-                        </button>
+                    <div className="space-y-6">
+                      {/* Admin Panel Link */}
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium text-red-900 dark:text-red-200">Admin Panel</h3>
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                              Full system administration and management console
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                          >
+                            <FaExternalLinkAlt className="mr-2" />
+                            Open Admin Panel
+                          </button>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="space-y-6">
+
+                      {!developerMode ? (
+                        <div className="text-center py-8">
+                          <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
+                          <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
+                          <button
+                            onClick={() => handleSettingChange('developerMode', true)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          >
+                            Enable Developer Mode
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
                         {/* Cache Information */}
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
@@ -905,8 +952,8 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                        )}
+                    </div>
                   </div>
                 )}
               </div>
