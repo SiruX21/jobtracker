@@ -57,26 +57,36 @@ def admin_required(f):
 def admin_dashboard():
     """Get admin dashboard statistics"""
     try:
+        print("Admin dashboard called - getting database connection")
         conn, cursor = get_db()
+        print("Database connection obtained successfully")
         
         # Get user statistics
+        print("Getting user statistics...")
         cursor.execute("SELECT COUNT(*) as total_users FROM users")
         total_users = cursor.fetchone()['total_users']
+        print(f"Total users: {total_users}")
         
         cursor.execute("SELECT COUNT(*) as verified_users FROM users WHERE email_verified = TRUE")
         verified_users = cursor.fetchone()['verified_users']
+        print(f"Verified users: {verified_users}")
         
         cursor.execute("SELECT COUNT(*) as admin_users FROM users WHERE role = 'admin'")
         admin_users = cursor.fetchone()['admin_users']
+        print(f"Admin users: {admin_users}")
         
         # Get job statistics
+        print("Getting job statistics...")
         cursor.execute("SELECT COUNT(*) as total_jobs FROM job_applications")
         total_jobs = cursor.fetchone()['total_jobs']
+        print(f"Total jobs: {total_jobs}")
         
         cursor.execute("SELECT status, COUNT(*) as count FROM job_applications GROUP BY status")
         job_status_counts = {row['status']: row['count'] for row in cursor.fetchall()}
+        print(f"Job status counts: {job_status_counts}")
         
         # Get recent activity
+        print("Getting recent activity...")
         cursor.execute("""
             SELECT u.username, u.email, u.created_at, u.role, u.email_verified
             FROM users u
@@ -84,6 +94,7 @@ def admin_dashboard():
             LIMIT 10
         """)
         recent_users = cursor.fetchall()
+        print(f"Recent users count: {len(recent_users)}")
         
         cursor.execute("""
             SELECT ja.id, ja.company_name, ja.position_title, ja.status, ja.applied_date, u.username
@@ -93,7 +104,9 @@ def admin_dashboard():
             LIMIT 10
         """)
         recent_jobs = cursor.fetchall()
+        print(f"Recent jobs count: {len(recent_jobs)}")
         
+        print("Preparing response...")
         return jsonify({
             "statistics": {
                 "users": {
@@ -115,6 +128,9 @@ def admin_dashboard():
         
     except Exception as e:
         print(f"Error getting admin dashboard: {e}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": "Failed to load dashboard"}), 500
 
 @admin_bp.route("/admin/users", methods=["GET"])
