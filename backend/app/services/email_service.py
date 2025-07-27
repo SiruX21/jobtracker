@@ -43,12 +43,12 @@ def send_verification_email(user_email, token):
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
-        print("--- Sending Verification Email ---")
-        print(f"SMTP Server: {smtp_server}:{smtp_port}")
-        print(f"SMTP Username: {smtp_username}")
-        print(f"Recipient: {user_email}")
-        print(f"Subject: {subject}")
-        print(f"Body:\n{body}")
+        print("--- Sending Verification Email ---", flush=True)
+        print(f"SMTP Server: {smtp_server}:{smtp_port}", flush=True)
+        print(f"SMTP Username: {smtp_username}", flush=True)
+        print(f"Recipient: {user_email}", flush=True)
+        print(f"Subject: {subject}", flush=True)
+        print(f"Body:\n{body}", flush=True)
 
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
@@ -57,13 +57,13 @@ def send_verification_email(user_email, token):
         server.sendmail(smtp_username, user_email, text)
         server.quit()
 
-        print(f"Verification email sent to {user_email}")
-        print("--- Email Send Complete ---")
+        print(f"Verification email sent to {user_email}", flush=True)
+        print("--- Email Send Complete ---", flush=True)
         return True
 
     except Exception as e:
-        print(f"Failed to send verification email: {e}")
-        print("--- Email Send Failed ---")
+        print(f"Failed to send verification email: {e}", flush=True)
+        print("--- Email Send Failed ---", flush=True)
         return False
 
 def send_password_reset_email(user_email, token):
