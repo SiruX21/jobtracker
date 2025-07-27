@@ -73,7 +73,7 @@ function IntroPage({ darkMode, toggleTheme }) {
         navigate("/track");
       } else {
         // Registration request (email will be used as username)
-        await axios.post(`${config.API_BASE_URL}/register`, {
+        await axios.post(`${config.API_BASE_URL}/auth/register`, {
           username: formData.email, // Use email as username
           password: formData.password
         });
