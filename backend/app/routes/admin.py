@@ -97,10 +97,10 @@ def admin_dashboard():
         print(f"Recent users count: {len(recent_users)}")
         
         cursor.execute("""
-            SELECT ja.id, ja.company_name, ja.position_title, ja.status, ja.applied_date, u.username
+            SELECT ja.id, ja.company_name, ja.job_title as position_title, ja.status, ja.application_date as applied_date, u.username
             FROM job_applications ja
             JOIN users u ON ja.user_id = u.id
-            ORDER BY ja.applied_date DESC
+            ORDER BY ja.application_date DESC
             LIMIT 10
         """)
         recent_jobs = cursor.fetchall()
@@ -200,9 +200,9 @@ def get_user_details(user_id):
         
         # Get user's jobs
         cursor.execute("""
-            SELECT id, company_name, position_title, status, applied_date, location, salary_range
+            SELECT id, company_name, job_title as position_title, status, application_date as applied_date, location
             FROM job_applications WHERE user_id = ?
-            ORDER BY applied_date DESC
+            ORDER BY application_date DESC
         """, (user_id,))
         jobs = cursor.fetchall()
         
@@ -329,7 +329,7 @@ def get_all_jobs():
         params = []
         
         if search:
-            where_clauses.append("(ja.company_name LIKE ? OR ja.position_title LIKE ? OR u.username LIKE ?)")
+            where_clauses.append("(ja.company_name LIKE ? OR ja.job_title LIKE ? OR u.username LIKE ?)")
             params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
         
         if status:
@@ -351,12 +351,12 @@ def get_all_jobs():
         
         # Get jobs
         cursor.execute(f"""
-            SELECT ja.id, ja.company_name, ja.position_title, ja.status, ja.applied_date, 
-                   ja.location, ja.salary_range, u.username, u.email, ja.user_id
+            SELECT ja.id, ja.company_name, ja.job_title as position_title, ja.status, ja.application_date as applied_date, 
+                   ja.location, u.username, u.email, ja.user_id
             FROM job_applications ja
             JOIN users u ON ja.user_id = u.id
             {where_clause}
-            ORDER BY ja.applied_date DESC
+            ORDER BY ja.application_date DESC
             LIMIT ? OFFSET ?
         """, params + [per_page, offset])
         
