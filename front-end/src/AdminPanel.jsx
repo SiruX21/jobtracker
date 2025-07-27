@@ -415,9 +415,6 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <FaUserShield className="mr-3 text-red-600" />
                 Admin Panel
               </h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Manage users, job applications, and system settings
-              </p>
             </div>
             <button
               onClick={() => navigate('/dashboard')}
@@ -524,9 +521,6 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {dashboardData.statistics.users.verified}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                      Click to filter verified users
-                    </p>
                   </div>
                 </div>
               </button>
@@ -567,9 +561,6 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Admin Users</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                       {dashboardData.statistics.users.admins}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                      Click to filter admin users
                     </p>
                   </div>
                 </div>

@@ -18,7 +18,9 @@ def admin_required(f):
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
-                token = auth_header.split(" ")[1]
+                tok@admin_bp.route('/admin/system/environment', methods=['PUT'])
+@admin_required
+def update_environment_variables():= auth_header.split(" ")[1]
             except IndexError:
                 return jsonify({"message": "Bearer token malformed"}), 401
 
@@ -457,9 +459,14 @@ def get_system_info():
         cursor.execute("SHOW TABLE STATUS")
         tables = cursor.fetchall()
         
-        # Logo cache stats
-        from app.services.logo_cache_service import logo_cache
-        cache_stats = logo_cache.get_cache_stats()
+        # Logo cache stats - handle potential Redis connection issues
+        cache_stats = {"error": "Cache service unavailable"}
+        try:
+            from app.services.logo_cache_service import logo_cache
+            cache_stats = logo_cache.get_cache_stats()
+        except Exception as cache_error:
+            print(f"Cache service error: {cache_error}")
+            cache_stats = {"error": f"Cache service error: {str(cache_error)}"}
         
         return jsonify({
             "database": {
@@ -477,7 +484,7 @@ def get_system_info():
         print(f"Error getting system info: {e}")
         return jsonify({"error": "Failed to get system info"}), 500
 
-@admin_bp.route('/system/clear-cache', methods=['POST'])
+@admin_bp.route('/admin/system/clear-cache', methods=['POST'])
 @admin_required
 def clear_system_cache():
     """Clear all system caches"""
@@ -492,7 +499,7 @@ def clear_system_cache():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@admin_bp.route('/system/environment', methods=['GET'])
+@admin_bp.route('/admin/system/environment', methods=['GET'])
 @admin_required
 def get_environment_variables():
     """Get all environment variables (excluding sensitive ones)"""
@@ -521,7 +528,7 @@ def get_environment_variables():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@admin_bp.route('/system/environment', methods=['PUT'])
+@admin_bp.route('/admin/system/environment', methods=['PUT'])
 @admin_required
 def update_environment_variable():
     """Update an environment variable"""
@@ -551,7 +558,7 @@ def update_environment_variable():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@admin_bp.route('/system/environment/<key>', methods=['DELETE'])
+@admin_bp.route('/admin/system/environment/<key>', methods=['DELETE'])
 @admin_required
 def delete_environment_variable(key):
     """Delete an environment variable"""
