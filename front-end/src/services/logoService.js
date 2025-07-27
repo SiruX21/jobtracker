@@ -89,10 +89,10 @@ class LogoService {
           
           // Cache and merge results
           for (const [companyName, logoData] of Object.entries(data.results)) {
-            const logoUrl = logoData.logo_url;
+            const logoUrl = logoData.logo_url ? `${API_BASE_URL}${logoData.logo_url}` : null;
             const cacheKey = this.getCacheKey(companyName);
-            this.cache.set(cacheKey, logoUrl);
-            results[companyName] = logoUrl;
+            this.cache.set(cacheKey, logoUrl || this.getFallbackLogo(companyName));
+            results[companyName] = logoUrl || this.getFallbackLogo(companyName);
           }
         } else {
           throw new Error(`HTTP ${response.status}`);
@@ -115,10 +115,11 @@ class LogoService {
   /**
    * Fetch logo from backend API
    * @param {string} companyName - Company name
-   * @returns {Promise<string>} - Logo URL
+   * @returns {Promise<string>} - Logo URL (internal API URL)
    */
   async fetchLogoFromAPI(companyName) {
-    const response = await fetch(`${API_BASE_URL}/api/logos/company/${encodeURIComponent(companyName)}`, {
+    // First, get the URL from the backend (this triggers caching)
+    const response = await fetch(`${API_BASE_URL}/api/logos/url/${encodeURIComponent(companyName)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +128,8 @@ class LogoService {
 
     if (response.ok) {
       const data = await response.json();
-      return data.logo_url;
+      // Return the internal API URL (no tokens exposed)
+      return `${API_BASE_URL}${data.logo_url}`;
     } else if (response.status === 404) {
       // Logo not found, return fallback
       return this.getFallbackLogo(companyName);
@@ -139,20 +141,15 @@ class LogoService {
   /**
    * Generate fallback logo URL
    * @param {string} companyName - Company name
-   * @returns {string} - Fallback logo URL
+   * @returns {string} - Fallback logo URL (internal API)
    */
   getFallbackLogo(companyName = '') {
     if (!companyName) {
       return '/placeholder-company-logo.png'; // Default placeholder
     }
 
-    // Generate logo.dev URL as fallback
-    const cleanName = companyName.toLowerCase()
-      .replace(/\s+/g, '')
-      .replace(/[^a-z0-9.]/g, '');
-    
-    const domain = cleanName.includes('.') ? cleanName : `${cleanName}.com`;
-    return `https://img.logo.dev/${domain}?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ`;
+    // Return internal API URL (no tokens exposed to client)
+    return `${API_BASE_URL}/api/logos/company/${encodeURIComponent(companyName)}`;
   }
 
   /**
@@ -174,6 +171,126 @@ class LogoService {
       this.cache.delete(cacheKey);
     } else {
       this.cache.clear();
+    }
+  }
+
+  /**
+   * Search for companies with autocomplete
+   * @param {string} query - Search query
+   * @param {number} limit - Maximum number of results
+   * @returns {Promise<Array>} - Array of company suggestions
+   */
+  async searchCompanies(query, limit = 10) {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const cacheKey = `search:${query.toLowerCase()}`;
+    
+    // Check frontend cache first
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/logos/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const results = data.results || [];
+        
+        // Cache the results for 5 minutes
+        this.cache.set(cacheKey, results);
+        setTimeout(() => this.cache.delete(cacheKey), 5 * 60 * 1000);
+        
+        return results;
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error searching companies:', error);
+      
+      // Return fallback suggestions
+      return this.generateFallbackSuggestions(query, limit);
+    }
+  }
+
+  /**
+   * Generate fallback company suggestions when API is unavailable
+   * @param {string} query - Search query
+   * @param {number} limit - Maximum number of results
+   * @returns {Array} - Array of fallback suggestions
+   */
+  generateFallbackSuggestions(query, limit = 10) {
+    const suggestions = [];
+    const queryLower = query.toLowerCase();
+    
+    // Common company patterns
+    const patterns = [
+      { name: query, suffix: '' },
+      { name: query, suffix: ' Inc' },
+      { name: query, suffix: ' Corp' },
+      { name: query, suffix: ' LLC' },
+      { name: query, suffix: ' Technologies' },
+      { name: query, suffix: ' Systems' },
+      { name: query, suffix: ' Solutions' },
+      { name: query, suffix: ' Labs' },
+    ];
+
+    for (let i = 0; i < Math.min(patterns.length, limit); i++) {
+      const pattern = patterns[i];
+      const companyName = pattern.name + pattern.suffix;
+      const domain = queryLower.replace(/\s+/g, '') + '.com';
+      
+      suggestions.push({
+        name: companyName,
+        domain: domain,
+        logo_url: this.getFallbackLogo(companyName),
+        description: `Suggested company matching '${query}'`,
+        industry: 'Unknown',
+        confidence: Math.max(0.9 - (i * 0.1), 0.1),
+        isFallback: true
+      });
+    }
+
+    return suggestions;
+  }
+
+  /**
+   * Get enhanced company suggestions for autocomplete
+   * @param {string} query - Search query
+   * @returns {Promise<Array>} - Array of formatted suggestions for react-select
+   */
+  async getCompanySuggestions(query) {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    try {
+      const results = await this.searchCompanies(query, 8);
+      
+      return results.map(company => ({
+        value: company.name,
+        label: company.name,
+        logo: company.logo_url,
+        domain: company.domain,
+        description: company.description,
+        industry: company.industry,
+        confidence: company.confidence,
+        isFallback: company.isFallback || false,
+        isNew: false
+      }));
+    } catch (error) {
+      console.error('Error getting company suggestions:', error);
+      return [];
     }
   }
 

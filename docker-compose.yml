@@ -53,6 +53,7 @@ services:
       DB_NAME: ${DB_NAME}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      LOGO_DEV_API_TOKEN: ${LOGO_DEV_API_TOKEN}
       MAIL_SERVER: ${MAIL_SERVER}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USE_TLS: ${MAIL_USE_TLS}
@@ -74,6 +75,7 @@ services:
       VITE_API_URL: ${VITE_API_URL}
       VITE_APP_NAME: ${VITE_APP_NAME}
       VITE_VERSION: ${VITE_VERSION}
+      VITE_LOGO_DEV_API_TOKEN: ${LOGO_DEV_API_TOKEN}
 
 volumes:
   mariadb_data:

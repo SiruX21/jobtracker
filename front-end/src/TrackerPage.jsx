@@ -94,6 +94,85 @@ const cacheUtils = {
   }
 };
 
+// Custom option component for company autocomplete
+const CompanyOption = ({ data, innerRef, innerProps, isFocused, isSelected }) => {
+  return (
+    <div
+      ref={innerRef}
+      {...innerProps}
+      className={`flex items-center p-3 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0 ${
+        isFocused ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'
+      } ${isSelected ? 'bg-blue-100 dark:bg-blue-800/30' : ''}`}
+    >
+      {/* Company Logo */}
+      <div className="flex-shrink-0 w-8 h-8 mr-3">
+        <img
+          src={data.logo || logoService.getFallbackLogo(data.label)}
+          alt={data.label}
+          className="w-full h-full object-contain rounded"
+          onError={(e) => {
+            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.label)}&background=3b82f6&color=ffffff&size=32&bold=true`;
+          }}
+        />
+      </div>
+      
+      {/* Company Info */}
+      <div className="flex-grow min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+            {data.label}
+          </span>
+          
+          {/* Badges */}
+          {data.isNew && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+              New
+            </span>
+          )}
+          
+          {data.isAutocomplete && !data.isFallback && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+              Suggested
+            </span>
+          )}
+          
+          {data.isLoading && (
+            <FaSpinner className="animate-spin text-blue-500" size={12} />
+          )}
+        </div>
+        
+        {/* Description and Domain */}
+        {(data.description || data.domain) && (
+          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {data.domain && (
+              <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded mr-2">
+                {data.domain}
+              </span>
+            )}
+            {data.description && data.description !== `Suggested company matching '${data.label}'` && (
+              <span className="truncate">{data.description}</span>
+            )}
+          </div>
+        )}
+        
+        {/* Industry and Confidence */}
+        {(data.industry || data.confidence) && (
+          <div className="mt-1 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+            {data.industry && data.industry !== 'Unknown' && (
+              <span>{data.industry}</span>
+            )}
+            {data.confidence && data.confidence < 1 && (
+              <span className="ml-auto">
+                {Math.round(data.confidence * 100)}% match
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const statuses = {
   applied: "bg-blue-500",
   reviewing: "bg-yellow-500",
@@ -149,6 +228,8 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const [jobTitleSearchTerm, setJobTitleSearchTerm] = useState("");
   const [companyLogoLoading, setCompanyLogoLoading] = useState("");
   const [autoLogos, setAutoLogos] = useState({});
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [showStatsConfig, setShowStatsConfig] = useState(false);
   const [selectedStats, setSelectedStats] = useState(() => {
     const saved = localStorage.getItem('selectedStats');
@@ -434,6 +515,33 @@ function TrackerPage({ darkMode, toggleTheme }) {
     }
   }, [companySearchTerm]);
 
+  // Auto-complete company search
+  useEffect(() => {
+    if (companySearchTerm && companySearchTerm.length >= 2) {
+      setSearchLoading(true);
+      
+      const searchTimer = setTimeout(async () => {
+        try {
+          const suggestions = await logoService.getCompanySuggestions(companySearchTerm);
+          setAutocompleteSuggestions(suggestions);
+        } catch (error) {
+          console.error('Error fetching autocomplete suggestions:', error);
+          setAutocompleteSuggestions([]);
+        } finally {
+          setSearchLoading(false);
+        }
+      }, 300);
+
+      return () => {
+        clearTimeout(searchTimer);
+        setSearchLoading(false);
+      };
+    } else {
+      setAutocompleteSuggestions([]);
+      setSearchLoading(false);
+    }
+  }, [companySearchTerm]);
+
   // Prepare company options for react-select with dynamic search
   useEffect(() => {
     // Get unique companies from existing jobs
@@ -467,6 +575,15 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const getCompanyOptions = () => {
     let options = [...companySuggestionsList];
     
+    // Add autocomplete suggestions
+    if (autocompleteSuggestions.length > 0) {
+      const autocompleteOptions = autocompleteSuggestions.map(suggestion => ({
+        ...suggestion,
+        isAutocomplete: true
+      }));
+      options = [...autocompleteOptions, ...options];
+    }
+    
     // If user is typing and no exact match exists, add option to create new company
     if (companySearchTerm && companySearchTerm.length > 1) {
       const exactMatch = options.find(option => 
@@ -486,7 +603,12 @@ function TrackerPage({ darkMode, toggleTheme }) {
       }
     }
     
-    return options;
+    // Remove duplicates based on company name
+    const uniqueOptions = options.filter((option, index, self) => 
+      index === self.findIndex(o => o.label.toLowerCase() === option.label.toLowerCase())
+    );
+    
+    return uniqueOptions;
   };
 
   // Enhanced job title search with dynamic options
@@ -1214,13 +1336,29 @@ function TrackerPage({ darkMode, toggleTheme }) {
                             setNewJob({ ...newJob, company_name: inputValue });
                           }
                         }}
-                        placeholder="Start typing company name..."
+                        placeholder={searchLoading ? "Searching companies..." : "Start typing company name..."}
                         isClearable
                         isSearchable
+                        isLoading={searchLoading}
+                        components={{
+                          Option: CompanyOption,
+                          LoadingMessage: () => (
+                            <div className="flex items-center justify-center p-4 text-gray-500">
+                              <FaSpinner className="animate-spin mr-2" />
+                              Searching companies...
+                            </div>
+                          ),
+                          NoOptionsMessage: ({ inputValue }) => (
+                            <div className="p-4 text-center text-gray-500">
+                              {inputValue ? `No companies found for "${inputValue}"` : "Start typing to search companies"}
+                            </div>
+                          )
+                        }}
                         styles={{
                           ...customSelectStyles,
                           menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 })
+                          menu: (base) => ({ ...base, zIndex: 9999, padding: 0 }),
+                          menuList: (base) => ({ ...base, padding: 0 })
                         }}
                         menuPortalTarget={document.body}
                         className="react-select-container"

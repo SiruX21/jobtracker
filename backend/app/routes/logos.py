@@ -1,21 +1,25 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from app.services.logo_cache_service import logo_cache
 
 logos_bp = Blueprint('logos', __name__)
 
 @logos_bp.route("/logos/company/<company_name>", methods=["GET"])
 def get_company_logo(company_name):
-    """Get cached company logo URL"""
+    """Get cached company logo image"""
     try:
-        logo_url = logo_cache.get_logo_url(company_name)
+        image_data, content_type = logo_cache.get_logo_data(company_name)
         
-        if logo_url:
-            return jsonify({
-                "company_name": company_name,
-                "logo_url": logo_url,
-                "cached": True
-            })
+        if image_data:
+            return Response(
+                image_data,
+                mimetype=content_type,
+                headers={
+                    'Cache-Control': 'public, max-age=86400',  # Cache for 1 day
+                    'Content-Disposition': f'inline; filename="{company_name}_logo"'
+                }
+            )
         else:
+            # Return a placeholder or 404
             return jsonify({
                 "error": "Logo not found",
                 "company_name": company_name
@@ -28,9 +32,67 @@ def get_company_logo(company_name):
             "company_name": company_name
         }), 500
 
+@logos_bp.route("/logos/url/<company_name>", methods=["GET"])
+def get_company_logo_url(company_name):
+    """Get company logo URL for API responses (returns internal URL)"""
+    try:
+        # Check if we have the image cached
+        image_data, content_type = logo_cache.get_logo_data(company_name)
+        
+        if image_data:
+            # Return our internal URL (no API token exposed)
+            logo_url = f"/api/logos/company/{company_name}"
+            return jsonify({
+                "company_name": company_name,
+                "logo_url": logo_url,
+                "cached": True,
+                "content_type": content_type
+            })
+        else:
+            return jsonify({
+                "error": "Logo not found",
+                "company_name": company_name
+            }), 404
+            
+    except Exception as e:
+        print(f"Error getting logo URL for {company_name}: {e}")
+        return jsonify({
+            "error": "Failed to get company logo URL",
+            "company_name": company_name
+        }), 500
+
+@logos_bp.route("/logos/search", methods=["GET"])
+def search_companies():
+    """Search for companies with autocomplete"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 10))
+        
+        if not query or len(query) < 2:
+            return jsonify({
+                "results": [],
+                "query": query,
+                "message": "Query must be at least 2 characters"
+            })
+        
+        results = logo_cache.search_companies(query, limit)
+        
+        return jsonify({
+            "results": results,
+            "query": query,
+            "count": len(results)
+        })
+        
+    except Exception as e:
+        print(f"Error searching companies: {e}")
+        return jsonify({
+            "error": "Failed to search companies",
+            "query": request.args.get('q', '')
+        }), 500
+
 @logos_bp.route("/logos/batch", methods=["POST"])
 def get_batch_logos():
-    """Get multiple company logos in one request"""
+    """Get multiple company logo URLs in one request"""
     try:
         data = request.get_json()
         company_names = data.get('companies', [])
@@ -40,11 +102,21 @@ def get_batch_logos():
         
         results = {}
         for company_name in company_names:
-            logo_url = logo_cache.get_logo_url(company_name)
-            results[company_name] = {
-                "logo_url": logo_url,
-                "cached": True
-            }
+            # Pre-cache the image (async download)
+            image_data, content_type = logo_cache.get_logo_data(company_name)
+            
+            if image_data:
+                results[company_name] = {
+                    "logo_url": f"/api/logos/company/{company_name}",
+                    "content_type": content_type,
+                    "cached": True
+                }
+            else:
+                results[company_name] = {
+                    "logo_url": None,
+                    "cached": False,
+                    "error": "Logo not found"
+                }
         
         return jsonify({
             "results": results,
@@ -55,16 +127,57 @@ def get_batch_logos():
         print(f"Error getting batch logos: {e}")
         return jsonify({"error": "Failed to get batch logos"}), 500
 
+@logos_bp.route("/logos/search", methods=["GET"])
+def search_companies():
+    """Search for companies with autocomplete"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 10))
+        
+        if not query or len(query) < 2:
+            return jsonify({
+                "results": [],
+                "query": query,
+                "message": "Query must be at least 2 characters"
+            })
+        
+        # For now, return a simple search using logo.dev API
+        search_result = logo_cache.search_logo_dev_api(query)
+        results = []
+        
+        if search_result:
+            results.append({
+                "name": search_result.get('company_name', query),
+                "domain": search_result.get('domain', ''),
+                "logo_url": f"/api/logos/company/{query}",
+                "score": search_result.get('confidence', 0.8)
+            })
+        
+        return jsonify({
+            "results": results,
+            "query": query,
+            "count": len(results)
+        })
+        
+    except Exception as e:
+        print(f"Error searching companies: {e}")
+        return jsonify({
+            "error": "Failed to search companies",
+            "query": request.args.get('q', '')
+        }), 500
+
 @logos_bp.route("/logos/validate/<company_name>", methods=["GET"])
 def validate_company_logo(company_name):
-    """Get and validate company logo URL"""
+    """Get and validate company logo"""
     try:
-        logo_url = logo_cache.get_logo_with_validation(company_name)
+        image_data, content_type = logo_cache.get_logo_data(company_name)
         
         return jsonify({
             "company_name": company_name,
-            "logo_url": logo_url,
-            "validated": True
+            "logo_url": f"/api/logos/company/{company_name}" if image_data else None,
+            "content_type": content_type,
+            "validated": image_data is not None,
+            "cached": image_data is not None
         })
         
     except Exception as e:

@@ -1,38 +1,47 @@
+import { API_BASE_URL } from '../config';
+
+// Helper function to generate logo URL using internal API (no token exposure)
+const getLogoUrl = (domain) => {
+  // Extract company name from domain (remove .com, etc.)
+  const companyName = domain.replace(/\.(com|org|net|io|co)$/i, '');
+  return `${API_BASE_URL}/api/logos/company/${encodeURIComponent(companyName)}`;
+};
+
 const companySuggestions = [
   // FAANG+ Companies
   {
     name: "Google",
-    logo: "https://img.logo.dev/google.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("google.com"),
     website: "google.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "Site Reliability Engineer"]
   },
   {
     name: "Microsoft",
-    logo: "https://img.logo.dev/microsoft.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("microsoft.com"),
     website: "microsoft.com",
     commonTitles: ["Software Engineer", "Program Manager", "Product Manager", "Data Engineer", "Cloud Solutions Architect"]
   },
   {
     name: "Amazon",
-    logo: "https://img.logo.dev/amazon.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("amazon.com"),
     website: "amazon.com",
     commonTitles: ["Software Development Engineer", "Product Manager", "Data Scientist", "Solutions Architect", "Business Analyst"]
   },
   {
     name: "Meta",
-    logo: "https://img.logo.dev/meta.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("meta.com"),
     website: "meta.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Research Scientist", "UX Researcher"]
   },
   {
     name: "Apple",
-    logo: "https://img.logo.dev/apple.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("apple.com"),
     website: "apple.com",
     commonTitles: ["Software Engineer", "Product Manager", "Hardware Engineer", "iOS Developer", "Machine Learning Engineer"]
   },
   {
     name: "Netflix",
-    logo: "https://img.logo.dev/netflix.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("netflix.com"),
     website: "netflix.com",
     commonTitles: ["Software Engineer", "Data Engineer", "Product Manager", "Content Strategy Manager", "DevOps Engineer"]
   },
@@ -40,43 +49,43 @@ const companySuggestions = [
   // Other Tech Giants
   {
     name: "Tesla",
-    logo: "https://img.logo.dev/tesla.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("tesla.com"),
     website: "tesla.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Manufacturing Engineer", "Data Scientist", "Firmware Engineer"]
   },
   {
     name: "Adobe",
-    logo: "https://img.logo.dev/adobe.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("adobe.com"),
     website: "adobe.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Creative Technologist", "Marketing Manager"]
   },
   {
     name: "Salesforce",
-    logo: "https://img.logo.dev/salesforce.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("salesforce.com"),
     website: "salesforce.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Customer Success Manager", "Technical Writer"]
   },
   {
     name: "Oracle",
-    logo: "https://img.logo.dev/oracle.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("oracle.com"),
     website: "oracle.com",
     commonTitles: ["Software Engineer", "Database Administrator", "Solutions Consultant", "Cloud Architect", "Product Manager"]
   },
   {
     name: "IBM",
-    logo: "https://img.logo.dev/ibm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("ibm.com"),
     website: "ibm.com",
     commonTitles: ["Software Engineer", "Data Scientist", "Cloud Architect", "AI Researcher", "Consultant"]
   },
   {
     name: "Intel",
-    logo: "https://img.logo.dev/intel.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("intel.com"),
     website: "intel.com",
     commonTitles: ["Hardware Engineer", "Software Engineer", "Validation Engineer", "Product Manager", "Research Scientist"]
   },
   {
     name: "NVIDIA",
-    logo: "https://img.logo.dev/nvidia.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("nvidia.com"),
     website: "nvidia.com",
     commonTitles: ["Software Engineer", "Hardware Engineer", "AI Researcher", "Product Manager", "DevTech Engineer"]
   },
@@ -84,25 +93,25 @@ const companySuggestions = [
   // Social Media & Communication
   {
     name: "Twitter",
-    logo: "https://img.logo.dev/twitter.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("twitter.com"),
     website: "twitter.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Moderator", "Site Reliability Engineer"]
   },
   {
     name: "LinkedIn",
-    logo: "https://img.logo.dev/linkedin.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("linkedin.com"),
     website: "linkedin.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Talent Acquisition", "Marketing Manager"]
   },
   {
     name: "Slack",
-    logo: "https://img.logo.dev/slack.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("slack.com"),
     website: "slack.com",
     commonTitles: ["Software Engineer", "Product Manager", "Customer Success Manager", "UX Designer", "Developer Advocate"]
   },
   {
     name: "Discord",
-    logo: "https://img.logo.dev/discord.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("discord.com"),
     website: "discord.com",
     commonTitles: ["Software Engineer", "Product Manager", "Community Manager", "Data Scientist", "Security Engineer"]
   },
@@ -116,25 +125,25 @@ const companySuggestions = [
   // Ride-sharing & Travel
   {
     name: "Uber",
-    logo: "https://img.logo.dev/uber.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("uber.com"),
     website: "uber.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Operations Manager", "Growth Marketing Manager"]
   },
   {
     name: "Lyft",
-    logo: "https://img.logo.dev/lyft.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("lyft.com"),
     website: "lyft.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Operations Manager", "Marketing Manager"]
   },
   {
     name: "Airbnb",
-    logo: "https://img.logo.dev/airbnb.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("airbnb.com"),
     website: "airbnb.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "Community Manager"]
   },
   {
     name: "Booking.com",
-    logo: "https://img.logo.dev/booking.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("booking.com"),
     website: "booking.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Analyst", "UX Designer", "Marketing Manager"]
   },
@@ -142,19 +151,19 @@ const companySuggestions = [
   // Entertainment & Media
   {
     name: "Spotify",
-    logo: "https://img.logo.dev/spotify.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("spotify.com"),
     website: "spotify.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Music Editor", "Backend Engineer"]
   },
   {
     name: "TikTok",
-    logo: "https://img.logo.dev/tiktok.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("tiktok.com"),
     website: "tiktok.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Moderator", "Algorithm Engineer"]
   },
   {
     name: "YouTube",
-    logo: "https://img.logo.dev/youtube.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("youtube.com"),
     website: "youtube.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Manager", "Creator Success Manager"]
   },
@@ -162,31 +171,31 @@ const companySuggestions = [
   // E-commerce & Fintech
   {
     name: "Shopify",
-    logo: "https://img.logo.dev/shopify.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("shopify.com"),
     website: "shopify.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Merchant Success Manager", "Data Analyst"]
   },
   {
     name: "Square",
-    logo: "https://img.logo.dev/squareup.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("squareup.com"),
     website: "squareup.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Risk Analyst", "Sales Engineer"]
   },
   {
     name: "PayPal",
-    logo: "https://img.logo.dev/paypal.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("paypal.com"),
     website: "paypal.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Risk Analyst", "Compliance Officer"]
   },
   {
     name: "Stripe",
-    logo: "https://img.logo.dev/stripe.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("stripe.com"),
     website: "stripe.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Developer Relations", "Risk Operations"]
   },
   {
     name: "Coinbase",
-    logo: "https://img.logo.dev/coinbase.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("coinbase.com"),
     website: "coinbase.com",
     commonTitles: ["Software Engineer", "Product Manager", "Compliance Officer", "Security Engineer", "Quantitative Researcher"]
   },
@@ -194,25 +203,25 @@ const companySuggestions = [
   // Gaming
   {
     name: "Activision Blizzard",
-    logo: "https://img.logo.dev/activisionblizzard.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("activisionblizzard.com"),
     website: "activisionblizzard.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "QA Engineer"]
   },
   {
     name: "Electronic Arts",
-    logo: "https://img.logo.dev/ea.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("ea.com"),
     website: "ea.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "Data Analyst"]
   },
   {
     name: "Epic Games",
-    logo: "https://img.logo.dev/epicgames.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("epicgames.com"),
     website: "epicgames.com",
     commonTitles: ["Game Developer", "Software Engineer", "Technical Artist", "Product Manager", "DevOps Engineer"]
   },
   {
     name: "Riot Games",
-    logo: "https://img.logo.dev/riotgames.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("riotgames.com"),
     website: "riotgames.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "Data Scientist"]
   },
@@ -220,25 +229,25 @@ const companySuggestions = [
   // Cloud & Infrastructure
   {
     name: "Snowflake",
-    logo: "https://img.logo.dev/snowflake.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("snowflake.com"),
     website: "snowflake.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Data Engineer", "Customer Success Engineer"]
   },
   {
     name: "MongoDB",
-    logo: "https://img.logo.dev/mongodb.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("mongodb.com"),
     website: "mongodb.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Technical Writer", "Developer Advocate"]
   },
   {
     name: "Redis",
-    logo: "https://img.logo.dev/redis.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("redis.com"),
     website: "redis.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Developer Relations", "Technical Writer"]
   },
   {
     name: "Databricks",
-    logo: "https://img.logo.dev/databricks.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("databricks.com"),
     website: "databricks.com",
     commonTitles: ["Software Engineer", "Data Engineer", "Product Manager", "Solutions Architect", "Field Engineer"]
   },
@@ -246,13 +255,13 @@ const companySuggestions = [
   // Startups & Unicorns
   {
     name: "Canva",
-    logo: "https://img.logo.dev/canva.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("canva.com"),
     website: "canva.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Marketing Manager", "Data Scientist"]
   },
   {
     name: "Figma",
-    logo: "https://img.logo.dev/figma.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("figma.com"),
     website: "figma.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Developer Relations", "Customer Success"]
   },
@@ -264,7 +273,7 @@ const companySuggestions = [
   },
   {
     name: "Airtable",
-    logo: "https://img.logo.dev/airtable.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("airtable.com"),
     website: "airtable.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Customer Success Manager", "Data Analyst"]
   },
@@ -272,25 +281,25 @@ const companySuggestions = [
   // Consulting & Traditional Tech
   {
     name: "Deloitte",
-    logo: "https://img.logo.dev/deloitte.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("deloitte.com"),
     website: "deloitte.com",
     commonTitles: ["Consultant", "Senior Consultant", "Manager", "Technology Analyst", "Business Analyst"]
   },
   {
     name: "Accenture",
-    logo: "https://img.logo.dev/accenture.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("accenture.com"),
     website: "accenture.com",
     commonTitles: ["Consultant", "Technology Analyst", "Software Engineer", "Solution Architect", "Project Manager"]
   },
   {
     name: "McKinsey & Company",
-    logo: "https://img.logo.dev/mckinsey.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("mckinsey.com"),
     website: "mckinsey.com",
     commonTitles: ["Business Analyst", "Associate", "Engagement Manager", "Partner", "Specialist"]
   },
   {
     name: "Boston Consulting Group",
-    logo: "https://img.logo.dev/bcg.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("bcg.com"),
     website: "bcg.com",
     commonTitles: ["Consultant", "Project Leader", "Principal", "Partner", "Knowledge Analyst"]
   },
@@ -298,19 +307,19 @@ const companySuggestions = [
   // Automotive
   {
     name: "Ford",
-    logo: "https://img.logo.dev/ford.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("ford.com"),
     website: "ford.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "Data Scientist", "Autonomous Vehicle Engineer"]
   },
   {
     name: "General Motors",
-    logo: "https://img.logo.dev/gm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("gm.com"),
     website: "gm.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "Electrical Engineer", "Manufacturing Engineer"]
   },
   {
     name: "BMW",
-    logo: "https://img.logo.dev/bmw.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
+    logo: getLogoUrl("bmw.com"),
     website: "bmw.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "UX Designer", "Innovation Manager"]
   }
@@ -339,8 +348,13 @@ export const getCompanyLogoSync = (companyName) => {
   const company = getCompanyByName(companyName);
   if (company) return company.logo;
   
-  // Return fallback for immediate use
-  return logoService.getFallbackLogo(companyName);
+  // Return fallback for immediate use with environment variable
+  const token = import.meta.env.VITE_LOGO_DEV_API_TOKEN || 'pk_X-1ZO13GSgeOoUrIuJ6GMQ';
+  const cleanName = companyName.toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9.]/g, '');
+  const domain = cleanName.includes('.') ? cleanName : `${cleanName}.com`;
+  return `https://img.logo.dev/${domain}?token=${token}`;
 };
 
 // Helper function to get job title suggestions for a company
