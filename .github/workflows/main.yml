@@ -1,18 +1,54 @@
 name: Deploy App
+
 on:
   push:
     branches:
       - main
       - release/*
+
 jobs:
   deploy:
     runs-on: self-hosted
+    environment: Jobtracker
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Pull latest changes
         run: git pull
+
+      - name: Create .env file from GitHub secrets
+        run: |
+          cat <<EOF > .env
+          ENVIRONMENT=${{ vars.ENVIRONMENT }}
+          DEBUG=${{ vars.DEBUG }}
+          FRONTEND_URL=${{ vars.FRONTEND_URL }}
+          BACKEND_URL=${{ vars.BACKEND_URL }}
+          DOMAIN=${{ vars.DOMAIN }}
+          FRONTEND_DOMAIN=${{ vars.FRONTEND_DOMAIN }}
+          BACKEND_DOMAIN=${{ vars.BACKEND_DOMAIN }}
+          CORS_ORIGINS=${{ vars.CORS_ORIGINS }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          DB_HOST=${{ vars.DB_HOST }}
+          DB_PORT=${{ vars.DB_PORT }}
+          DB_USER=${{ vars.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=${{ vars.DB_NAME }}
+          MAIL_SERVER=${{ vars.MAIL_SERVER }}
+          MAIL_PORT=${{ vars.MAIL_PORT }}
+          MAIL_USE_TLS=${{ vars.MAIL_USE_TLS }}
+          MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_DEFAULT_SENDER=${{ vars.MAIL_DEFAULT_SENDER }}
+          VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
+          VITE_API_URL=${{ vars.VITE_API_URL }}
+          VITE_APP_NAME=${{ vars.VITE_APP_NAME }}
+          VITE_VERSION=${{ vars.VITE_VERSION }}
+          EOF
+
       - name: Shut down current containers
-        run: docker-compose down || true
+        run: docker-compose --env-file .env down || true
+
       - name: Build and start containers
-        run: docker-compose up -d --build
+        run: docker-compose --env-file .env up -d --build
