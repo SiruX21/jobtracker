@@ -104,7 +104,7 @@ function IntroPage({ darkMode, toggleTheme }) {
           password: formData.password
         });
         Cookies.set("authToken", response.data.token, { expires: 1 });
-        navigate("/track");
+        navigate("/tracker");
       } else {
         // Registration request (email will be used as username)
         await axios.post(`${config.API_BASE_URL}/auth/register`, {
@@ -141,26 +141,51 @@ function IntroPage({ darkMode, toggleTheme }) {
         </div>
 
         {/* Error Message with Slide Down Animation */}
-        {error && (
+        {error && !error.toLowerCase().includes("verify your email") && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg animate-slideDown">
             <p className="text-sm">{error}</p>
           </div>
         )}
 
-        {/* Streamlined Resend Email Section */}
+        {/* Success Message for Registration */}
+        {error && error.toLowerCase().includes("registration successful") && (
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 rounded-lg animate-slideDown">
+            <div className="flex items-center space-x-2">
+              <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <p className="text-sm font-medium">Registration Successful!</p>
+            </div>
+            <p className="text-sm mt-1">Please check your email for verification instructions.</p>
+          </div>
+        )}
+
+        {/* Clean Email Verification Section */}
         {error && error.toLowerCase().includes("verify your email") && isLogin && isValidEmail(formData.email) && (
-          <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg animate-slideDown">
-            <p className="text-orange-700 dark:text-orange-300 text-sm mb-2">Please verify your email before logging in</p>
-            <button
-              type="button"
-              onClick={handleResendVerification}
-              disabled={resendLoading}
-              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-800/30 border border-orange-300 dark:border-orange-600 rounded-md hover:bg-orange-200 dark:hover:bg-orange-700/30 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {resendLoading ? "Sending..." : "Resend Verification Email"}
-            </button>
+          <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg animate-slideDown">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <p className="text-orange-700 dark:text-orange-300 text-sm font-medium">Email verification required</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-800/30 border border-orange-300 dark:border-orange-600 rounded-md hover:bg-orange-200 dark:hover:bg-orange-700/30 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendLoading ? "Sending..." : "Resend"}
+              </button>
+            </div>
             {resendSuccess && (
-              <p className="text-green-600 dark:text-green-400 mt-2 text-xs">{resendSuccess}</p>
+              <div className="mt-2 flex items-center space-x-1">
+                <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <p className="text-green-600 dark:text-green-400 text-xs">{resendSuccess}</p>
+              </div>
             )}
           </div>
         )}
@@ -248,6 +273,19 @@ function IntroPage({ darkMode, toggleTheme }) {
               {isLogin ? "Sign In" : "Create Account"}
             </span>
           </button>
+
+          {/* Forgot Password Button - Only show for login */}
+          {isLogin && (
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 underline hover:no-underline"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
         </form>
 
         {/* Toggle Section with Fade Animation */}

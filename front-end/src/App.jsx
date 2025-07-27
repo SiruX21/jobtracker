@@ -1,11 +1,13 @@
 import React, { useState } from "react"; // Import useState here
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./Header";
 import HomePage from "./HomePage";
 import IntroPage from "./IntroPage";
 import TrackerPage from "./TrackerPage";
 import SettingsPage from "./SettingsPage";
 import EmailVerification from "./EmailVerification";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -49,12 +51,24 @@ function App() {
             element={<TrackerPage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
+            path="/track"
+            element={<Navigate to="/tracker" replace />}
+          />
+          <Route
             path="/settings"
             element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/verify-email"
             element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/reset-password"
+            element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
         </Routes>
       </div>
