@@ -8,7 +8,7 @@ import {
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
-  FaSync, FaClock, FaMemory, FaHdd, FaImage, FaExternalLinkAlt
+  FaSync, FaClock, FaMemory, FaHdd
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme }) {
@@ -24,11 +24,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   
-  // Account deletion
-  const [deletePassword, setDeletePassword] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
     localStorage.getItem('developerMode') === 'true'
@@ -41,9 +36,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
   );
   const [dataRetention, setDataRetention] = useState(() => 
     localStorage.getItem('dataRetention') || '30'
-  );
-  const [logoService, setLogoService] = useState(() => 
-    localStorage.getItem('logoService') || 'auto'
   );
   
   // Developer info
@@ -91,7 +83,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
   const checkAdminStatus = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       if (!token) return;
 
       const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
@@ -161,7 +153,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
     setTimeout(() => setMessage({ text: '', type: '' }), 5000);
   };
 
-    const handlePasswordChange = async (e) => {
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
@@ -177,80 +169,19 @@ function SettingsPage({ darkMode, toggleTheme }) {
     setLoading(true);
     try {
       const authToken = Cookies.get("authToken");
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/change-password`,
-        {
-          currentPassword,
-          newPassword
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      await axios.put(`${API_BASE_URL}/auth/change-password`, {
+        currentPassword,
+        newPassword
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
       
-      showMessage('Password changed successfully', 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      
+      showMessage('Password changed successfully', 'success');
     } catch (error) {
-      if (error.response?.status === 401) {
-        Cookies.remove("authToken");
-        navigate("/auth");
-      } else {
-        showMessage(error.response?.data?.message || 'Failed to change password', 'error');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') {
-      showMessage('Please type "DELETE" to confirm account deletion', 'error');
-      return;
-    }
-    
-    if (!deletePassword) {
-      showMessage('Password is required to delete your account', 'error');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const authToken = Cookies.get("authToken");
-      const response = await axios.delete(
-        `${API_BASE_URL}/auth/delete-account`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-          data: {
-            password: deletePassword
-          }
-        }
-      );
-      
-      showMessage('Account deleted successfully. You will be redirected to the login page.', 'success');
-      
-      // Clear all user data and redirect after a short delay
-      setTimeout(() => {
-        Cookies.remove("authToken");
-        localStorage.clear();
-        navigate("/auth");
-      }, 2000);
-      
-    } catch (error) {
-      if (error.response?.status === 401) {
-        Cookies.remove("authToken");
-        navigate("/auth");
-      } else {
-        showMessage(error.response?.data?.message || 'Failed to delete account', 'error');
-      }
+      showMessage(error.response?.data?.message || 'Failed to change password', 'error');
     } finally {
       setLoading(false);
     }
@@ -275,11 +206,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
         break;
-      case 'logoService':
-        setLogoService(value);
-        localStorage.setItem('logoService', value);
-        break;
-      default:
     }
     showMessage(`${setting} updated`, 'success');
   };
@@ -470,111 +396,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </button>
                       </div>
                     </form>
-
-                    {/* Account Deletion Section */}
-                    <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                      <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center">
-                        <FaExclamationTriangle className="mr-2" />
-                        Danger Zone
-                      </h3>
-                      <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                        Once you delete your account, there is no going back. This action is permanent and will delete all your job applications and data.
-                      </p>
-                      <button
-                        onClick={() => setShowDeleteModal(true)}
-                        className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <FaTrash className="mr-2" />
-                        Delete Account
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Delete Account Modal */}
-                {showDeleteModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 relative">
-                      <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-red-800 dark:text-red-400 flex items-center">
-                          <FaExclamationTriangle className="mr-2" />
-                          Delete Account
-                        </h2>
-                        <button 
-                          onClick={() => {
-                            setShowDeleteModal(false);
-                            setDeletePassword('');
-                            setDeleteConfirmText('');
-                          }} 
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          <FaTimes size={24} />
-                        </button>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                          <p className="text-sm text-red-700 dark:text-red-300 mb-2">
-                            <strong>This action cannot be undone.</strong>
-                          </p>
-                          <p className="text-sm text-red-600 dark:text-red-400">
-                            This will permanently delete:
-                          </p>
-                          <ul className="text-sm text-red-600 dark:text-red-400 mt-2 list-disc list-inside">
-                            <li>Your account and profile</li>
-                            <li>All your job applications</li>
-                            <li>All your saved data and preferences</li>
-                          </ul>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Type "DELETE" to confirm
-                          </label>
-                          <input
-                            type="text"
-                            value={deleteConfirmText}
-                            onChange={(e) => setDeleteConfirmText(e.target.value)}
-                            placeholder="DELETE"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Enter your password to confirm
-                          </label>
-                          <input
-                            type="password"
-                            value={deletePassword}
-                            onChange={(e) => setDeletePassword(e.target.value)}
-                            placeholder="Your password"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                          />
-                        </div>
-
-                        <div className="flex justify-end space-x-3 pt-4">
-                          <button
-                            onClick={() => {
-                              setShowDeleteModal(false);
-                              setDeletePassword('');
-                              setDeleteConfirmText('');
-                            }}
-                            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleDeleteAccount}
-                            disabled={loading || deleteConfirmText !== 'DELETE' || !deletePassword}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                          >
-                            <FaTrash className="mr-2" />
-                            {loading ? 'Deleting...' : 'Delete Account'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -651,7 +472,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </select>
                       </div>
 
-                      {/* Developer Mode - Admin Only */}
                       {/* Admin Panel - Admin Only */}
                       {isAdmin ? (
                         <div className="flex items-center justify-between">
@@ -677,7 +497,9 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             Admin Only
                           </div>
                         </div>
-                      )}                      {/* Export Data */}
+                      )}
+
+                      {/* Export Data */}
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                           onClick={exportData}
@@ -716,19 +538,19 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </div>
                       </div>
 
-                      {!developerMode ? (
-                        <div className="text-center py-8">
-                          <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
-                          <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
-                          <button
-                            onClick={() => handleSettingChange('developerMode', true)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                          >
-                            Enable Developer Mode
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
+                    {!developerMode ? (
+                      <div className="text-center py-8">
+                        <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
+                        <button
+                          onClick={() => handleSettingChange('developerMode', true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Enable Developer Mode
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
                         {/* Cache Information */}
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
@@ -834,89 +656,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         {/* System Information */}
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                           <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                            <FaImage className="mr-2" />
-                            Logo Service Configuration
-                          </h3>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Logo Service Provider
-                              </label>
-                              <select
-                                value={logoService}
-                                onChange={(e) => handleSettingChange('logoService', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                                         focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="auto">🔄 Auto (Logo.dev → Fallback)</option>
-                                <option value="logodev">🏆 Logo.dev Only</option>
-                                <option value="clearbit">🔵 Clearbit (Free)</option>
-                                <option value="iconhorse">🐴 Icon Horse (Free)</option>
-                                <option value="favicon">📄 Google Favicons</option>
-                                <option value="fallback">🔧 Free Services Only</option>
-                              </select>
-                              
-                              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                                {logoService === 'auto' && (
-                                  <div className="flex items-center">
-                                    <FaCheckCircle className="text-green-500 mr-1" />
-                                    Tries Logo.dev first, falls back to free services if needed
-                                  </div>
-                                )}
-                                {logoService === 'logodev' && (
-                                  <div className="flex items-center">
-                                    <FaExclamationTriangle className="text-yellow-500 mr-1" />
-                                    Requires valid Logo.dev API token, no fallback
-                                  </div>
-                                )}
-                                {(logoService === 'clearbit' || logoService === 'iconhorse' || logoService === 'favicon' || logoService === 'fallback') && (
-                                  <div className="flex items-center">
-                                    <FaInfoCircle className="text-blue-500 mr-1" />
-                                    Uses free services, may have lower quality logos
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Service Status</h4>
-                              <div className="space-y-2 text-xs">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Logo.dev API</span>
-                                  <span className="text-yellow-600 dark:text-yellow-400">⚠️ Token Invalid</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Clearbit Free</span>
-                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Icon Horse</span>
-                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600 dark:text-gray-400">Google Favicons</span>
-                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-                              <button
-                                onClick={() => window.open('https://www.logo.dev/', '_blank')}
-                                className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                              >
-                                <FaExternalLinkAlt className="mr-1" />
-                                Get Logo.dev API Token
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* System Information */}
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
                             <FaMemory className="mr-2" />
                             System Information
                           </h3>
@@ -952,7 +691,8 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             </div>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    )}
                     </div>
                   </div>
                 )}
