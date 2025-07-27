@@ -35,6 +35,10 @@ function AdminPanel({ darkMode, toggleTheme }) {
   
   // System data
   const [systemInfo, setSystemInfo] = useState(null);
+  const [environmentVars, setEnvironmentVars] = useState(null);
+  const [showEnvEditor, setShowEnvEditor] = useState(false);
+  const [newEnvVar, setNewEnvVar] = useState({ key: '', value: '' });
+  const [editingEnvVar, setEditingEnvVar] = useState(null);
   
   // UI states
   const [selectedUser, setSelectedUser] = useState(null);
@@ -54,6 +58,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       loadJobs();
     } else if (activeTab === 'system') {
       loadSystemInfo();
+      loadEnvironmentVars();
     }
   }, [activeTab, usersPage, usersSearch, jobsPage, jobsSearch, jobsStatusFilter]);
 
@@ -61,7 +66,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     try {
       const token = Cookies.get('token');
       if (!token) {
-        navigate('/login');
+        navigate('/auth');
         return;
       }
 
@@ -75,7 +80,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       if (error.response?.status === 403) {
         setError('Admin access required');
       } else if (error.response?.status === 401) {
-        navigate('/login');
+        navigate('/auth');
       } else {
         setError('Failed to verify admin access');
       }
@@ -147,6 +152,18 @@ function AdminPanel({ darkMode, toggleTheme }) {
       setSystemInfo(response.data);
     } catch (error) {
       setError('Failed to load system info');
+    }
+  };
+
+  const loadEnvironmentVars = async () => {
+    try {
+      const token = Cookies.get('token');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/system/environment`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEnvironmentVars(response.data);
+    } catch (error) {
+      setError('Failed to load environment variables');
     }
   };
 
@@ -228,6 +245,56 @@ function AdminPanel({ darkMode, toggleTheme }) {
       alert('System cache cleared successfully');
     } catch (error) {
       setError('Failed to clear cache');
+    }
+  };
+
+  const updateEnvironmentVar = async (key, value) => {
+    try {
+      const token = Cookies.get('token');
+      await axios.put(`${API_BASE_URL}/api/admin/system/environment`, 
+        { key, value }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadEnvironmentVars();
+      setEditingEnvVar(null);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to update environment variable');
+    }
+  };
+
+  const deleteEnvironmentVar = async (key) => {
+    if (!window.confirm(`Are you sure you want to delete the environment variable "${key}"?`)) {
+      return;
+    }
+
+    try {
+      const token = Cookies.get('token');
+      await axios.delete(`${API_BASE_URL}/api/admin/system/environment/${key}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      loadEnvironmentVars();
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to delete environment variable');
+    }
+  };
+
+  const addEnvironmentVar = async () => {
+    if (!newEnvVar.key || !newEnvVar.value) {
+      setError('Both key and value are required');
+      return;
+    }
+
+    try {
+      const token = Cookies.get('token');
+      await axios.put(`${API_BASE_URL}/api/admin/system/environment`, 
+        newEnvVar, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadEnvironmentVars();
+      setNewEnvVar({ key: '', value: '' });
+      setShowEnvEditor(false);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to add environment variable');
     }
   };
 
@@ -788,6 +855,13 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <FaSync className="mr-2" />
                 Refresh
               </button>
+              <button
+                onClick={() => setShowEnvEditor(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+              >
+                <FaPlus className="mr-2" />
+                Add Environment Variable
+              </button>
             </div>
 
             {/* System Info Cards */}
@@ -881,6 +955,115 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 </div>
               </div>
             </div>
+
+            {/* Environment Variables */}
+            {environmentVars && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                    <FaCog className="mr-2" />
+                    Environment Variables
+                    <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded">
+                      {Object.keys(environmentVars.environment_variables).length} total
+                    </span>
+                    {environmentVars.sensitive_count > 0 && (
+                      <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded">
+                        {environmentVars.sensitive_count} hidden
+                      </span>
+                    )}
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Key
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Value
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {Object.entries(environmentVars.environment_variables).map(([key, value]) => (
+                          <tr key={key} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">{key}</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              {editingEnvVar === key ? (
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    value={value === '***HIDDEN***' ? '' : value}
+                                    onChange={(e) => setEnvironmentVars({
+                                      ...environmentVars,
+                                      environment_variables: {
+                                        ...environmentVars.environment_variables,
+                                        [key]: e.target.value
+                                      }
+                                    })}
+                                    className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded 
+                                             bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
+                                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder={value === '***HIDDEN***' ? 'Enter new value...' : ''}
+                                  />
+                                  <button
+                                    onClick={() => updateEnvironmentVar(key, environmentVars.environment_variables[key])}
+                                    className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingEnvVar(null)}
+                                    className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className={`text-sm ${
+                                  value === '***HIDDEN***' 
+                                    ? 'text-yellow-600 dark:text-yellow-400 font-mono' 
+                                    : 'text-gray-900 dark:text-white'
+                                } break-all`}>
+                                  {value}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                              {editingEnvVar !== key && (
+                                <>
+                                  <button
+                                    onClick={() => setEditingEnvVar(key)}
+                                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                  >
+                                    <FaEdit />
+                                  </button>
+                                  {!['PATH', 'HOME', 'USER', 'DB_HOST', 'DB_PASSWORD', 'JWT_SECRET_KEY'].includes(key.toUpperCase()) && (
+                                    <button
+                                      onClick={() => deleteEnvironmentVar(key)}
+                                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                    >
+                                      <FaTrash />
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1070,6 +1253,67 @@ function AdminPanel({ darkMode, toggleTheme }) {
                   </button>
                   <button
                     onClick={() => setShowCreateAdmin(false)}
+                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Add Environment Variable Modal */}
+        {showEnvEditor && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Add Environment Variable</h3>
+                <button
+                  onClick={() => setShowEnvEditor(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Key
+                  </label>
+                  <input
+                    type="text"
+                    value={newEnvVar.key}
+                    onChange={(e) => setNewEnvVar({ ...newEnvVar, key: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="VARIABLE_NAME"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Value
+                  </label>
+                  <textarea
+                    value={newEnvVar.value}
+                    onChange={(e) => setNewEnvVar({ ...newEnvVar, value: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="variable_value"
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={addEnvironmentVar}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Add Variable
+                  </button>
+                  <button
+                    onClick={() => setShowEnvEditor(false)}
                     className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                   >
                     Cancel

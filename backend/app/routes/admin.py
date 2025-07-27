@@ -461,19 +461,104 @@ def get_system_info():
         print(f"Error getting system info: {e}")
         return jsonify({"error": "Failed to get system info"}), 500
 
-@admin_bp.route("/admin/system/clear-cache", methods=["POST"])
+@admin_bp.route('/system/clear-cache', methods=['POST'])
 @admin_required
 def clear_system_cache():
     """Clear all system caches"""
     try:
-        from app.services.logo_cache_service import logo_cache
-        logo_cache.clear_cache()
+        from app.services.logo_cache_service import LogoCacheService
         
-        return jsonify({"message": "System cache cleared successfully"})
+        # Clear logo cache
+        cache_service = LogoCacheService()
+        cache_service.clear_all_cached_logos()
         
+        return jsonify({'message': 'All caches cleared successfully'})
     except Exception as e:
-        print(f"Error clearing cache: {e}")
-        return jsonify({"error": "Failed to clear cache"}), 500
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/system/environment', methods=['GET'])
+@admin_required
+def get_environment_variables():
+    """Get all environment variables (excluding sensitive ones)"""
+    try:
+        import os
+        
+        # List of sensitive environment variables to exclude
+        sensitive_vars = {
+            'DB_PASSWORD', 'JWT_SECRET_KEY', 'EMAIL_PASSWORD', 
+            'LOGODEV_API_KEY', 'CLEARBIT_API_KEY', 'SECRET_KEY'
+        }
+        
+        # Get all environment variables
+        env_vars = {}
+        for key, value in os.environ.items():
+            if key.upper() not in sensitive_vars:
+                env_vars[key] = value
+            else:
+                # Show that it exists but hide the value
+                env_vars[key] = '***HIDDEN***'
+        
+        return jsonify({
+            'environment_variables': env_vars,
+            'sensitive_count': len([k for k in os.environ.keys() if k.upper() in sensitive_vars])
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/system/environment', methods=['PUT'])
+@admin_required
+def update_environment_variable():
+    """Update an environment variable"""
+    try:
+        import os
+        data = request.get_json()
+        
+        if not data or 'key' not in data or 'value' not in data:
+            return jsonify({'error': 'Key and value are required'}), 400
+        
+        key = data['key']
+        value = data['value']
+        
+        # List of protected environment variables that shouldn't be modified
+        protected_vars = {
+            'PATH', 'HOME', 'USER', 'SHELL', 'PWD', 'OLDPWD', 'TERM',
+            'LANG', 'LC_ALL', 'PYTHONPATH', 'PYTHONHOME'
+        }
+        
+        if key.upper() in protected_vars:
+            return jsonify({'error': f'Cannot modify protected variable: {key}'}), 400
+        
+        # Update the environment variable
+        os.environ[key] = str(value)
+        
+        return jsonify({'message': f'Environment variable {key} updated successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/system/environment/<key>', methods=['DELETE'])
+@admin_required
+def delete_environment_variable(key):
+    """Delete an environment variable"""
+    try:
+        import os
+        
+        # List of protected environment variables that shouldn't be deleted
+        protected_vars = {
+            'PATH', 'HOME', 'USER', 'SHELL', 'PWD', 'OLDPWD', 'TERM',
+            'LANG', 'LC_ALL', 'PYTHONPATH', 'PYTHONHOME', 'DB_HOST',
+            'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET_KEY'
+        }
+        
+        if key.upper() in protected_vars:
+            return jsonify({'error': f'Cannot delete protected variable: {key}'}), 400
+        
+        if key in os.environ:
+            del os.environ[key]
+            return jsonify({'message': f'Environment variable {key} deleted successfully'})
+        else:
+            return jsonify({'error': f'Environment variable {key} not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @admin_bp.route("/admin/system/reset-passwords", methods=["POST"])
 @admin_required
