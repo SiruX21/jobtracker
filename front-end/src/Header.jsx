@@ -1,12 +1,39 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog } from "react-icons/fa";
+import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield } from "react-icons/fa";
 import Cookies from "js-cookie";
+import axios from "axios";
+import { API_BASE_URL } from "./config";
 
 function Header({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
   const location = useLocation();
   const authToken = Cookies.get("authToken");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (authToken) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(false);
+    }
+  }, [authToken]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const token = Cookies.get('token');
+      if (!token) return;
+
+      const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // If we get here without an error, user is admin
+      setIsAdmin(true);
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  };
 
   const handleLogout = () => {
     Cookies.remove("authToken");
@@ -61,6 +88,16 @@ function Header({ darkMode, toggleTheme }) {
           >
             <FaCog className="mr-1" />
             Settings
+          </button>
+        )}
+
+        {authToken && isAdmin && (
+          <button
+            onClick={() => navigate("/admin")}
+            className="flex items-center text-white hover:text-red-300 transition bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg"
+          >
+            <FaUserShield className="mr-1" />
+            Admin
           </button>
         )}
 

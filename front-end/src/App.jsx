@@ -5,6 +5,7 @@ import HomePage from "./HomePage";
 import IntroPage from "./IntroPage";
 import TrackerPage from "./TrackerPage";
 import SettingsPage from "./SettingsPage";
+import AdminPanel from "./AdminPanel";
 import EmailVerification from "./EmailVerification";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
@@ -57,6 +58,10 @@ function App() {
           <Route
             path="/settings"
             element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/admin"
+            element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/verify-email"

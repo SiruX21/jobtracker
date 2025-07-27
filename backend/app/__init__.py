@@ -66,11 +66,13 @@ def create_app():
     from app.routes.jobs import jobs_bp
     from app.routes.email import email_bp
     from app.routes.logos import logos_bp
+    from app.routes.admin import admin_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(jobs_bp)
     app.register_blueprint(email_bp)
     app.register_blueprint(logos_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api')
     
     return app
 
@@ -136,10 +138,21 @@ def create_tables():
             email_verified BOOLEAN DEFAULT FALSE,
             verification_token VARCHAR(255),
             verification_token_expires TIMESTAMP NULL,
+            role ENUM('user', 'admin') DEFAULT 'user',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
         """)
+        
+        # Add role column if it doesn't exist (for existing databases)
+        try:
+            cursor.execute("""
+            ALTER TABLE users ADD COLUMN role ENUM('user', 'admin') DEFAULT 'user'
+            """)
+        except mariadb.Error:
+            # Column already exists
+            pass
+            
         print("Users table checked/created successfully.")
 
         # Job applications table
