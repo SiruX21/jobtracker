@@ -603,27 +603,27 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           </div>
                           <div className="flex items-center space-x-2">
                             {user.role === 'admin' && (
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700 shadow-sm">
-                                <FaUserShield className="w-3 h-3 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border border-red-300 dark:border-red-600 shadow-sm">
+                                <FaUserShield className="w-4 h-4 mr-1.5" />
                                 Admin
                               </span>
                             )}
                             {user.email_verified ? (
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm">
-                                <FaCheck className="w-3 h-3 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-600 shadow-sm">
+                                <FaCheck className="w-4 h-4 mr-1.5" />
                                 Verified
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm">
-                                <FaTimes className="w-3 h-3 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-900 dark:bg-orange-700 dark:text-orange-100 border border-orange-300 dark:border-orange-500 shadow-sm">
+                                <FaTimes className="w-4 h-4 mr-1.5" />
                                 Unverified
                               </span>
                             )}
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-4 py-2 border border-blue-400 dark:border-blue-500 shadow-sm text-sm font-medium rounded-full text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 hover:bg-blue-100 dark:hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEye className="w-3 h-3 mr-1.5" />
+                              <FaEye className="w-4 h-4 mr-1.5" />
                               View
                             </button>
                           </div>
@@ -672,18 +672,18 @@ function AdminPanel({ darkMode, toggleTheme }) {
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${
+                            <span className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold border shadow-sm ${
                               job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
-                                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700' :
+                                'bg-blue-100 text-blue-900 dark:bg-blue-800 dark:text-blue-100 border-blue-300 dark:border-blue-600' :
                               job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
-                                'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-700' :
+                                'bg-amber-100 text-amber-900 dark:bg-amber-700 dark:text-amber-100 border-amber-300 dark:border-amber-500' :
                               job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 
-                                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' :
+                                'bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border-emerald-300 dark:border-emerald-600' :
                               job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 
-                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-700' :
-                                'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                                'bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border-red-300 dark:border-red-600' :
+                                'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-500'
                             }`}>
-                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                              <div className={`w-3 h-3 rounded-full mr-2 ${
                                 job.status?.toLowerCase() === 'applied' ? 'bg-blue-500' :
                                 job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 'bg-amber-500' :
                                 job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 'bg-emerald-500' :
@@ -794,25 +794,25 @@ function AdminPanel({ darkMode, toggleTheme }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {user.email_verified ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm">
-                              <FaCheck className="w-3 h-3 mr-1.5" />
+                            <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-600 shadow-sm">
+                              <FaCheck className="w-4 h-4 mr-1.5" />
                               Verified
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm">
-                              <FaExclamationTriangle className="w-3 h-3 mr-1.5" />
+                            <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-900 dark:bg-orange-700 dark:text-orange-100 border border-orange-300 dark:border-orange-500 shadow-sm">
+                              <FaExclamationTriangle className="w-4 h-4 mr-1.5" />
                               Unverified
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm ${
+                          <span className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold border shadow-sm ${
                             user.role === 'admin' 
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-700'
-                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+                              ? 'bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border-red-300 dark:border-red-600'
+                              : 'bg-blue-100 text-blue-900 dark:bg-blue-800 dark:text-blue-100 border-blue-300 dark:border-blue-600'
                           }`}>
-                            {user.role === 'admin' && <FaUserShield className="w-3 h-3 mr-1.5" />}
-                            {user.role === 'user' && <FaUsers className="w-3 h-3 mr-1.5" />}
+                            {user.role === 'admin' && <FaUserShield className="w-4 h-4 mr-1.5" />}
+                            {user.role === 'user' && <FaUsers className="w-4 h-4 mr-1.5" />}
                             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                           </span>
                         </td>
@@ -823,23 +823,23 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="inline-flex items-center px-2.5 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-3 py-2 border border-blue-400 dark:border-blue-500 shadow-sm text-sm font-medium rounded-full text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 hover:bg-blue-100 dark:hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEye className="w-3 h-3 mr-1" />
+                              <FaEye className="w-4 h-4 mr-1" />
                               View
                             </button>
                             <button
                               onClick={() => setSelectedUser({ ...user, editing: true })}
-                              className="inline-flex items-center px-2.5 py-1.5 border border-amber-300 dark:border-amber-500 shadow-sm text-xs font-medium rounded-full text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-3 py-2 border border-amber-400 dark:border-amber-500 shadow-sm text-sm font-medium rounded-full text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-700 hover:bg-amber-100 dark:hover:bg-amber-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEdit className="w-3 h-3 mr-1" />
+                              <FaEdit className="w-4 h-4 mr-1" />
                               Edit
                             </button>
                             <button
                               onClick={() => deleteUser(user.id)}
-                              className="inline-flex items-center px-2.5 py-1.5 border border-red-300 dark:border-red-500 shadow-sm text-xs font-medium rounded-full text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-3 py-2 border border-red-400 dark:border-red-500 shadow-sm text-sm font-medium rounded-full text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-800 hover:bg-red-100 dark:hover:bg-red-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaTrash className="w-3 h-3 mr-1" />
+                              <FaTrash className="w-4 h-4 mr-1" />
                               Delete
                             </button>
                           </div>
