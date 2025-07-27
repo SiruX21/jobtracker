@@ -11,13 +11,18 @@ import os
 
 def send_verification_email(user_email, token):
     """Send email verification token to user"""
-    smtp_server = os.getenv('SMTP_SERVER')
-    smtp_port = int(os.getenv('SMTP_PORT', 587))
-    smtp_username = os.getenv('SMTP_USERNAME')
-    smtp_password = os.getenv('SMTP_PASSWORD')
+    smtp_server = os.getenv('MAIL_SERVER')
+    smtp_port = int(os.getenv('MAIL_PORT', 587))
+    smtp_username = os.getenv('MAIL_USERNAME')
+    smtp_password = os.getenv('MAIL_PASSWORD')
+    
+    print(f"[EMAIL CONFIG] MAIL_SERVER: {smtp_server}", flush=True)
+    print(f"[EMAIL CONFIG] MAIL_PORT: {smtp_port}", flush=True)
+    print(f"[EMAIL CONFIG] MAIL_USERNAME: {smtp_username}", flush=True)
+    print(f"[EMAIL CONFIG] MAIL_PASSWORD: {'***' if smtp_password else 'None'}", flush=True)
     
     if not all([smtp_server, smtp_username, smtp_password]):
-        print("Email configuration missing")
+        print("Email configuration missing", flush=True)
         return False
     
     subject = "Verify Your Email Address"
@@ -68,10 +73,10 @@ def send_verification_email(user_email, token):
 
 def send_password_reset_email(user_email, token):
     """Send password reset token to user"""
-    smtp_server = os.getenv('SMTP_SERVER')
-    smtp_port = int(os.getenv('SMTP_PORT', 587))
-    smtp_username = os.getenv('SMTP_USERNAME')
-    smtp_password = os.getenv('SMTP_PASSWORD')
+    smtp_server = os.getenv('MAIL_SERVER')
+    smtp_port = int(os.getenv('MAIL_PORT', 587))
+    smtp_username = os.getenv('MAIL_USERNAME')
+    smtp_password = os.getenv('MAIL_PASSWORD')
     
     if not all([smtp_server, smtp_username, smtp_password]):
         print("Email configuration missing")
