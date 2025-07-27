@@ -5,6 +5,7 @@ import HomePage from "./HomePage";
 import IntroPage from "./IntroPage";
 import TrackerPage from "./TrackerPage";
 import SettingsPage from "./SettingsPage";
+import EmailVerification from "./EmailVerification";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -50,6 +51,10 @@ function App() {
           <Route
             path="/settings"
             element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} />}
+          />
+          <Route
+            path="/verify-email"
+            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
         </Routes>
       </div>
