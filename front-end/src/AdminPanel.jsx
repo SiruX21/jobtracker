@@ -443,49 +443,77 @@ function AdminPanel({ darkMode, toggleTheme }) {
           <div className="space-y-6">
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
-                  <FaUsers className="h-8 w-8 text-blue-600" />
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <FaUsers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
                       {dashboardData.statistics.users.total}
                     </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      {dashboardData.statistics.users.unverified} unverified
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
-                  <FaCheck className="h-8 w-8 text-green-600" />
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <FaCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Verified Users</p>
-                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
                       {dashboardData.statistics.users.verified}
                     </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <FaBriefcase className="h-8 w-8 text-purple-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Job Applications</p>
-                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                      {dashboardData.statistics.jobs.total}
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      {Math.round((dashboardData.statistics.users.verified / dashboardData.statistics.users.total) * 100)}% verified rate
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center">
-                  <FaUserShield className="h-8 w-8 text-red-600" />
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                      <FaBriefcase className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Job Applications</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {dashboardData.statistics.jobs.total}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      Across all users
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                      <FaUserShield className="h-6 w-6 text-red-600 dark:text-red-400" />
+                    </div>
+                  </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Admin Users</p>
-                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
                       {dashboardData.statistics.users.admins}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      System administrators
                     </p>
                   </div>
                 </div>
