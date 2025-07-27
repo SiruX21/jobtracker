@@ -173,33 +173,8 @@ const CompanyOption = ({ data, innerRef, innerProps, isFocused, isSelected }) =>
   );
 };
 
-const statuses = {
-  applied: "bg-blue-500",
-  reviewing: "bg-yellow-500",
-  ghosted: "bg-gray-500",
-  oa: "bg-orange-500",
-  interview: "bg-green-500",
-  offer: "bg-purple-500",
-  rejected: "bg-red-500",
-};
-
 function TrackerPage({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
-
-  // Verify login state and fetch jobs
-  useEffect(() => {
-    const authToken = Cookies.get("authToken");
-    if (!authToken) {
-      navigate("/auth");
-    } else {
-      fetchJobs();
-    }
-  }, [navigate]);
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
 
   // State variables
   const [jobs, setJobs] = useState([]);
@@ -208,6 +183,8 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("");
+  const [jobStatuses, setJobStatuses] = useState([]);
+  const [statusColorMap, setStatusColorMap] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("date_desc"); // date_desc, date_asc, company_asc, company_desc, status
   const [newJob, setNewJob] = useState({ 
@@ -345,10 +322,14 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   // Modal management functions
   const openAddModal = () => {
+    const defaultStatus = jobStatuses.length > 0 ? 
+      jobStatuses.find(s => s.status_name === "Applied")?.status_name || jobStatuses[0].status_name : 
+      "Applied";
+      
     setNewJob({
       company_name: "",
       job_title: "",
-      status: "Applied",
+      status: defaultStatus,
       application_date: getCurrentDate(),
       location: "",
       job_url: "",
@@ -649,6 +630,16 @@ function TrackerPage({ darkMode, toggleTheme }) {
     setCompanySuggestionsList(companyOptions);
   }, [jobs]);
 
+  // Initial data loading when component mounts
+  useEffect(() => {
+    const initializeData = async () => {
+      await fetchJobStatuses();
+      await fetchJobs();
+    };
+    
+    initializeData();
+  }, []); // Empty dependency array for component mount only
+
   // Enhanced company search with dynamic options and auto logos
   const getCompanyOptions = () => {
     let options = [...companySuggestionsList];
@@ -710,6 +701,36 @@ function TrackerPage({ darkMode, toggleTheme }) {
     }
     
     return options;
+  };
+
+  // Fetch job statuses from backend
+  const fetchJobStatuses = async () => {
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.get(`${API_BASE_URL}/job-statuses`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      
+      const statuses = response.data;
+      setJobStatuses(statuses);
+      
+      // Create color mapping
+      const colorMap = {};
+      statuses.forEach(status => {
+        colorMap[status.status_name] = status.color_code;
+      });
+      setStatusColorMap(colorMap);
+      
+    } catch (error) {
+      console.error("Error fetching job statuses:", error);
+      
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      }
+    }
   };
 
   // Fetch jobs from backend with caching
@@ -1101,9 +1122,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         <p className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           {value}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                          Click to filter results
-                        </p>
                       </div>
                     </div>
                   </button>
@@ -1121,9 +1139,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
               <FaPlus className="mr-3 text-xl" />
               Add New Application
             </button>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-              Click to start tracking a new job application
-            </p>
           </div>
 
           {/* Search and Filters */}
@@ -1193,13 +1208,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
                     className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
                   >
                     <option value="all">All Statuses</option>
-                    <option value="applied">Applied</option>
-                    <option value="reviewing">Reviewing</option>
-                    <option value="interview">Interview</option>
-                    <option value="oa">Online Assessment</option>
-                    <option value="offer">Offer</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="ghosted">Ghosted</option>
+                    {jobStatuses.map(status => (
+                      <option key={status.status_name} value={status.status_name.toLowerCase()}>
+                        {status.status_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1309,9 +1322,10 @@ function TrackerPage({ darkMode, toggleTheme }) {
                     
                     {/* Status Badge */}
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${
-                        statuses[job.status.toLowerCase()] || 'bg-gray-500'
-                      }`}
+                      className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                      style={{
+                        backgroundColor: statusColorMap[job.status] || '#6b7280'
+                      }}
                     >
                       {job.status}
                     </span>
@@ -1542,13 +1556,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
                           onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
                           className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
                         >
-                          <option value="Applied">Applied</option>
-                          <option value="Reviewing">Reviewing</option>
-                          <option value="Interview">Interview</option>
-                          <option value="OA">Online Assessment</option>
-                          <option value="Offer">Offer</option>
-                          <option value="Rejected">Rejected</option>
-                          <option value="Ghosted">Ghosted</option>
+                          {jobStatuses.map(status => (
+                            <option key={status.status_name} value={status.status_name}>
+                              {status.status_name}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -1769,13 +1781,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
                       >
-                        <option value="Applied">Applied</option>
-                        <option value="Reviewing">Reviewing</option>
-                        <option value="Interview">Interview</option>
-                        <option value="OA">Online Assessment</option>
-                        <option value="Offer">Offer</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Ghosted">Ghosted</option>
+                        {jobStatuses.map(status => (
+                          <option key={status.status_name} value={status.status_name}>
+                            {status.status_name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

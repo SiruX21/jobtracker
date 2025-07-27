@@ -36,6 +36,10 @@ function AdminPanel({ darkMode, toggleTheme }) {
   const [jobsSearch, setJobsSearch] = useState('');
   const [jobsStatusFilter, setJobsStatusFilter] = useState('');
   
+  // Job statuses data
+  const [jobStatuses, setJobStatuses] = useState([]);
+  const [statusColorMap, setStatusColorMap] = useState({});
+  
   // System data
   const [systemInfo, setSystemInfo] = useState(null);
   const [environmentVars, setEnvironmentVars] = useState(null);
@@ -50,6 +54,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   useEffect(() => {
     checkAdminAccess();
+    fetchJobStatuses();
   }, []);
 
   // Debounced search effect for users
@@ -179,6 +184,28 @@ function AdminPanel({ darkMode, toggleTheme }) {
       setSystemInfo(response.data);
     } catch (error) {
       setError('Failed to load system info');
+    }
+  };
+
+  const fetchJobStatuses = async () => {
+    try {
+      const token = Cookies.get('authToken');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/job-statuses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const statuses = response.data;
+      setJobStatuses(statuses);
+      
+      // Create color mapping
+      const colorMap = {};
+      statuses.forEach(status => {
+        colorMap[status.status_name] = status.color_code;
+      });
+      setStatusColorMap(colorMap);
+      
+    } catch (error) {
+      setError('Failed to load job statuses');
     }
   };
 
@@ -603,27 +630,27 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           </div>
                           <div className="flex items-center space-x-2">
                             {user.role === 'admin' && (
-                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border border-red-300 dark:border-red-600 shadow-sm">
-                                <FaUserShield className="w-4 h-4 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100 border border-red-200 dark:border-red-600 shadow-sm">
+                                <FaUserShield className="w-3 h-3 mr-1.5" />
                                 Admin
                               </span>
                             )}
                             {user.email_verified ? (
-                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-600 shadow-sm">
-                                <FaCheck className="w-4 h-4 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 border border-green-200 dark:border-green-600 shadow-sm">
+                                <FaCheck className="w-3 h-3 mr-1.5" />
                                 Verified
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-900 dark:bg-orange-700 dark:text-orange-100 border border-orange-300 dark:border-orange-500 shadow-sm">
-                                <FaTimes className="w-4 h-4 mr-1.5" />
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100 border border-yellow-200 dark:border-yellow-600 shadow-sm">
+                                <FaTimes className="w-3 h-3 mr-1.5" />
                                 Unverified
                               </span>
                             )}
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="inline-flex items-center px-4 py-2 border border-blue-400 dark:border-blue-500 shadow-sm text-sm font-medium rounded-full text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 hover:bg-blue-100 dark:hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEye className="w-4 h-4 mr-1.5" />
+                              <FaEye className="w-3 h-3 mr-1.5" />
                               View
                             </button>
                           </div>
@@ -672,24 +699,19 @@ function AdminPanel({ darkMode, toggleTheme }) {
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold border shadow-sm ${
-                              job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
-                                'bg-blue-100 text-blue-900 dark:bg-blue-800 dark:text-blue-100 border-blue-300 dark:border-blue-600' :
-                              job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
-                                'bg-amber-100 text-amber-900 dark:bg-amber-700 dark:text-amber-100 border-amber-300 dark:border-amber-500' :
-                              job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 
-                                'bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border-emerald-300 dark:border-emerald-600' :
-                              job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 
-                                'bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border-red-300 dark:border-red-600' :
-                                'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-500'
-                            }`}>
-                              <div className={`w-3 h-3 rounded-full mr-2 ${
-                                job.status?.toLowerCase() === 'applied' ? 'bg-blue-500' :
-                                job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 'bg-amber-500' :
-                                job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 'bg-emerald-500' :
-                                job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 'bg-red-500' :
-                                'bg-gray-500'
-                              }`}></div>
+                            <span 
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white"
+                              style={{
+                                backgroundColor: statusColorMap[job.status] || '#6b7280'
+                              }}
+                            >
+                              <div 
+                                className="w-2 h-2 rounded-full mr-2"
+                                style={{
+                                  backgroundColor: statusColorMap[job.status] ? 
+                                    `${statusColorMap[job.status]}dd` : '#6b7280dd'
+                                }}
+                              ></div>
                               {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'Unknown'}
                             </span>
                           </div>
@@ -794,25 +816,25 @@ function AdminPanel({ darkMode, toggleTheme }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {user.email_verified ? (
-                            <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-600 shadow-sm">
-                              <FaCheck className="w-4 h-4 mr-1.5" />
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 border border-green-200 dark:border-green-600 shadow-sm">
+                              <FaCheck className="w-3 h-3 mr-1.5" />
                               Verified
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-900 dark:bg-orange-700 dark:text-orange-100 border border-orange-300 dark:border-orange-500 shadow-sm">
-                              <FaExclamationTriangle className="w-4 h-4 mr-1.5" />
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100 border border-yellow-200 dark:border-yellow-600 shadow-sm">
+                              <FaExclamationTriangle className="w-3 h-3 mr-1.5" />
                               Unverified
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold border shadow-sm ${
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm ${
                             user.role === 'admin' 
-                              ? 'bg-red-100 text-red-900 dark:bg-red-800 dark:text-red-100 border-red-300 dark:border-red-600'
-                              : 'bg-blue-100 text-blue-900 dark:bg-blue-800 dark:text-blue-100 border-blue-300 dark:border-blue-600'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100 border-red-200 dark:border-red-600'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 border-blue-200 dark:border-blue-600'
                           }`}>
-                            {user.role === 'admin' && <FaUserShield className="w-4 h-4 mr-1.5" />}
-                            {user.role === 'user' && <FaUsers className="w-4 h-4 mr-1.5" />}
+                            {user.role === 'admin' && <FaUserShield className="w-3 h-3 mr-1.5" />}
+                            {user.role === 'user' && <FaUsers className="w-3 h-3 mr-1.5" />}
                             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                           </span>
                         </td>
@@ -823,23 +845,23 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="inline-flex items-center px-3 py-2 border border-blue-400 dark:border-blue-500 shadow-sm text-sm font-medium rounded-full text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 hover:bg-blue-100 dark:hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEye className="w-4 h-4 mr-1" />
+                              <FaEye className="w-3 h-3 mr-1" />
                               View
                             </button>
                             <button
                               onClick={() => setSelectedUser({ ...user, editing: true })}
-                              className="inline-flex items-center px-3 py-2 border border-amber-400 dark:border-amber-500 shadow-sm text-sm font-medium rounded-full text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-700 hover:bg-amber-100 dark:hover:bg-amber-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-amber-300 dark:border-amber-500 shadow-sm text-xs font-medium rounded-full text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaEdit className="w-4 h-4 mr-1" />
+                              <FaEdit className="w-3 h-3 mr-1" />
                               Edit
                             </button>
                             <button
                               onClick={() => deleteUser(user.id)}
-                              className="inline-flex items-center px-3 py-2 border border-red-400 dark:border-red-500 shadow-sm text-sm font-medium rounded-full text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-800 hover:bg-red-100 dark:hover:bg-red-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-red-300 dark:border-red-500 shadow-sm text-xs font-medium rounded-full text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
                             >
-                              <FaTrash className="w-4 h-4 mr-1" />
+                              <FaTrash className="w-3 h-3 mr-1" />
                               Delete
                             </button>
                           </div>
@@ -920,10 +942,11 @@ function AdminPanel({ darkMode, toggleTheme }) {
                              focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
                   >
                     <option value="">All Status</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Interview">Interview</option>
-                    <option value="Offered">Offered</option>
-                    <option value="Rejected">Rejected</option>
+                    {jobStatuses.map(status => (
+                      <option key={status.status_name} value={status.status_name}>
+                        {status.status_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <button
@@ -999,13 +1022,12 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           <div className="text-sm text-gray-500 dark:text-gray-400">{job.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            job.status === 'applied' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                            job.status === 'interview' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                            job.status === 'offered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                            job.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                            'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                          }`}>
+                          <span 
+                            className="px-2 py-1 text-xs rounded text-white"
+                            style={{
+                              backgroundColor: statusColorMap[job.status] || '#6b7280'
+                            }}
+                          >
                             {job.status}
                           </span>
                         </td>
