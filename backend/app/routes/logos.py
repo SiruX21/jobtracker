@@ -127,45 +127,6 @@ def get_batch_logos():
         print(f"Error getting batch logos: {e}")
         return jsonify({"error": "Failed to get batch logos"}), 500
 
-@logos_bp.route("/logos/search", methods=["GET"])
-def search_companies():
-    """Search for companies with autocomplete"""
-    try:
-        query = request.args.get('q', '').strip()
-        limit = int(request.args.get('limit', 10))
-        
-        if not query or len(query) < 2:
-            return jsonify({
-                "results": [],
-                "query": query,
-                "message": "Query must be at least 2 characters"
-            })
-        
-        # For now, return a simple search using logo.dev API
-        search_result = logo_cache.search_logo_dev_api(query)
-        results = []
-        
-        if search_result:
-            results.append({
-                "name": search_result.get('company_name', query),
-                "domain": search_result.get('domain', ''),
-                "logo_url": f"/api/logos/company/{query}",
-                "score": search_result.get('confidence', 0.8)
-            })
-        
-        return jsonify({
-            "results": results,
-            "query": query,
-            "count": len(results)
-        })
-        
-    except Exception as e:
-        print(f"Error searching companies: {e}")
-        return jsonify({
-            "error": "Failed to search companies",
-            "query": request.args.get('q', '')
-        }), 500
-
 @logos_bp.route("/logos/validate/<company_name>", methods=["GET"])
 def validate_company_logo(company_name):
     """Get and validate company logo"""
