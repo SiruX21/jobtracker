@@ -19,6 +19,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
   
   // Dashboard data
   const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardFilter, setDashboardFilter] = useState('all'); // 'all', 'users', 'verified', 'jobs', 'admins'
   
   // Users data
   const [users, setUsers] = useState([]);
@@ -332,6 +333,38 @@ function AdminPanel({ darkMode, toggleTheme }) {
     });
   };
 
+  const handleDashboardCardClick = (filterType) => {
+    setDashboardFilter(filterType);
+    
+    // Navigate to appropriate tab with filters
+    switch(filterType) {
+      case 'users':
+        setActiveTab('users');
+        setUsersSearch('');
+        break;
+      case 'verified':
+        setActiveTab('users');
+        setUsersSearch('verified:true');
+        break;
+      case 'unverified':
+        setActiveTab('users');
+        setUsersSearch('verified:false');
+        break;
+      case 'admins':
+        setActiveTab('users');
+        setUsersSearch('role:admin');
+        break;
+      case 'jobs':
+        setActiveTab('jobs');
+        setJobsSearch('');
+        setJobsStatusFilter('');
+        break;
+      default:
+        // Stay on dashboard
+        break;
+    }
+  };
+
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -413,29 +446,40 @@ function AdminPanel({ darkMode, toggleTheme }) {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'dashboard', name: 'Dashboard', icon: FaChartBar },
-              { id: 'users', name: 'Users', icon: FaUsers },
-              { id: 'jobs', name: 'Jobs', icon: FaBriefcase },
-              { id: 'system', name: 'System', icon: FaCog }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                }`}
-              >
-                <tab.icon className="mr-2" />
-                {tab.name}
-              </button>
-            ))}
-          </nav>
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-1">
+              {[
+                { id: 'dashboard', name: 'Dashboard', icon: FaChartBar },
+                { id: 'users', name: 'Users', icon: FaUsers },
+                { id: 'jobs', name: 'Jobs', icon: FaBriefcase },
+                { id: 'system', name: 'System', icon: FaCog }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group relative min-w-0 flex-1 overflow-hidden py-4 px-6 text-center text-sm font-medium rounded-t-lg transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                    activeTab === tab.id
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-500 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <tab.icon className={`w-5 h-5 transition-colors ${
+                      activeTab === tab.id 
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                    }`} />
+                    <span className="hidden sm:inline">{tab.name}</span>
+                  </div>
+                  {activeTab === tab.id && (
+                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-blue-500"></div>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
 
         {/* Dashboard Tab */}
@@ -443,81 +487,93 @@ function AdminPanel({ darkMode, toggleTheme }) {
           <div className="space-y-6">
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <button
+                onClick={() => handleDashboardCardClick('users')}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-left group cursor-pointer"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
                       <FaUsers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Total Users</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {dashboardData.statistics.users.total}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      {dashboardData.statistics.users.unverified} unverified
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                      Click to view all users
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <button
+                onClick={() => handleDashboardCardClick('verified')}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 text-left group cursor-pointer"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                      <FaCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+                      <FaCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Verified Users</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Verified Users</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {dashboardData.statistics.users.verified}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      {Math.round((dashboardData.statistics.users.verified / dashboardData.statistics.users.total) * 100)}% verified rate
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                      Click to filter verified users
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <button
+                onClick={() => handleDashboardCardClick('jobs')}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 text-left group cursor-pointer"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
                       <FaBriefcase className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Job Applications</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Job Applications</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                       {dashboardData.statistics.jobs.total}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Across all users
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                      Click to view all applications
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <button
+                onClick={() => handleDashboardCardClick('admins')}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 text-left group cursor-pointer"
+              >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center group-hover:bg-red-200 dark:group-hover:bg-red-900/50 transition-colors">
                       <FaUserShield className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Admin Users</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Admin Users</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                       {dashboardData.statistics.users.admins}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      System administrators
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                      Click to filter admin users
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
 
             {/* Recent Activity */}

@@ -248,6 +248,74 @@ function TrackerPage({ darkMode, toggleTheme }) {
     isRefreshing: false
   });
 
+  // Dashboard filter state
+  const [dashboardFilter, setDashboardFilter] = useState(null);
+
+  // Handle dashboard card clicks for filtering
+  const handleDashboardCardClick = (statId) => {
+    // Reset other filters when clicking dashboard card
+    setSearchTerm("");
+    setCompanyFilter("");
+    
+    switch (statId) {
+      case 'total':
+        setStatusFilter("all");
+        setDateFilter("all");
+        setDashboardFilter(null);
+        break;
+      case 'thisWeek':
+        setStatusFilter("all");
+        setDateFilter("thisWeek");
+        setDashboardFilter('thisWeek');
+        break;
+      case 'thisMonth':
+        setStatusFilter("all");
+        setDateFilter("thisMonth");
+        setDashboardFilter('thisMonth');
+        break;
+      case 'interviews':
+        setStatusFilter("interview");
+        setDateFilter("all");
+        setDashboardFilter('interviews');
+        break;
+      case 'pending':
+        setStatusFilter("applied");
+        setDateFilter("all");
+        setDashboardFilter('pending');
+        break;
+      case 'offers':
+        setStatusFilter("offer");
+        setDateFilter("all");
+        setDashboardFilter('offers');
+        break;
+      case 'rejected':
+        setStatusFilter("rejected");
+        setDateFilter("all");
+        setDashboardFilter('rejected');
+        break;
+      case 'ghosted':
+        setStatusFilter("ghosted");
+        setDateFilter("all");
+        setDashboardFilter('ghosted');
+        break;
+      case 'reviewing':
+        setStatusFilter("reviewing");
+        setDateFilter("all");
+        setDashboardFilter('reviewing');
+        break;
+      case 'responseRate':
+        // Filter to show jobs that responded (not applied or ghosted)
+        setStatusFilter("all");
+        setDateFilter("all");
+        setDashboardFilter('responseRate');
+        break;
+      default:
+        setStatusFilter("all");
+        setDateFilter("all");
+        setDashboardFilter(null);
+    }
+  };
+
   // Auto-refresh cache when it becomes stale
   useEffect(() => {
     const interval = setInterval(() => {
@@ -407,7 +475,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
         switch (dateFilter) {
           case "week":
             return diffDays <= 7;
+          case "thisWeek":
+            return diffDays <= 7;
           case "month":
+            return diffDays <= 30;
+          case "thisMonth":
             return diffDays <= 30;
           case "3months":
             return diffDays <= 90;
@@ -415,6 +487,12 @@ function TrackerPage({ darkMode, toggleTheme }) {
             return true;
         }
       });
+    }
+
+    // Apply dashboard-specific filters
+    if (dashboardFilter === 'responseRate') {
+      // Filter to show only jobs that responded (not applied or ghosted)
+      filtered = filtered.filter(job => !['applied', 'ghosted'].includes(job.status.toLowerCase()));
     }
 
     // Apply sorting
@@ -457,7 +535,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
     }
 
     setFilteredJobs(filtered);
-  }, [jobs, searchTerm, statusFilter, dateFilter, companyFilter, sortBy]);
+  }, [jobs, searchTerm, statusFilter, dateFilter, companyFilter, sortBy, dashboardFilter]);
 
   // Update job title suggestions when company changes
   useEffect(() => {
@@ -999,21 +1077,36 @@ function TrackerPage({ darkMode, toggleTheme }) {
                 
                 const IconComponent = stat.icon;
                 const value = stat.getValue();
+                const isActive = dashboardFilter === statId || (statId === 'total' && !dashboardFilter);
                 
                 return (
-                  <div key={statId} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <button
+                    key={statId}
+                    onClick={() => handleDashboardCardClick(statId)}
+                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer ${
+                      isActive ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+                    }`}
+                    style={{ focusRingColor: stat.color.replace('-500', '-500') }}
+                  >
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 ${getStatColorClass(stat.color)} rounded-full flex items-center justify-center`}>
-                          <IconComponent className="text-white text-sm" />
+                        <div className={`w-10 h-10 ${getStatColorClass(stat.color)} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                          <IconComponent className="text-white text-lg" />
                         </div>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
-                        <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                          {stat.label}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {value}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
+                          Click to filter results
+                        </p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
