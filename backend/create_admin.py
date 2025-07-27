@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script to create the first admin user for the Job Tracker system.
-Run this script after setting up the database to create your admin account.
+Script to promote existing users to admin role in the Job Tracker system.
+Run this script to promote any existing user to admin role.
 """
 
 import os
@@ -14,9 +14,9 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def create_admin_user():
-    """Create the first admin user"""
+    """Promote an existing user to admin role"""
     
-    print("=== Job Tracker Admin User Setup ===\n")
+    print("=== Job Tracker Admin User Promotion ===\n")
     
     # Get database configuration from environment
     db_config = {
@@ -45,59 +45,52 @@ def create_admin_user():
                 print("Admin user creation cancelled.")
                 return
         
-        # Get admin user details
-        print("Please enter the admin user details:")
-        username = input("Username: ").strip()
+        # Get user to promote to admin
+        print("Enter the email of the user you want to make admin:")
         email = input("Email: ").strip()
         
         # Validate input
-        if not username or not email:
-            print("❌ Error: Username and email are required.")
+        if not email:
+            print("❌ Error: Email is required.")
             return
         
-        # Check if username or email already exists
-        cursor.execute("SELECT id FROM users WHERE username = ? OR email = ?", (username, email))
+        # Check if user exists
+        cursor.execute("SELECT id, username, email, role FROM users WHERE email = ?", (email,))
         existing_user = cursor.fetchone()
-        if existing_user:
-            print("❌ Error: Username or email already exists.")
+        if not existing_user:
+            print("❌ Error: No user found with that email address.")
+            print("💡 Tip: The user must already have an account in the system.")
             return
         
-        # Get password (with confirmation)
-        import getpass
-        while True:
-            password = getpass.getpass("Password: ")
-            if len(password) < 6:
-                print("❌ Error: Password must be at least 6 characters long.")
-                continue
-            
-            password_confirm = getpass.getpass("Confirm Password: ")
-            if password != password_confirm:
-                print("❌ Error: Passwords do not match.")
-                continue
-            
-            break
+        # Check if user is already an admin
+        if existing_user['role'] == 'admin':
+            print(f"✅ User {existing_user['email']} is already an admin.")
+            return
         
-        # Hash password
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        # Confirm promotion
+        print(f"\nFound user:")
+        print(f"   Username: {existing_user['username']}")
+        print(f"   Email: {existing_user['email']}")
+        print(f"   Current Role: {existing_user['role']}")
         
-        # Create admin user
-        cursor.execute("""
-            INSERT INTO users (username, email, password_hash, email_verified, role, created_at, updated_at)
-            VALUES (?, ?, ?, TRUE, 'admin', ?, ?)
-        """, (username, email, password_hash, datetime.now(), datetime.now()))
+        confirm = input(f"\nPromote this user to admin? (y/N): ").strip().lower()
+        if confirm != 'y' and confirm != 'yes':
+            print("Operation cancelled.")
+            return
         
+        # Promote user to admin
+        cursor.execute("UPDATE users SET role = 'admin' WHERE id = ?", (existing_user['id'],))
         conn.commit()
-        user_id = cursor.lastrowid
         
-        print(f"\n✅ Admin user created successfully!")
-        print(f"   User ID: {user_id}")
-        print(f"   Username: {username}")
-        print(f"   Email: {email}")
-        print(f"   Role: admin")
-        print(f"   Email Verified: Yes")
+        print(f"\n✅ User promoted to admin successfully!")
+        print(f"   User ID: {existing_user['id']}")
+        print(f"   Username: {existing_user['username']}")
+        print(f"   Email: {existing_user['email']}")
+        print(f"   New Role: admin")
         
-        print(f"\n🎉 You can now log in to the admin panel with these credentials.")
+        print(f"\n🎉 User can now access the admin panel with their existing credentials.")
         print(f"   Admin Panel: {os.getenv('FRONTEND_URL', 'http://localhost:5173')}/admin")
+        return
         
     except mariadb.Error as e:
         print(f"❌ Database error: {e}")
