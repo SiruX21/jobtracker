@@ -65,10 +65,12 @@ def create_app():
     from app.routes.auth import auth_bp
     from app.routes.jobs import jobs_bp
     from app.routes.email import email_bp
+    from app.routes.logos import logos_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(jobs_bp)
     app.register_blueprint(email_bp)
+    app.register_blueprint(logos_bp, url_prefix='/api')
     
     return app
 

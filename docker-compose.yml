@@ -18,6 +18,15 @@ services:
       --max_connections=200
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
   backend:
     build:
       context: ./backend
@@ -26,6 +35,7 @@ services:
       - "5000:5000"
     depends_on:
       - db
+      - redis
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
       DEBUG: ${DEBUG}
@@ -41,6 +51,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       MAIL_SERVER: ${MAIL_SERVER}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USE_TLS: ${MAIL_USE_TLS}
@@ -65,3 +77,4 @@ services:
 
 volumes:
   mariadb_data:
+  redis_data:

@@ -13,6 +13,11 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'example')
     DB_NAME = os.getenv('DB_NAME', 'auth_db')
     
+    # Redis Configuration
+    REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    REDIS_DB = int(os.getenv('REDIS_DB', 0))
+    
     # Email Configuration
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.zoho.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 465))

@@ -6,7 +6,8 @@ import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import Select from 'react-select';
 import { FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaExternalLinkAlt, FaBuilding, FaCalendar, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaCog, FaCheckCircle, FaTimes, FaClock, FaThumbsUp, FaSpinner, FaSync, FaDatabase } from 'react-icons/fa';
-import companySuggestions, { getCompanyLogo, getJobTitleSuggestions } from "./data/companySuggestions";
+import companySuggestions, { getCompanyLogoSync, getJobTitleSuggestions } from "./data/companySuggestions";
+import { logoService } from "./services/logoService";
 
 // Cache utilities
 const CACHE_KEY = 'jobTracker_jobs_cache';
@@ -403,18 +404,28 @@ function TrackerPage({ darkMode, toggleTheme }) {
     if (companySearchTerm && companySearchTerm.length > 1) {
       setCompanyLogoLoading(companySearchTerm);
       
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         // Check if the company isn't already in suggestions
         const existingCompany = companySuggestions.find(c => 
           c.name.toLowerCase() === companySearchTerm.toLowerCase()
         );
         
         if (!existingCompany) {
-          const logoUrl = `https://logo.clearbit.com/${companySearchTerm.toLowerCase().replace(/\s+/g, '')}.com`;
-          setAutoLogos(prev => ({
-            ...prev,
-            [companySearchTerm]: logoUrl
-          }));
+          try {
+            const logoUrl = await logoService.getCompanyLogo(companySearchTerm);
+            setAutoLogos(prev => ({
+              ...prev,
+              [companySearchTerm]: logoUrl
+            }));
+          } catch (error) {
+            console.error('Error fetching logo:', error);
+            // Use fallback
+            const logoUrl = logoService.getFallbackLogo(companySearchTerm);
+            setAutoLogos(prev => ({
+              ...prev,
+              [companySearchTerm]: logoUrl
+            }));
+          }
         }
         setCompanyLogoLoading("");
       }, 300);
@@ -436,7 +447,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
       if (!companySuggestions.find(c => c.name.toLowerCase() === companyName.toLowerCase())) {
         allCompanies.push({
           name: companyName,
-          logo: `https://logo.clearbit.com/${companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+          logo: logoService.getFallbackLogo(companyName),
           website: `${companyName.toLowerCase().replace(/\s+/g, '')}.com`,
           commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "Marketing Manager"]
         });
@@ -446,7 +457,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
     const companyOptions = allCompanies.map(company => ({
       value: company.name,
       label: company.name,
-      logo: company.logo || `https://logo.clearbit.com/${company.name.toLowerCase().replace(/\s+/g, '')}.com`
+      logo: company.logo || logoService.getFallbackLogo(company.name)
     }));
 
     setCompanySuggestionsList(companyOptions);
@@ -463,7 +474,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
       );
       
       if (!exactMatch) {
-        const logoUrl = autoLogos[companySearchTerm] || `https://logo.clearbit.com/${companySearchTerm.toLowerCase().replace(/\s+/g, '')}.com`;
+        const logoUrl = autoLogos[companySearchTerm] || logoService.getFallbackLogo(companySearchTerm);
         const newCompanyOption = {
           value: companySearchTerm,
           label: companySearchTerm,
@@ -534,6 +545,12 @@ function TrackerPage({ darkMode, toggleTheme }) {
       
       // Cache the fresh data
       cacheUtils.set(jobsData);
+      
+      // Preload logos for all companies in background
+      const companyNames = [...new Set(jobsData.map(job => job.company_name).filter(Boolean))];
+      if (companyNames.length > 0) {
+        logoService.preloadLogos(companyNames);
+      }
       
       setCacheStatus({
         isFromCache: false,
@@ -1057,7 +1074,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
                     <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
                         <img 
-                          src={getCompanyLogo(job.company_name)} 
+                          src={getCompanyLogoSync(job.company_name)} 
                           alt={job.company_name}
                           className="w-10 h-10 object-contain"
                           onError={(e) => {

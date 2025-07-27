@@ -2,37 +2,37 @@ const companySuggestions = [
   // FAANG+ Companies
   {
     name: "Google",
-    logo: "https://logo.clearbit.com/google.com",
+    logo: "https://img.logo.dev/google.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "google.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "Site Reliability Engineer"]
   },
   {
     name: "Microsoft",
-    logo: "https://logo.clearbit.com/microsoft.com",
+    logo: "https://img.logo.dev/microsoft.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "microsoft.com",
     commonTitles: ["Software Engineer", "Program Manager", "Product Manager", "Data Engineer", "Cloud Solutions Architect"]
   },
   {
     name: "Amazon",
-    logo: "https://logo.clearbit.com/amazon.com",
+    logo: "https://img.logo.dev/amazon.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "amazon.com",
     commonTitles: ["Software Development Engineer", "Product Manager", "Data Scientist", "Solutions Architect", "Business Analyst"]
   },
   {
     name: "Meta",
-    logo: "https://logo.clearbit.com/meta.com",
+    logo: "https://img.logo.dev/meta.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "meta.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Research Scientist", "UX Researcher"]
   },
   {
     name: "Apple",
-    logo: "https://logo.clearbit.com/apple.com",
+    logo: "https://img.logo.dev/apple.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "apple.com",
     commonTitles: ["Software Engineer", "Product Manager", "Hardware Engineer", "iOS Developer", "Machine Learning Engineer"]
   },
   {
     name: "Netflix",
-    logo: "https://logo.clearbit.com/netflix.com",
+    logo: "https://img.logo.dev/netflix.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "netflix.com",
     commonTitles: ["Software Engineer", "Data Engineer", "Product Manager", "Content Strategy Manager", "DevOps Engineer"]
   },
@@ -40,43 +40,43 @@ const companySuggestions = [
   // Other Tech Giants
   {
     name: "Tesla",
-    logo: "https://logo.clearbit.com/tesla.com",
+    logo: "https://img.logo.dev/tesla.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "tesla.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Manufacturing Engineer", "Data Scientist", "Firmware Engineer"]
   },
   {
     name: "Adobe",
-    logo: "https://logo.clearbit.com/adobe.com",
+    logo: "https://img.logo.dev/adobe.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "adobe.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Creative Technologist", "Marketing Manager"]
   },
   {
     name: "Salesforce",
-    logo: "https://logo.clearbit.com/salesforce.com",
+    logo: "https://img.logo.dev/salesforce.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "salesforce.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Customer Success Manager", "Technical Writer"]
   },
   {
     name: "Oracle",
-    logo: "https://logo.clearbit.com/oracle.com",
+    logo: "https://img.logo.dev/oracle.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "oracle.com",
     commonTitles: ["Software Engineer", "Database Administrator", "Solutions Consultant", "Cloud Architect", "Product Manager"]
   },
   {
     name: "IBM",
-    logo: "https://logo.clearbit.com/ibm.com",
+    logo: "https://img.logo.dev/ibm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "ibm.com",
     commonTitles: ["Software Engineer", "Data Scientist", "Cloud Architect", "AI Researcher", "Consultant"]
   },
   {
     name: "Intel",
-    logo: "https://logo.clearbit.com/intel.com",
+    logo: "https://img.logo.dev/intel.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "intel.com",
     commonTitles: ["Hardware Engineer", "Software Engineer", "Validation Engineer", "Product Manager", "Research Scientist"]
   },
   {
     name: "NVIDIA",
-    logo: "https://logo.clearbit.com/nvidia.com",
+    logo: "https://img.logo.dev/nvidia.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "nvidia.com",
     commonTitles: ["Software Engineer", "Hardware Engineer", "AI Researcher", "Product Manager", "DevTech Engineer"]
   },
@@ -84,31 +84,31 @@ const companySuggestions = [
   // Social Media & Communication
   {
     name: "Twitter",
-    logo: "https://logo.clearbit.com/twitter.com",
+    logo: "https://img.logo.dev/twitter.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "twitter.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Moderator", "Site Reliability Engineer"]
   },
   {
     name: "LinkedIn",
-    logo: "https://logo.clearbit.com/linkedin.com",
+    logo: "https://img.logo.dev/linkedin.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "linkedin.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Talent Acquisition", "Marketing Manager"]
   },
   {
     name: "Slack",
-    logo: "https://logo.clearbit.com/slack.com",
+    logo: "https://img.logo.dev/slack.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "slack.com",
     commonTitles: ["Software Engineer", "Product Manager", "Customer Success Manager", "UX Designer", "Developer Advocate"]
   },
   {
     name: "Discord",
-    logo: "https://logo.clearbit.com/discord.com",
+    logo: "https://img.logo.dev/discord.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "discord.com",
     commonTitles: ["Software Engineer", "Product Manager", "Community Manager", "Data Scientist", "Security Engineer"]
   },
   {
     name: "Zoom",
-    logo: "https://logo.clearbit.com/zoom.us",
+    logo: "https://img.logo.dev/zoom.us?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "zoom.us",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Customer Success Manager", "DevOps Engineer"]
   },
@@ -116,25 +116,25 @@ const companySuggestions = [
   // Ride-sharing & Travel
   {
     name: "Uber",
-    logo: "https://logo.clearbit.com/uber.com",
+    logo: "https://img.logo.dev/uber.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "uber.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Operations Manager", "Growth Marketing Manager"]
   },
   {
     name: "Lyft",
-    logo: "https://logo.clearbit.com/lyft.com",
+    logo: "https://img.logo.dev/lyft.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "lyft.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Operations Manager", "Marketing Manager"]
   },
   {
     name: "Airbnb",
-    logo: "https://logo.clearbit.com/airbnb.com",
+    logo: "https://img.logo.dev/airbnb.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "airbnb.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "UX Designer", "Community Manager"]
   },
   {
     name: "Booking.com",
-    logo: "https://logo.clearbit.com/booking.com",
+    logo: "https://img.logo.dev/booking.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "booking.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Analyst", "UX Designer", "Marketing Manager"]
   },
@@ -142,19 +142,19 @@ const companySuggestions = [
   // Entertainment & Media
   {
     name: "Spotify",
-    logo: "https://logo.clearbit.com/spotify.com",
+    logo: "https://img.logo.dev/spotify.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "spotify.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Music Editor", "Backend Engineer"]
   },
   {
     name: "TikTok",
-    logo: "https://logo.clearbit.com/tiktok.com",
+    logo: "https://img.logo.dev/tiktok.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "tiktok.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Moderator", "Algorithm Engineer"]
   },
   {
     name: "YouTube",
-    logo: "https://logo.clearbit.com/youtube.com",
+    logo: "https://img.logo.dev/youtube.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "youtube.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Content Manager", "Creator Success Manager"]
   },
@@ -162,31 +162,31 @@ const companySuggestions = [
   // E-commerce & Fintech
   {
     name: "Shopify",
-    logo: "https://logo.clearbit.com/shopify.com",
+    logo: "https://img.logo.dev/shopify.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "shopify.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Merchant Success Manager", "Data Analyst"]
   },
   {
     name: "Square",
-    logo: "https://logo.clearbit.com/squareup.com",
+    logo: "https://img.logo.dev/squareup.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "squareup.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Risk Analyst", "Sales Engineer"]
   },
   {
     name: "PayPal",
-    logo: "https://logo.clearbit.com/paypal.com",
+    logo: "https://img.logo.dev/paypal.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "paypal.com",
     commonTitles: ["Software Engineer", "Product Manager", "Data Scientist", "Risk Analyst", "Compliance Officer"]
   },
   {
     name: "Stripe",
-    logo: "https://logo.clearbit.com/stripe.com",
+    logo: "https://img.logo.dev/stripe.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "stripe.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Developer Relations", "Risk Operations"]
   },
   {
     name: "Coinbase",
-    logo: "https://logo.clearbit.com/coinbase.com",
+    logo: "https://img.logo.dev/coinbase.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "coinbase.com",
     commonTitles: ["Software Engineer", "Product Manager", "Compliance Officer", "Security Engineer", "Quantitative Researcher"]
   },
@@ -194,25 +194,25 @@ const companySuggestions = [
   // Gaming
   {
     name: "Activision Blizzard",
-    logo: "https://logo.clearbit.com/activisionblizzard.com",
+    logo: "https://img.logo.dev/activisionblizzard.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "activisionblizzard.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "QA Engineer"]
   },
   {
     name: "Electronic Arts",
-    logo: "https://logo.clearbit.com/ea.com",
+    logo: "https://img.logo.dev/ea.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "ea.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "Data Analyst"]
   },
   {
     name: "Epic Games",
-    logo: "https://logo.clearbit.com/epicgames.com",
+    logo: "https://img.logo.dev/epicgames.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "epicgames.com",
     commonTitles: ["Game Developer", "Software Engineer", "Technical Artist", "Product Manager", "DevOps Engineer"]
   },
   {
     name: "Riot Games",
-    logo: "https://logo.clearbit.com/riotgames.com",
+    logo: "https://img.logo.dev/riotgames.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "riotgames.com",
     commonTitles: ["Game Developer", "Software Engineer", "Game Designer", "Product Manager", "Data Scientist"]
   },
@@ -220,25 +220,25 @@ const companySuggestions = [
   // Cloud & Infrastructure
   {
     name: "Snowflake",
-    logo: "https://logo.clearbit.com/snowflake.com",
+    logo: "https://img.logo.dev/snowflake.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "snowflake.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Data Engineer", "Customer Success Engineer"]
   },
   {
     name: "MongoDB",
-    logo: "https://logo.clearbit.com/mongodb.com",
+    logo: "https://img.logo.dev/mongodb.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "mongodb.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Technical Writer", "Developer Advocate"]
   },
   {
     name: "Redis",
-    logo: "https://logo.clearbit.com/redis.com",
+    logo: "https://img.logo.dev/redis.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "redis.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Developer Relations", "Technical Writer"]
   },
   {
     name: "Databricks",
-    logo: "https://logo.clearbit.com/databricks.com",
+    logo: "https://img.logo.dev/databricks.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "databricks.com",
     commonTitles: ["Software Engineer", "Data Engineer", "Product Manager", "Solutions Architect", "Field Engineer"]
   },
@@ -246,25 +246,25 @@ const companySuggestions = [
   // Startups & Unicorns
   {
     name: "Canva",
-    logo: "https://logo.clearbit.com/canva.com",
+    logo: "https://img.logo.dev/canva.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "canva.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Marketing Manager", "Data Scientist"]
   },
   {
     name: "Figma",
-    logo: "https://logo.clearbit.com/figma.com",
+    logo: "https://img.logo.dev/figma.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "figma.com",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Developer Relations", "Customer Success"]
   },
   {
     name: "Notion",
-    logo: "https://logo.clearbit.com/notion.so",
+    logo: "https://img.logo.dev/notion.so?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "notion.so",
     commonTitles: ["Software Engineer", "Product Manager", "UX Designer", "Community Manager", "Customer Success"]
   },
   {
     name: "Airtable",
-    logo: "https://logo.clearbit.com/airtable.com",
+    logo: "https://img.logo.dev/airtable.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "airtable.com",
     commonTitles: ["Software Engineer", "Product Manager", "Solutions Engineer", "Customer Success Manager", "Data Analyst"]
   },
@@ -272,25 +272,25 @@ const companySuggestions = [
   // Consulting & Traditional Tech
   {
     name: "Deloitte",
-    logo: "https://logo.clearbit.com/deloitte.com",
+    logo: "https://img.logo.dev/deloitte.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "deloitte.com",
     commonTitles: ["Consultant", "Senior Consultant", "Manager", "Technology Analyst", "Business Analyst"]
   },
   {
     name: "Accenture",
-    logo: "https://logo.clearbit.com/accenture.com",
+    logo: "https://img.logo.dev/accenture.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "accenture.com",
     commonTitles: ["Consultant", "Technology Analyst", "Software Engineer", "Solution Architect", "Project Manager"]
   },
   {
     name: "McKinsey & Company",
-    logo: "https://logo.clearbit.com/mckinsey.com",
+    logo: "https://img.logo.dev/mckinsey.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "mckinsey.com",
     commonTitles: ["Business Analyst", "Associate", "Engagement Manager", "Partner", "Specialist"]
   },
   {
     name: "Boston Consulting Group",
-    logo: "https://logo.clearbit.com/bcg.com",
+    logo: "https://img.logo.dev/bcg.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "bcg.com",
     commonTitles: ["Consultant", "Project Leader", "Principal", "Partner", "Knowledge Analyst"]
   },
@@ -298,19 +298,19 @@ const companySuggestions = [
   // Automotive
   {
     name: "Ford",
-    logo: "https://logo.clearbit.com/ford.com",
+    logo: "https://img.logo.dev/ford.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "ford.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "Data Scientist", "Autonomous Vehicle Engineer"]
   },
   {
     name: "General Motors",
-    logo: "https://logo.clearbit.com/gm.com",
+    logo: "https://img.logo.dev/gm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "gm.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "Electrical Engineer", "Manufacturing Engineer"]
   },
   {
     name: "BMW",
-    logo: "https://logo.clearbit.com/bmw.com",
+    logo: "https://img.logo.dev/bmw.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ",
     website: "bmw.com",
     commonTitles: ["Software Engineer", "Mechanical Engineer", "Product Manager", "UX Designer", "Innovation Manager"]
   }
@@ -323,16 +323,24 @@ export const getCompanyByName = (name) => {
   );
 };
 
+import { logoService } from '../services/logoService';
+
 // Helper function to get company logo
-export const getCompanyLogo = (companyName) => {
+export const getCompanyLogo = async (companyName) => {
   const company = getCompanyByName(companyName);
   if (company) return company.logo;
   
-  // Generate logo URL for any company name
-  const cleanName = companyName.toLowerCase()
-    .replace(/\s+/g, '')
-    .replace(/[^a-z0-9]/g, '');
-  return `https://logo.clearbit.com/${cleanName}.com`;
+  // Use cached logo service for dynamic companies
+  return await logoService.getCompanyLogo(companyName);
+};
+
+// Synchronous helper for immediate use (returns cached or fallback)
+export const getCompanyLogoSync = (companyName) => {
+  const company = getCompanyByName(companyName);
+  if (company) return company.logo;
+  
+  // Return fallback for immediate use
+  return logoService.getFallbackLogo(companyName);
 };
 
 // Helper function to get job title suggestions for a company
