@@ -25,13 +25,16 @@ def send_verification_email(user_email, token):
         print("Email configuration missing", flush=True)
         return False
     
+    # Get frontend URL from environment or default to localhost
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    
     subject = "Verify Your Email Address"
     body = f"""
     Hello,
     
     Please click the following link to verify your email address:
     
-    http://localhost:5173/verify-email?token={token}
+    {frontend_url}/verify-email?token={token}
     
     This link will expire in 24 hours.
     
@@ -55,8 +58,12 @@ def send_verification_email(user_email, token):
         print(f"Subject: {subject}", flush=True)
         print(f"Body:\n{body}", flush=True)
 
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
+        # Use SMTP_SSL for port 465 (SSL), or SMTP with starttls for port 587 (TLS)
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
         server.login(smtp_username, smtp_password)
         text = msg.as_string()
         server.sendmail(smtp_username, user_email, text)
@@ -82,13 +89,16 @@ def send_password_reset_email(user_email, token):
         print("Email configuration missing")
         return False
     
+    # Get frontend URL from environment or default to localhost
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    
     subject = "Reset Your Password"
     body = f"""
     Hello,
     
     You have requested to reset your password. Please click the following link to reset your password:
     
-    http://localhost:5173/reset-password?token={token}
+    {frontend_url}/reset-password?token={token}
     
     This link will expire in 1 hour.
     
@@ -106,8 +116,12 @@ def send_password_reset_email(user_email, token):
         
         msg.attach(MIMEText(body, 'plain'))
         
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
+        # Use SMTP_SSL for port 465 (SSL), or SMTP with starttls for port 587 (TLS)
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
         server.login(smtp_username, smtp_password)
         text = msg.as_string()
         server.sendmail(smtp_username, user_email, text)
@@ -119,8 +133,3 @@ def send_password_reset_email(user_email, token):
     except Exception as e:
         print(f"Failed to send password reset email: {e}")
         return False
-
-def send_password_reset_email(email, reset_token):
-    """Send password reset email (for future implementation)"""
-    # TODO: Implement password reset functionality
-    pass
