@@ -1,0 +1,659 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import { API_BASE_URL } from './config';
+import Header from './Header';
+import { 
+  FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
+  FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
+  FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
+  FaSync, FaClock, FaMemory, FaHdd
+} from 'react-icons/fa';
+
+function SettingsPage({ darkMode, toggleTheme }) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  
+  // Profile settings
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
+  
+  // App settings
+  const [developerMode, setDeveloperMode] = useState(() => 
+    localStorage.getItem('developerMode') === 'true'
+  );
+  const [notifications, setNotifications] = useState(() => 
+    localStorage.getItem('notifications') !== 'false'
+  );
+  const [autoRefresh, setAutoRefresh] = useState(() => 
+    localStorage.getItem('autoRefresh') !== 'false'
+  );
+  const [dataRetention, setDataRetention] = useState(() => 
+    localStorage.getItem('dataRetention') || '30'
+  );
+  
+  // Developer info
+  const [cacheInfo, setCacheInfo] = useState(null);
+  const [storageInfo, setStorageInfo] = useState(null);
+  
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  // Check authentication and load user data
+  useEffect(() => {
+    const authToken = Cookies.get("authToken");
+    if (!authToken) {
+      console.log('No auth token found, redirecting to auth'); // Debug log
+      navigate('/auth');
+      return;
+    }
+    console.log('Auth token found, loading profile'); // Debug log
+    setIsAuthenticated(true);
+    loadUserProfile();
+    if (developerMode) {
+      loadDeveloperInfo();
+    }
+  }, [navigate, developerMode]);
+
+  const loadUserProfile = async () => {
+    try {
+      const authToken = Cookies.get("authToken");
+      console.log('Auth token:', authToken); // Debug log
+      console.log('API URL:', `${API_BASE_URL}/auth/profile`); // Debug log
+      
+      const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      console.log('Profile response:', response.data); // Debug log
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      console.error('Error response:', error.response); // Debug log
+      showMessage('Failed to load user profile', 'error');
+    }
+  };
+
+  const loadDeveloperInfo = () => {
+    // Load cache information
+    const jobsCache = localStorage.getItem('jobTracker_jobs_cache');
+    const cacheExpiry = localStorage.getItem('jobTracker_cache_expiry');
+    
+    let cacheData = null;
+    if (jobsCache) {
+      try {
+        const parsed = JSON.parse(jobsCache);
+        cacheData = {
+          size: new Blob([jobsCache]).size,
+          jobCount: parsed.jobs ? parsed.jobs.length : 0,
+          timestamp: parsed.timestamp,
+          version: parsed.version,
+          expiry: cacheExpiry,
+          isExpired: Date.now() > parseInt(cacheExpiry || '0')
+        };
+      } catch (error) {
+        cacheData = { error: 'Invalid cache data' };
+      }
+    }
+    setCacheInfo(cacheData);
+
+    // Load storage information
+    let totalSize = 0;
+    let itemCount = 0;
+    const storageItems = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const value = localStorage.getItem(key);
+      const size = new Blob([value]).size;
+      totalSize += size;
+      itemCount++;
+      
+      if (key.startsWith('jobTracker_') || key === 'darkMode' || key === 'authToken') {
+        storageItems.push({
+          key,
+          size,
+          preview: value.length > 50 ? value.substring(0, 50) + '...' : value
+        });
+      }
+    }
+    
+    setStorageInfo({
+      totalSize,
+      itemCount,
+      items: storageItems
+    });
+  };
+
+  const showMessage = (text, type = 'info') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 5000);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      showMessage('New passwords do not match', 'error');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      showMessage('Password must be at least 6 characters long', 'error');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const authToken = Cookies.get("authToken");
+      await axios.put(`${API_BASE_URL}/auth/change-password`, {
+        currentPassword,
+        newPassword
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      showMessage('Password changed successfully', 'success');
+    } catch (error) {
+      showMessage(error.response?.data?.message || 'Failed to change password', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSettingChange = (setting, value) => {
+    switch (setting) {
+      case 'developerMode':
+        setDeveloperMode(value);
+        localStorage.setItem('developerMode', value.toString());
+        if (value) loadDeveloperInfo();
+        break;
+      case 'notifications':
+        setNotifications(value);
+        localStorage.setItem('notifications', value.toString());
+        break;
+      case 'autoRefresh':
+        setAutoRefresh(value);
+        localStorage.setItem('autoRefresh', value.toString());
+        break;
+      case 'dataRetention':
+        setDataRetention(value);
+        localStorage.setItem('dataRetention', value);
+        break;
+    }
+    showMessage(`${setting} updated`, 'success');
+  };
+
+  const clearCache = () => {
+    localStorage.removeItem('jobTracker_jobs_cache');
+    localStorage.removeItem('jobTracker_cache_expiry');
+    localStorage.removeItem('jobTracker_cache_version');
+    loadDeveloperInfo();
+    showMessage('Cache cleared successfully', 'success');
+  };
+
+  const exportData = () => {
+    const data = {
+      settings: {
+        developerMode,
+        notifications,
+        autoRefresh,
+        dataRetention,
+        darkMode
+      },
+      cache: localStorage.getItem('jobTracker_jobs_cache'),
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jobtracker-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showMessage('Data exported successfully', 'success');
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  if (!isAuthenticated) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className={`${darkMode ? "dark" : ""}`}>
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your account and application preferences</p>
+          </div>
+
+          {/* Message Display */}
+          {message.text && (
+            <div className={`mb-6 p-4 rounded-lg flex items-center ${
+              message.type === 'success' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
+              message.type === 'error' ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400' :
+              'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+            }`}>
+              {message.type === 'success' && <FaCheckCircle className="mr-2" />}
+              {message.type === 'error' && <FaExclamationTriangle className="mr-2" />}
+              {message.type === 'info' && <FaInfoCircle className="mr-2" />}
+              {message.text}
+            </div>
+          )}
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <nav className="space-y-2">
+                {[
+                  { id: 'profile', name: 'Profile & Security', icon: FaUser },
+                  { id: 'preferences', name: 'Preferences', icon: FaCog },
+                  { id: 'developer', name: 'Developer Tools', icon: FaCode }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <tab.icon className="mr-3" />
+                    {tab.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                
+                {/* Profile & Security Tab */}
+                {activeTab === 'profile' && (
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Profile & Security</h2>
+                    
+                    {/* User Info */}
+                    {user && (
+                      <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h3 className="font-medium text-gray-900 dark:text-white mb-2">Account Information</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Member since: {formatDate(user.created_at)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Change Password */}
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <h3 className="font-medium text-gray-900 dark:text-white">Change Password</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPasswords ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          New Password
+                        </label>
+                        <input
+                          type={showPasswords ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Confirm New Password
+                        </label>
+                        <input
+                          type={showPasswords ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords(!showPasswords)}
+                          className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          {showPasswords ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />}
+                          {showPasswords ? 'Hide' : 'Show'} passwords
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <FaSave className="mr-2" />
+                          {loading ? 'Changing...' : 'Change Password'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Preferences Tab */}
+                {activeTab === 'preferences' && (
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Preferences</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Theme */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Theme</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
+                        </div>
+                        <button
+                          onClick={toggleTheme}
+                          className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
+                          <FaPalette className="mr-2" />
+                          {darkMode ? 'Dark' : 'Light'} Mode
+                        </button>
+                      </div>
+
+                      {/* Notifications */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Notifications</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Enable browser notifications</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={notifications}
+                            onChange={(e) => handleSettingChange('notifications', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Auto Refresh */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Auto Refresh</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Automatically refresh job data</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={autoRefresh}
+                            onChange={(e) => handleSettingChange('autoRefresh', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Data Retention */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Data Retention</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">How long to keep cached data</p>
+                        </div>
+                        <select
+                          value={dataRetention}
+                          onChange={(e) => handleSettingChange('dataRetention', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        >
+                          <option value="7">7 days</option>
+                          <option value="30">30 days</option>
+                          <option value="90">90 days</option>
+                          <option value="365">1 year</option>
+                        </select>
+                      </div>
+
+                      {/* Developer Mode */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Show technical information and debugging tools</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={developerMode}
+                            onChange={(e) => handleSettingChange('developerMode', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Export Data */}
+                      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={exportData}
+                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                          <FaDownload className="mr-2" />
+                          Export Data
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Developer Tools Tab */}
+                {activeTab === 'developer' && (
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Developer Tools</h2>
+                    
+                    {!developerMode ? (
+                      <div className="text-center py-8">
+                        <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
+                        <button
+                          onClick={() => handleSettingChange('developerMode', true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Enable Developer Mode
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Cache Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
+                              <FaDatabase className="mr-2" />
+                              Cache Information
+                            </h3>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={loadDeveloperInfo}
+                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                              >
+                                <FaSync className="inline mr-1" />
+                                Refresh
+                              </button>
+                              <button
+                                onClick={clearCache}
+                                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                              >
+                                <FaTrash className="inline mr-1" />
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {cacheInfo ? (
+                            cacheInfo.error ? (
+                              <p className="text-red-600 dark:text-red-400">{cacheInfo.error}</p>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Size:</span>
+                                  <span className="ml-2 font-mono">{formatBytes(cacheInfo.size)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Jobs:</span>
+                                  <span className="ml-2 font-mono">{cacheInfo.jobCount}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Created:</span>
+                                  <span className="ml-2 font-mono">{formatDate(cacheInfo.timestamp)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Expires:</span>
+                                  <span className={`ml-2 font-mono ${cacheInfo.isExpired ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                    {formatDate(parseInt(cacheInfo.expiry))}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Version:</span>
+                                  <span className="ml-2 font-mono">{cacheInfo.version}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                  <span className={`ml-2 font-mono ${cacheInfo.isExpired ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                    {cacheInfo.isExpired ? 'Expired' : 'Valid'}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          ) : (
+                            <p className="text-gray-600 dark:text-gray-400">No cache data found</p>
+                          )}
+                        </div>
+
+                        {/* Storage Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaHdd className="mr-2" />
+                            Local Storage
+                          </h3>
+                          
+                          {storageInfo && (
+                            <div>
+                              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Total Size:</span>
+                                  <span className="ml-2 font-mono">{formatBytes(storageInfo.totalSize)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Items:</span>
+                                  <span className="ml-2 font-mono">{storageInfo.itemCount}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {storageInfo.items.map((item, index) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded text-xs">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono text-blue-600 dark:text-blue-400">{item.key}</div>
+                                      <div className="text-gray-500 dark:text-gray-400 truncate">{item.preview}</div>
+                                    </div>
+                                    <div className="text-gray-600 dark:text-gray-400 ml-2">
+                                      {formatBytes(item.size)}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* System Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaMemory className="mr-2" />
+                            System Information
+                          </h3>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">User Agent:</span>
+                              <div className="font-mono text-xs break-all">{navigator.userAgent}</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Screen:</span>
+                              <span className="ml-2 font-mono">{screen.width}x{screen.height}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Viewport:</span>
+                              <span className="ml-2 font-mono">{window.innerWidth}x{window.innerHeight}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Language:</span>
+                              <span className="ml-2 font-mono">{navigator.language}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Online:</span>
+                              <span className={`ml-2 font-mono ${navigator.onLine ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {navigator.onLine ? 'Yes' : 'No'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Cookies Enabled:</span>
+                              <span className={`ml-2 font-mono ${navigator.cookieEnabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {navigator.cookieEnabled ? 'Yes' : 'No'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SettingsPage;

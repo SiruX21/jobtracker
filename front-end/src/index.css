@@ -1,3 +1,344 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes rainFall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rainFallSlow {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100vh) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rainFallFast {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(270deg);
+    opacity: 0;
+  }
+}
+
+.rain-icon {
+  animation: rainFall 8s linear infinite;
+  pointer-events: none;
+}
+
+.rain-icon-slow {
+  animation: rainFallSlow 12s linear infinite;
+  pointer-events: none;
+}
+
+.rain-icon-fast {
+  animation: rainFallFast 6s linear infinite;
+  pointer-events: none;
+}
+
+/* Custom Animations for Enhanced UI Flow */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* Animation Classes */
+.animate-slideInUp {
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Delay Classes for Staggered Animations */
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-600 {
+  animation-delay: 0.6s;
+}
+
+.delay-700 {
+  animation-delay: 0.7s;
+}
+
+.delay-800 {
+  animation-delay: 0.8s;
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced Focus States */
+*:focus {
+  outline: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #dbeafe;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+
+/* React Select Dark Mode Styles */
+.dark .react-select__control {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-select__control:hover {
+  border-color: #3b82f6 !important;
+}
+
+.dark .react-select__control--is-focused {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+}
+
+.dark .react-select__single-value {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__placeholder {
+  color: #9ca3af !important;
+}
+
+.dark .react-select__input-container {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__input {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__value-container {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__menu {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .react-select__menu-list {
+  background-color: #374151 !important;
+}
+
+.dark .react-select__option {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-select__option:hover {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-select__option--is-selected {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark .react-select__option--is-focused {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-select__indicator-separator {
+  background-color: #4b5563 !important;
+}
+
+.dark .react-select__dropdown-indicator {
+  color: #9ca3af !important;
+}
+
+.dark .react-select__dropdown-indicator:hover {
+  color: #d1d5db !important;
+}
+
+.dark .react-select__clear-indicator {
+  color: #9ca3af !important;
+}
+
+.dark .react-select__clear-indicator:hover {
+  color: #d1d5db !important;
+}
+
+.dark .react-select__loading-indicator {
+  color: #9ca3af !important;
+}
+
+.dark .react-select__multi-value {
+  background-color: #4b5563 !important;
+}
+
+.dark .react-select__multi-value__label {
+  color: #f9fafb !important;
+}
+
+.dark .react-select__multi-value__remove {
+  color: #9ca3af !important;
+  background-color: transparent !important;
+}
+
+.dark .react-select__multi-value__remove:hover {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}

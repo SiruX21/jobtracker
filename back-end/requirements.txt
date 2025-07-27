@@ -1,5 +1,0 @@
-Flask
-Flask-Cors
-mariadb
-PyJWT
-python-dotenv
