@@ -64,9 +64,9 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const checkAdminAccess = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       if (!token) {
-        navigate('/auth');
+        navigate('/auth?redirect=admin');
         return;
       }
 
@@ -80,7 +80,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       if (error.response?.status === 403) {
         setError('Admin access required');
       } else if (error.response?.status === 401) {
-        navigate('/auth');
+        navigate('/auth?redirect=admin');
       } else {
         setError('Failed to verify admin access');
       }
@@ -90,7 +90,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadDashboard = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -102,7 +102,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadUsers = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       const params = {
         page: usersPage,
         per_page: 20,
@@ -123,7 +123,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadJobs = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       const params = {
         page: jobsPage,
         per_page: 20,
@@ -145,7 +145,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadSystemInfo = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       const response = await axios.get(`${API_BASE_URL}/api/admin/system/info`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -157,7 +157,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadEnvironmentVars = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       const response = await axios.get(`${API_BASE_URL}/api/admin/system/environment`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -169,7 +169,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const updateUser = async (userId, updates) => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.put(`${API_BASE_URL}/api/admin/users/${userId}`, updates, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -186,7 +186,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.delete(`${API_BASE_URL}/api/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -205,7 +205,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.delete(`${API_BASE_URL}/api/admin/jobs/${jobId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -217,7 +217,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const createAdminUser = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.post(`${API_BASE_URL}/api/admin/create-admin`, newAdminData, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -237,7 +237,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.post(`${API_BASE_URL}/api/admin/system/clear-cache`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -250,7 +250,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const updateEnvironmentVar = async (key, value) => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.put(`${API_BASE_URL}/api/admin/system/environment`, 
         { key, value }, 
         { headers: { Authorization: `Bearer ${token}` } }
@@ -268,7 +268,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.delete(`${API_BASE_URL}/api/admin/system/environment/${key}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -285,7 +285,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       await axios.put(`${API_BASE_URL}/api/admin/system/environment`, 
         newEnvVar, 
         { headers: { Authorization: `Bearer ${token}` } }

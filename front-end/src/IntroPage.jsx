@@ -104,7 +104,16 @@ function IntroPage({ darkMode, toggleTheme }) {
           password: formData.password
         });
         Cookies.set("authToken", response.data.token, { expires: 1 });
-        navigate("/tracker");
+        
+        // Check for redirect parameter
+        const redirectTo = searchParams.get('redirect');
+        if (redirectTo === 'admin') {
+          navigate("/admin");
+        } else if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate("/tracker");
+        }
       } else {
         // Registration request (email will be used as username)
         await axios.post(`${config.API_BASE_URL}/auth/register`, {

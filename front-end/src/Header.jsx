@@ -21,7 +21,7 @@ function Header({ darkMode, toggleTheme }) {
 
   const checkAdminStatus = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get('authToken');
       if (!token) return;
 
       const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
