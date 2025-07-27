@@ -952,7 +952,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             </div>
                           </div>
                         </div>
-                        )}
+                      )}
                     </div>
                   </div>
                 )}
