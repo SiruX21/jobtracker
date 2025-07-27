@@ -65,7 +65,7 @@ function IntroPage({ darkMode, toggleTheme }) {
     try {
       if (isLogin) {
         // Login request
-        const response = await axios.post(`${config.API_BASE_URL}/login`, {
+        const response = await axios.post(`${config.API_BASE_URL}/auth/login`, {
           username: formData.email, // Backend expects username field
           password: formData.password
         });
