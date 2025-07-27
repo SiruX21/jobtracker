@@ -8,7 +8,7 @@ import {
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
-  FaSync, FaClock, FaMemory, FaHdd
+  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme }) {

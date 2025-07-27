@@ -49,6 +49,30 @@ function AdminPanel({ darkMode, toggleTheme }) {
     checkAdminAccess();
   }, []);
 
+  // Debounced search effect for users
+  useEffect(() => {
+    const delayedSearch = setTimeout(() => {
+      if (activeTab === 'users') {
+        setUsersPage(1); // Reset to first page when searching
+        loadUsers();
+      }
+    }, 300);
+
+    return () => clearTimeout(delayedSearch);
+  }, [usersSearch]);
+
+  // Debounced search effect for jobs  
+  useEffect(() => {
+    const delayedSearch = setTimeout(() => {
+      if (activeTab === 'jobs') {
+        setJobsPage(1); // Reset to first page when searching
+        loadJobs();
+      }
+    }, 300);
+
+    return () => clearTimeout(delayedSearch);
+  }, [jobsSearch, jobsStatusFilter]);
+
   useEffect(() => {
     if (activeTab === 'dashboard') {
       loadDashboard();
@@ -60,7 +84,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       loadSystemInfo();
       loadEnvironmentVars();
     }
-  }, [activeTab, usersPage, usersSearch, jobsPage, jobsSearch, jobsStatusFilter]);
+  }, [activeTab, usersPage, jobsPage]);
 
   const checkAdminAccess = async () => {
     try {
@@ -478,22 +502,46 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <div className="p-6">
                   <div className="space-y-4">
                     {dashboardData.recent_activity.users.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                      <div key={user.id} className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                              <FaUsers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           {user.role === 'admin' && (
-                            <span className="px-2 py-1 text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border dark:border-red-700">
+                              <FaUserShield className="w-3 h-3 mr-1" />
                               Admin
                             </span>
                           )}
                           {user.email_verified ? (
-                            <FaCheck className="text-green-500" />
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border dark:border-green-700">
+                              <FaCheck className="w-3 h-3 mr-1" />
+                              Verified
+                            </span>
                           ) : (
-                            <FaTimes className="text-red-500" />
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border dark:border-yellow-700">
+                              <FaTimes className="w-3 h-3 mr-1" />
+                              Unverified
+                            </span>
                           )}
+                          <button
+                            onClick={() => setSelectedUser(user)}
+                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 shadow-sm text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                          >
+                            <FaEye className="w-3 h-3 mr-1" />
+                            View
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -509,20 +557,34 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 <div className="p-6">
                   <div className="space-y-4">
                     {dashboardData.recent_activity.jobs.map((job) => (
-                      <div key={job.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{job.company_name}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{job.position_title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-500">by {job.username}</p>
+                      <div key={job.id} className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                              <FaBriefcase className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{job.company_name}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{job.position_title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                              by {job.username} • {new Date(job.applied_date).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            job.status === 'applied' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                            job.status === 'interview' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                            job.status === 'offered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                            'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                        <div className="flex items-center space-x-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                            job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
+                              'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
+                            job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700' :
+                            job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 
+                              'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
+                            job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 
+                              'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700' :
+                              'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700'
                           }`}>
-                            {job.status}
+                            {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'Unknown'}
                           </span>
                         </div>
                       </div>
@@ -538,33 +600,44 @@ function AdminPanel({ darkMode, toggleTheme }) {
         {activeTab === 'users' && (
           <div className="space-y-6">
             {/* Users Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="relative flex-1 sm:w-80">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search users..."
+                    placeholder="Search by username, email..."
                     value={usersSearch}
                     onChange={(e) => setUsersSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   />
+                  {usersSearch && (
+                    <button
+                      onClick={() => setUsersSearch('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <FaTimes className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
                 <button
-                  onClick={() => setUsersPage(1)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                  onClick={() => {
+                    setUsersPage(1);
+                    loadUsers();
+                  }}
+                  className="inline-flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
-                  <FaSync className="mr-2" />
+                  <FaSync className="w-4 h-4 mr-2" />
                   Refresh
                 </button>
               </div>
               <button
                 onClick={() => setShowCreateAdmin(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+                className="inline-flex items-center px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors shadow-sm"
               >
-                <FaPlus className="mr-2" />
+                <FaPlus className="w-4 h-4 mr-2" />
                 Create Admin
               </button>
             </div>
@@ -596,57 +669,73 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     {users.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {user.username}
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <FaUsers className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {user.email}
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {user.username}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {user.email}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {user.email_verified ? (
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border dark:border-green-700">
+                              <FaCheck className="w-3 h-3 mr-1" />
                               Verified
                             </span>
                           ) : (
-                            <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border dark:border-yellow-700">
+                              <FaExclamationTriangle className="w-3 h-3 mr-1" />
                               Unverified
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded ${
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                             user.role === 'admin' 
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700'
                           }`}>
-                            {user.role}
+                            {user.role === 'admin' && <FaUserShield className="w-3 h-3 mr-1" />}
+                            {user.role === 'user' && <FaUsers className="w-3 h-3 mr-1" />}
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(user.created_at)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                          <button
-                            onClick={() => setSelectedUser(user)}
-                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                          >
-                            <FaEye />
-                          </button>
-                          <button
-                            onClick={() => setSelectedUser({ ...user, editing: true })}
-                            className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            onClick={() => deleteUser(user.id)}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <FaTrash />
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => setSelectedUser(user)}
+                              className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 shadow-sm text-xs font-medium rounded text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            >
+                              <FaEye className="w-3 h-3 mr-1" />
+                              View
+                            </button>
+                            <button
+                              onClick={() => setSelectedUser({ ...user, editing: true })}
+                              className="inline-flex items-center px-2.5 py-1.5 border border-yellow-300 dark:border-yellow-600 shadow-sm text-xs font-medium rounded text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
+                            >
+                              <FaEdit className="w-3 h-3 mr-1" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => deleteUser(user.id)}
+                              className="inline-flex items-center px-2.5 py-1.5 border border-red-300 dark:border-red-600 shadow-sm text-xs font-medium rounded text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                            >
+                              <FaTrash className="w-3 h-3 mr-1" />
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -692,38 +781,52 @@ function AdminPanel({ darkMode, toggleTheme }) {
         {activeTab === 'jobs' && (
           <div className="space-y-6">
             {/* Jobs Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="relative flex-1 sm:w-80">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search jobs..."
+                    placeholder="Search by company, position, user..."
                     value={jobsSearch}
                     onChange={(e) => setJobsSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   />
+                  {jobsSearch && (
+                    <button
+                      onClick={() => setJobsSearch('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <FaTimes className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                <select
-                  value={jobsStatusFilter}
-                  onChange={(e) => setJobsStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Status</option>
-                  <option value="applied">Applied</option>
-                  <option value="interview">Interview</option>
-                  <option value="offered">Offered</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+                <div className="relative">
+                  <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={jobsStatusFilter}
+                    onChange={(e) => setJobsStatusFilter(e.target.value)}
+                    className="pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
+                  >
+                    <option value="">All Status</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Offered">Offered</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
                 <button
-                  onClick={() => setJobsPage(1)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                  onClick={() => {
+                    setJobsPage(1);
+                    loadJobs();
+                  }}
+                  className="inline-flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
-                  <FaSync className="mr-2" />
+                  <FaSync className="w-4 h-4 mr-2" />
                   Refresh
                 </button>
               </div>
