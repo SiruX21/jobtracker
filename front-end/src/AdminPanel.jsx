@@ -572,51 +572,57 @@ function AdminPanel({ darkMode, toggleTheme }) {
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Users */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Users</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-t-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <FaUsers className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                    Recent Users
+                    <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full">
+                      {dashboardData.recent_activity.users.length}
+                    </span>
+                  </h3>
                 </div>
                 <div className="p-6">
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {dashboardData.recent_activity.users.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <div className="flex items-center space-x-3">
+                      <div key={user.id} className="group relative flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-700 last:border-b-0 hover:border-blue-200 dark:hover:border-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer">
+                        <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                              <FaUsers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ease-out shadow-sm group-hover:shadow-lg">
+                              <FaUsers className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300" />
                             </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500">
-                              {new Date(user.created_at).toLocaleDateString()}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-900 dark:group-hover:text-blue-100 transition-colors duration-300 truncate">{user.username}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 truncate">{user.email}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors duration-300">
+                              Joined {new Date(user.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
                           {user.role === 'admin' && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700 shadow-sm">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
                               <FaUserShield className="w-3 h-3 mr-1.5" />
                               Admin
                             </span>
                           )}
                           {user.email_verified ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
                               <FaCheck className="w-3 h-3 mr-1.5" />
                               Verified
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-700 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
                               <FaTimes className="w-3 h-3 mr-1.5" />
                               Unverified
                             </span>
                           )}
                           <button
                             onClick={() => setSelectedUser(user)}
-                            className="inline-flex items-center px-3 py-1.5 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-full text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                            className="inline-flex items-center px-4 py-2 border border-blue-300 dark:border-blue-500 shadow-sm text-xs font-medium rounded-xl text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-lg hover:scale-110 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-300 ease-out transform"
                           >
-                            <FaEye className="w-3 h-3 mr-1.5" />
+                            <FaEye className="w-3 h-3 mr-2" />
                             View
                           </button>
                         </div>
@@ -627,37 +633,43 @@ function AdminPanel({ darkMode, toggleTheme }) {
               </div>
 
               {/* Recent Jobs */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Job Applications</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-t-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <FaBriefcase className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
+                    Recent Job Applications
+                    <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">
+                      {dashboardData.recent_activity.jobs.length}
+                    </span>
+                  </h3>
                 </div>
                 <div className="p-6">
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {dashboardData.recent_activity.jobs.map((job) => (
-                      <div key={job.id} className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <div className="flex items-center space-x-3">
+                      <div key={job.id} className="group relative flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-700 last:border-b-0 hover:border-purple-200 dark:hover:border-purple-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer">
+                        <div className="flex items-center space-x-4 min-w-0 flex-1">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
+                            <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-xl shadow-md flex items-center justify-center overflow-hidden group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg transition-all duration-300 ease-out">
                               <img 
                                 src={getCompanyLogoSync(job.company_name)} 
                                 alt={job.company_name}
-                                className="w-8 h-8 object-contain"
+                                className="w-8 h-8 object-contain group-hover:scale-110 transition-transform duration-300"
                                 onError={(e) => {
                                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`;
                                 }}
                               />
                             </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{job.company_name}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{job.position_title}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500">
-                              by {job.username} • {new Date(job.applied_date).toLocaleDateString()}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-900 dark:group-hover:text-purple-100 transition-colors duration-300 truncate">{job.company_name}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 truncate">{job.position_title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors duration-300">
+                              Applied by <span className="font-medium">{job.username}</span> • {new Date(job.applied_date).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm ${
+                        <div className="flex items-center space-x-2 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300 ${
                             job.status?.toLowerCase() === 'applied' || job.status?.toLowerCase() === 'applied' ? 
                               'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-700' :
                             job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 
@@ -668,6 +680,13 @@ function AdminPanel({ darkMode, toggleTheme }) {
                               'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-700' :
                               'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-700'
                           }`}>
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              job.status?.toLowerCase() === 'applied' ? 'bg-blue-500' :
+                              job.status?.toLowerCase() === 'interview' || job.status?.toLowerCase() === 'interviewing' ? 'bg-amber-500' :
+                              job.status?.toLowerCase() === 'offered' || job.status?.toLowerCase() === 'offer' ? 'bg-emerald-500' :
+                              job.status?.toLowerCase() === 'rejected' || job.status?.toLowerCase() === 'declined' ? 'bg-red-500' :
+                              'bg-gray-500'
+                            }`}></div>
                             {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'Unknown'}
                           </span>
                         </div>
