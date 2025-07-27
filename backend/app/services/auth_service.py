@@ -126,34 +126,45 @@ def resend_verification_email(email):
     """Resend verification email"""
     conn, cursor = get_db()
     try:
+        print(f"[resend_verification_email] Requested for: {email}")
         cursor.execute("SELECT id, email_verified, last_verification_sent FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
+        print(f"[resend_verification_email] DB user: {user}")
         if not user:
+            print("[resend_verification_email] User not found.")
             return {"error": "User not found", "code": 404}
         if user['email_verified']:
+            print("[resend_verification_email] Email already verified.")
             return {"error": "Email already verified", "code": 400}
         # Cooldown check
         now = datetime.datetime.utcnow()
         last_sent = user.get('last_verification_sent')
+        print(f"[resend_verification_email] last_verification_sent: {last_sent}")
         if last_sent:
             if isinstance(last_sent, str):
                 try:
                     last_sent = datetime.datetime.strptime(last_sent, "%Y-%m-%d %H:%M:%S")
-                except Exception:
+                except Exception as ex:
+                    print(f"[resend_verification_email] Failed to parse last_sent: {ex}")
                     last_sent = None
             if last_sent:
                 seconds_since = (now - last_sent).total_seconds()
+                print(f"[resend_verification_email] seconds_since last sent: {seconds_since}")
                 if seconds_since < 60:
+                    print(f"[resend_verification_email] Cooldown active: {60-seconds_since} seconds left.")
                     return {"error": f"Please wait {int(60-seconds_since)} seconds before resending verification email.", "code": 429}
         # Generate new verification token
         verification_token = generate_verification_token()
         verification_expires = now + datetime.timedelta(hours=24)
+        print(f"[resend_verification_email] Generated token: {verification_token}")
         cursor.execute("""
             UPDATE users 
             SET verification_token = ?, verification_token_expires = ?, last_verification_sent = ? 
             WHERE id = ?
         """, (verification_token, verification_expires, now.strftime("%Y-%m-%d %H:%M:%S"), user['id']))
+        print(f"[resend_verification_email] DB updated for user {user['id']}")
         send_verification_email(email, verification_token)
+        print(f"[resend_verification_email] Email send function called.")
         return {"success": True, "message": "Verification email sent"}
     except mariadb.Error as e:
         print(f"Database error during resend verification: {e}")
