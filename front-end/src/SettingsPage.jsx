@@ -444,24 +444,24 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </button>
                       </div>
                     </form>
-                  </div>
 
-                  {/* Account Deletion Section */}
-                  <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center">
-                      <FaExclamationTriangle className="mr-2" />
-                      Danger Zone
-                    </h3>
-                    <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                      Once you delete your account, there is no going back. This action is permanent and will delete all your job applications and data.
-                    </p>
-                    <button
-                      onClick={() => setShowDeleteModal(true)}
-                      className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <FaTrash className="mr-2" />
-                      Delete Account
-                    </button>
+                    {/* Account Deletion Section */}
+                    <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                      <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center">
+                        <FaExclamationTriangle className="mr-2" />
+                        Danger Zone
+                      </h3>
+                      <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                        Once you delete your account, there is no going back. This action is permanent and will delete all your job applications and data.
+                      </p>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <FaTrash className="mr-2" />
+                        Delete Account
+                      </button>
+                    </div>
                   </div>
                 )}
 
