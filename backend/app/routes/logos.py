@@ -201,3 +201,30 @@ def logo_service_health():
             "error": str(e),
             "service": "logo_cache"
         }), 500
+
+@logos_bp.route("/logos/config", methods=["GET", "POST"])
+def logo_service_config():
+    """Get or set logo service configuration"""
+    try:
+        if request.method == "GET":
+            # Get current configuration
+            config = logo_cache.get_service_config()
+            return jsonify(config)
+        
+        elif request.method == "POST":
+            # Set configuration
+            data = request.get_json()
+            service_type = data.get('service_type', 'auto')
+            
+            # Validate service type
+            valid_services = ['auto', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            if service_type not in valid_services:
+                return jsonify({"error": "Invalid service type"}), 400
+            
+            # Update configuration
+            result = logo_cache.set_service_config(service_type)
+            return jsonify(result)
+            
+    except Exception as e:
+        print(f"Error handling logo config: {e}")
+        return jsonify({"error": "Failed to handle logo configuration"}), 500

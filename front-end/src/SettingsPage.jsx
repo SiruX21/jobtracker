@@ -8,7 +8,7 @@ import {
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
-  FaSync, FaClock, FaMemory, FaHdd
+  FaSync, FaClock, FaMemory, FaHdd, FaImage, FaExternalLinkAlt
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme }) {
@@ -40,6 +40,9 @@ function SettingsPage({ darkMode, toggleTheme }) {
   );
   const [dataRetention, setDataRetention] = useState(() => 
     localStorage.getItem('dataRetention') || '30'
+  );
+  const [logoService, setLogoService] = useState(() => 
+    localStorage.getItem('logoService') || 'auto'
   );
   
   // Developer info
@@ -254,6 +257,11 @@ function SettingsPage({ darkMode, toggleTheme }) {
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
         break;
+      case 'logoService':
+        setLogoService(value);
+        localStorage.setItem('logoService', value);
+        break;
+      default:
     }
     showMessage(`${setting} updated`, 'success');
   };
@@ -774,6 +782,89 @@ function SettingsPage({ darkMode, toggleTheme }) {
                               </div>
                             </div>
                           )}
+                        </div>
+
+                        {/* System Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaImage className="mr-2" />
+                            Logo Service Configuration
+                          </h3>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Logo Service Provider
+                              </label>
+                              <select
+                                value={logoService}
+                                onChange={(e) => handleSettingChange('logoService', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                                         focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="auto">🔄 Auto (Logo.dev → Fallback)</option>
+                                <option value="logodev">🏆 Logo.dev Only</option>
+                                <option value="clearbit">🔵 Clearbit (Free)</option>
+                                <option value="iconhorse">🐴 Icon Horse (Free)</option>
+                                <option value="favicon">📄 Google Favicons</option>
+                                <option value="fallback">🔧 Free Services Only</option>
+                              </select>
+                              
+                              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                                {logoService === 'auto' && (
+                                  <div className="flex items-center">
+                                    <FaCheckCircle className="text-green-500 mr-1" />
+                                    Tries Logo.dev first, falls back to free services if needed
+                                  </div>
+                                )}
+                                {logoService === 'logodev' && (
+                                  <div className="flex items-center">
+                                    <FaExclamationTriangle className="text-yellow-500 mr-1" />
+                                    Requires valid Logo.dev API token, no fallback
+                                  </div>
+                                )}
+                                {(logoService === 'clearbit' || logoService === 'iconhorse' || logoService === 'favicon' || logoService === 'fallback') && (
+                                  <div className="flex items-center">
+                                    <FaInfoCircle className="text-blue-500 mr-1" />
+                                    Uses free services, may have lower quality logos
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Service Status</h4>
+                              <div className="space-y-2 text-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">Logo.dev API</span>
+                                  <span className="text-yellow-600 dark:text-yellow-400">⚠️ Token Invalid</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">Clearbit Free</span>
+                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">Icon Horse</span>
+                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600 dark:text-gray-400">Google Favicons</span>
+                                  <span className="text-green-600 dark:text-green-400">✅ Available</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                              <button
+                                onClick={() => window.open('https://www.logo.dev/', '_blank')}
+                                className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                              >
+                                <FaExternalLinkAlt className="mr-1" />
+                                Get Logo.dev API Token
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         {/* System Information */}

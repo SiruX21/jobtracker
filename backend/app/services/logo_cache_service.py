@@ -16,7 +16,10 @@ class LogoCacheService:
         self.logo_dev_search_url = "https://img.logo.dev/search"
         self.cache_ttl = 30 * 24 * 60 * 60  # 30 days for images
         self.search_cache_ttl = 24 * 60 * 60  # 1 day for search results
+        self.autocomplete_cache_ttl = 6 * 60 * 60  # 6 hours for autocomplete
+        self.service_config = 'auto'  # Default service configuration
         self.connect_redis()
+        self.load_service_config()  # Load saved configuration
     
     def connect_redis(self):
         """Connect to Redis server"""
@@ -171,7 +174,7 @@ class LogoCacheService:
             return None
 
     def search_logo_dev_api(self, company_name):
-        """Search logo.dev API for company logo"""
+        """Search logo.dev API for company logo with fallback methods"""
         try:
             # Check if we have a cached search result (use text-based redis client)
             search_cache_key = f"search:{company_name.lower().replace(' ', '')}"
@@ -179,41 +182,76 @@ class LogoCacheService:
             if cached_search:
                 return cached_search
             
-            # Make API request to logo.dev search
-            params = {
-                'q': company_name,
-                'token': self.logo_dev_token,
-                'limit': 1  # We only need the best match
-            }
-            
-            response = requests.get(
-                'https://img.logo.dev/search',
-                params=params,
-                timeout=5
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                results = data.get('results', [])
-                
-                if results:
-                    best_match = results[0]
-                    search_result = {
-                        'url': f"https://img.logo.dev/{best_match.get('domain', '')}?token={self.logo_dev_token}",
-                        'domain': best_match.get('domain', ''),
-                        'company_name': best_match.get('name', company_name),
-                        'confidence': best_match.get('score', 0),
-                        'source': 'api_search'
+            # Try logo.dev API first (based on configuration)
+            if self.should_use_logodev():
+                try:
+                    params = {
+                        'q': company_name,
+                        'token': self.logo_dev_token,
+                        'limit': 1  # We only need the best match
                     }
                     
-                    # Cache search result for shorter time
-                    self.cache_search_result(search_cache_key, search_result)
-                    return search_result
+                    response = requests.get(
+                        'https://img.logo.dev/search',
+                        params=params,
+                        timeout=5
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        results = data.get('results', [])
+                        
+                        if results:
+                            best_match = results[0]
+                            search_result = {
+                                'url': f"https://img.logo.dev/{best_match.get('domain', '')}?token={self.logo_dev_token}",
+                                'domain': best_match.get('domain', ''),
+                                'company_name': best_match.get('name', company_name),
+                                'confidence': best_match.get('score', 0),
+                                'source': 'api_search'
+                            }
+                            
+                            # Cache search result for shorter time
+                            self.cache_search_result(search_cache_key, search_result)
+                            return search_result
+                    else:
+                        print(f"Logo.dev API failed with status {response.status_code}: {response.text}")
+                except Exception as e:
+                    print(f"Logo.dev API failed: {e}")
+            
+            # Use fallback services (unless logodev-only mode)
+            if self.service_config != 'logodev':
+                domain = self.guess_company_domain(company_name)
+                if domain:
+                    # Get preferred fallback URL(s)
+                    fallback_urls = self.get_preferred_fallback_url(domain)
+                    
+                    # If it's a single URL (specific service selected)
+                    if isinstance(fallback_urls, str):
+                        fallback_urls = [fallback_urls]
+                    
+                    for url in fallback_urls:
+                        try:
+                            test_response = requests.head(url, timeout=3)
+                            if test_response.status_code == 200:
+                                search_result = {
+                                    'url': url,
+                                    'domain': domain,
+                                    'company_name': company_name,
+                                    'confidence': 0.7,  # Lower confidence for fallback
+                                    'source': 'fallback'
+                                }
+                                
+                                # Cache search result
+                                self.cache_search_result(search_cache_key, search_result)
+                                return search_result
+                        except:
+                            continue
             
             return None
             
         except Exception as e:
-            print(f"Error searching logo.dev API for {company_name}: {e}")
+            print(f"Error searching for company logo {company_name}: {e}")
             return None
     
     def get_search_from_cache(self, cache_key):
@@ -373,7 +411,7 @@ class LogoCacheService:
         return alternatives[:3]  # Limit to 3 alternatives
     
     def search_companies(self, query, limit=10):
-        """Search for companies using logo.dev autocomplete API"""
+        """Search for companies using logo.dev autocomplete API with fallback"""
         if not query or len(query) < 2:
             return []
         
@@ -384,38 +422,49 @@ class LogoCacheService:
             return cached_results
         
         try:
-            # Make request to logo.dev search API
-            url = f"https://img.logo.dev/search"
-            params = {
-                'q': query,
-                'limit': limit,
-                'token': self.logo_dev_token
-            }
-            
-            response = requests.get(url, params=params, timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                results = []
-                
-                for item in data.get('results', []):
-                    company_data = {
-                        'name': item.get('name', ''),
-                        'domain': item.get('domain', ''),
-                        'logo_url': f"https://img.logo.dev/{item.get('domain')}?token={self.logo_dev_token}",
-                        'description': item.get('description', ''),
-                        'industry': item.get('industry', ''),
-                        'confidence': item.get('confidence', 0)
+            # Try logo.dev API first (based on configuration)
+            if self.should_use_logodev():
+                try:
+                    url = f"https://img.logo.dev/search"
+                    params = {
+                        'q': query,
+                        'limit': limit,
+                        'token': self.logo_dev_token
                     }
-                    results.append(company_data)
-                
-                # Cache the results
-                self.cache_autocomplete(cache_key, results)
-                return results
-            else:
-                print(f"Logo.dev search API error: {response.status_code}")
+                    
+                    response = requests.get(url, params=params, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        results = []
+                        
+                        for item in data.get('results', []):
+                            company_data = {
+                                'name': item.get('name', ''),
+                                'domain': item.get('domain', ''),
+                                'logo_url': f"/api/logos/company/{item.get('name', '')}",  # Use internal URL
+                                'description': item.get('description', ''),
+                                'industry': item.get('industry', ''),
+                                'confidence': item.get('confidence', 0)
+                            }
+                            results.append(company_data)
+                        
+                        # Cache the results
+                        self.cache_autocomplete(cache_key, results)
+                        return results
+                    else:
+                        print(f"Logo.dev search API failed with status {response.status_code}: {response.text}")
+                except Exception as e:
+                    print(f"Logo.dev API failed: {e}")
+            
+            # Fallback: Use local company database (unless logodev-only mode)
+            if self.service_config != 'logodev':
                 return self.fallback_search(query, limit)
+            else:
+                return []  # No results in logodev-only mode if API fails
                 
         except Exception as e:
+            print(f"Error in search_companies: {e}")
+            return self.fallback_search(query, limit)
             print(f"Error searching companies: {e}")
             return self.fallback_search(query, limit)
     
@@ -450,6 +499,105 @@ class LogoCacheService:
         
         return results
     
+    def fallback_search(self, query, limit=10):
+        """Fallback search using local company knowledge"""
+        query_lower = query.lower()
+        
+        # Popular companies database for fallback
+        popular_companies = [
+            {'name': 'Google', 'domain': 'google.com', 'industry': 'Technology'},
+            {'name': 'Apple', 'domain': 'apple.com', 'industry': 'Technology'},
+            {'name': 'Microsoft', 'domain': 'microsoft.com', 'industry': 'Technology'},
+            {'name': 'Meta', 'domain': 'meta.com', 'industry': 'Technology'},
+            {'name': 'Amazon', 'domain': 'amazon.com', 'industry': 'E-commerce'},
+            {'name': 'Tesla', 'domain': 'tesla.com', 'industry': 'Automotive'},
+            {'name': 'Netflix', 'domain': 'netflix.com', 'industry': 'Entertainment'},
+            {'name': 'Uber', 'domain': 'uber.com', 'industry': 'Transportation'},
+            {'name': 'Airbnb', 'domain': 'airbnb.com', 'industry': 'Hospitality'},
+            {'name': 'LinkedIn', 'domain': 'linkedin.com', 'industry': 'Professional Network'},
+            {'name': 'Spotify', 'domain': 'spotify.com', 'industry': 'Music'},
+            {'name': 'Discord', 'domain': 'discord.com', 'industry': 'Communication'},
+            {'name': 'Slack', 'domain': 'slack.com', 'industry': 'Communication'},
+            {'name': 'Figma', 'domain': 'figma.com', 'industry': 'Design'},
+            {'name': 'Canva', 'domain': 'canva.com', 'industry': 'Design'},
+            {'name': 'Adobe', 'domain': 'adobe.com', 'industry': 'Creative Software'},
+            {'name': 'Salesforce', 'domain': 'salesforce.com', 'industry': 'CRM'},
+            {'name': 'Oracle', 'domain': 'oracle.com', 'industry': 'Database'},
+            {'name': 'IBM', 'domain': 'ibm.com', 'industry': 'Technology'},
+            {'name': 'Intel', 'domain': 'intel.com', 'industry': 'Semiconductors'},
+            {'name': 'NVIDIA', 'domain': 'nvidia.com', 'industry': 'Graphics'},
+            {'name': 'PayPal', 'domain': 'paypal.com', 'industry': 'Payments'},
+            {'name': 'Stripe', 'domain': 'stripe.com', 'industry': 'Payments'},
+            {'name': 'Coinbase', 'domain': 'coinbase.com', 'industry': 'Cryptocurrency'},
+            {'name': 'Shopify', 'domain': 'shopify.com', 'industry': 'E-commerce'},
+            {'name': 'Square', 'domain': 'squareup.com', 'industry': 'Payments'},
+            {'name': 'GitHub', 'domain': 'github.com', 'industry': 'Developer Tools'},
+            {'name': 'GitLab', 'domain': 'gitlab.com', 'industry': 'Developer Tools'},
+            {'name': 'Redis', 'domain': 'redis.io', 'industry': 'Database'},
+            {'name': 'MongoDB', 'domain': 'mongodb.com', 'industry': 'Database'},
+            {'name': 'Databricks', 'domain': 'databricks.com', 'industry': 'Data Analytics'},
+            {'name': 'Snowflake', 'domain': 'snowflake.com', 'industry': 'Data Warehouse'},
+            {'name': 'McKinsey', 'domain': 'mckinsey.com', 'industry': 'Consulting'},
+            {'name': 'BCG', 'domain': 'bcg.com', 'industry': 'Consulting'},
+            {'name': 'Deloitte', 'domain': 'deloitte.com', 'industry': 'Consulting'},
+            {'name': 'Accenture', 'domain': 'accenture.com', 'industry': 'Consulting'},
+            {'name': 'Ford', 'domain': 'ford.com', 'industry': 'Automotive'},
+            {'name': 'General Motors', 'domain': 'gm.com', 'industry': 'Automotive'},
+            {'name': 'BMW', 'domain': 'bmw.com', 'industry': 'Automotive'},
+            {'name': 'Toyota', 'domain': 'toyota.com', 'industry': 'Automotive'},
+            {'name': 'Booking.com', 'domain': 'booking.com', 'industry': 'Travel'},
+            {'name': 'Lyft', 'domain': 'lyft.com', 'industry': 'Transportation'},
+            {'name': 'DoorDash', 'domain': 'doordash.com', 'industry': 'Food Delivery'},
+            {'name': 'YouTube', 'domain': 'youtube.com', 'industry': 'Video'},
+            {'name': 'TikTok', 'domain': 'tiktok.com', 'industry': 'Social Media'},
+            {'name': 'Twitter', 'domain': 'twitter.com', 'industry': 'Social Media'},
+            {'name': 'Instagram', 'domain': 'instagram.com', 'industry': 'Social Media'},
+            {'name': 'Epic Games', 'domain': 'epicgames.com', 'industry': 'Gaming'},
+            {'name': 'Riot Games', 'domain': 'riotgames.com', 'industry': 'Gaming'},
+            {'name': 'EA', 'domain': 'ea.com', 'industry': 'Gaming'},
+            {'name': 'Activision Blizzard', 'domain': 'activisionblizzard.com', 'industry': 'Gaming'},
+            {'name': 'Airtable', 'domain': 'airtable.com', 'industry': 'Productivity'},
+            {'name': 'Notion', 'domain': 'notion.so', 'industry': 'Productivity'}
+        ]
+        
+        # Filter companies based on query
+        matching_companies = []
+        for company in popular_companies:
+            company_name_lower = company['name'].lower()
+            if (query_lower in company_name_lower or 
+                company_name_lower.startswith(query_lower) or
+                query_lower in company['domain']):
+                
+                # Calculate confidence based on match quality
+                if company_name_lower == query_lower:
+                    confidence = 0.95
+                elif company_name_lower.startswith(query_lower):
+                    confidence = 0.85
+                elif query_lower in company_name_lower:
+                    confidence = 0.75
+                else:
+                    confidence = 0.65
+                
+                result = {
+                    'name': company['name'],
+                    'domain': company['domain'],
+                    'logo_url': f"/api/logos/company/{company['name']}",
+                    'description': f"{company['industry']} company",
+                    'industry': company['industry'],
+                    'confidence': confidence
+                }
+                matching_companies.append(result)
+        
+        # Sort by confidence and limit results
+        matching_companies.sort(key=lambda x: x['confidence'], reverse=True)
+        results = matching_companies[:limit]
+        
+        # Cache the fallback results for a shorter time
+        cache_key = f"autocomplete:{query.lower()}"
+        self.cache_autocomplete(cache_key, results, ttl=3600)  # 1 hour cache for fallback
+        
+        return results
+
     def get_autocomplete_from_cache(self, cache_key):
         """Get autocomplete results from cache"""
         if not self.redis_client:
@@ -464,7 +612,7 @@ class LogoCacheService:
         
         return None
     
-    def cache_autocomplete(self, cache_key, results):
+    def cache_autocomplete(self, cache_key, results, ttl=None):
         """Cache autocomplete results"""
         if not self.redis_client:
             return
@@ -475,9 +623,12 @@ class LogoCacheService:
                 'cached_at': int(time.time())
             }
             
+            # Use provided TTL or default
+            cache_ttl = ttl if ttl is not None else getattr(self, 'autocomplete_cache_ttl', 3600)
+            
             self.redis_client.setex(
                 cache_key, 
-                self.autocomplete_cache_ttl, 
+                cache_ttl, 
                 json.dumps(cache_data)
             )
             print(f"Cached autocomplete results for {cache_key}")
@@ -503,6 +654,124 @@ class LogoCacheService:
         except Exception as e:
             print(f"Error clearing cache: {e}")
     
+    def guess_company_domain(self, company_name):
+        """Guess the most likely domain for a company name"""
+        # Clean the company name
+        clean_name = company_name.lower().strip()
+        
+        # Handle common company mappings
+        domain_mappings = {
+            'google': 'google.com',
+            'alphabet': 'google.com',
+            'apple': 'apple.com',
+            'microsoft': 'microsoft.com',
+            'meta': 'meta.com',
+            'facebook': 'meta.com',
+            'amazon': 'amazon.com',
+            'tesla': 'tesla.com',
+            'netflix': 'netflix.com',
+            'uber': 'uber.com',
+            'airbnb': 'airbnb.com',
+            'twitter': 'twitter.com',
+            'x': 'x.com',
+            'linkedin': 'linkedin.com',
+            'spotify': 'spotify.com',
+            'discord': 'discord.com',
+            'slack': 'slack.com',
+            'figma': 'figma.com',
+            'canva': 'canva.com',
+            'adobe': 'adobe.com',
+            'salesforce': 'salesforce.com',
+            'oracle': 'oracle.com',
+            'ibm': 'ibm.com',
+            'intel': 'intel.com',
+            'nvidia': 'nvidia.com',
+            'amd': 'amd.com',
+            'paypal': 'paypal.com',
+            'stripe': 'stripe.com',
+            'coinbase': 'coinbase.com',
+            'shopify': 'shopify.com',
+            'squareup': 'squareup.com',
+            'square': 'squareup.com',
+            'zoom': 'zoom.us',
+            'github': 'github.com',
+            'gitlab': 'gitlab.com',
+            'redis': 'redis.io',
+            'mongodb': 'mongodb.com',
+            'elastic': 'elastic.co',
+            'databricks': 'databricks.com',
+            'snowflake': 'snowflake.com',
+            'palantir': 'palantir.com',
+            'mckinsey': 'mckinsey.com',
+            'bcg': 'bcg.com',
+            'bain': 'bain.com',
+            'deloitte': 'deloitte.com',
+            'accenture': 'accenture.com',
+            'pwc': 'pwc.com',
+            'ey': 'ey.com',
+            'kpmg': 'kpmg.com',
+            'ford': 'ford.com',
+            'gm': 'gm.com',
+            'general motors': 'gm.com',
+            'bmw': 'bmw.com',
+            'toyota': 'toyota.com',
+            'honda': 'honda.com',
+            'volkswagen': 'vw.com',
+            'booking': 'booking.com',
+            'expedia': 'expedia.com',
+            'airbnb': 'airbnb.com',
+            'lyft': 'lyft.com',
+            'doordash': 'doordash.com',
+            'grubhub': 'grubhub.com',
+            'youtube': 'youtube.com',
+            'tiktok': 'tiktok.com',
+            'instagram': 'instagram.com',
+            'snapchat': 'snapchat.com',
+            'pinterest': 'pinterest.com',
+            'reddit': 'reddit.com',
+            'twitch': 'twitch.tv',
+            'epicgames': 'epicgames.com',
+            'epic games': 'epicgames.com',
+            'activision': 'activision.com',
+            'activisionblizzard': 'activisionblizzard.com',
+            'ea': 'ea.com',
+            'electronic arts': 'ea.com',
+            'riotgames': 'riotgames.com',
+            'riot games': 'riotgames.com',
+            'valve': 'valvesoftware.com',
+            'steam': 'steampowered.com',
+            'airtable': 'airtable.com',
+            'notion': 'notion.so',
+            'asana': 'asana.com',
+            'trello': 'trello.com',
+            'monday': 'monday.com',
+            'clickup': 'clickup.com'
+        }
+        
+        # Check direct mapping first
+        if clean_name in domain_mappings:
+            return domain_mappings[clean_name]
+        
+        # Try common patterns
+        # Remove common words
+        clean_name = clean_name.replace(' inc', '').replace(' corp', '').replace(' corporation', '')
+        clean_name = clean_name.replace(' ltd', '').replace(' limited', '').replace(' llc', '')
+        clean_name = clean_name.replace(' company', '').replace(' co', '').replace(' and co', '')
+        clean_name = clean_name.replace(' technologies', '').replace(' technology', '').replace(' tech', '')
+        clean_name = clean_name.replace(' systems', '').replace(' solutions', '').replace(' services', '')
+        clean_name = clean_name.replace(' software', '').replace(' labs', '').replace(' group', '')
+        clean_name = clean_name.replace(' ', '').replace('.', '').replace('-', '')
+        
+        # Check mapping again after cleaning
+        if clean_name in domain_mappings:
+            return domain_mappings[clean_name]
+        
+        # Try common domain extensions
+        if clean_name:
+            return f"{clean_name}.com"
+        
+        return None
+
     def get_cache_stats(self):
         """Get cache statistics"""
         if not self.redis_client:
@@ -517,6 +786,129 @@ class LogoCacheService:
             }
         except Exception as e:
             return {"error": str(e)}
+
+    def get_service_config(self):
+        """Get current logo service configuration"""
+        try:
+            # Check logo.dev API status
+            logodev_status = "unknown"
+            try:
+                test_response = requests.get(
+                    'https://img.logo.dev/search',
+                    params={'q': 'test', 'token': self.logo_dev_token, 'limit': 1},
+                    timeout=3
+                )
+                if test_response.status_code == 200:
+                    logodev_status = "available"
+                elif test_response.status_code == 401:
+                    logodev_status = "invalid_token"
+                else:
+                    logodev_status = "error"
+            except:
+                logodev_status = "unavailable"
+            
+            # Test fallback services
+            services_status = {}
+            fallback_services = [
+                ("clearbit", "https://logo.clearbit.com/google.com"),
+                ("iconhorse", "https://icon.horse/icon/google.com"),
+                ("favicon", "https://www.google.com/s2/favicons?domain=google.com&sz=64")
+            ]
+            
+            for service_name, test_url in fallback_services:
+                try:
+                    test_response = requests.head(test_url, timeout=3)
+                    services_status[service_name] = "available" if test_response.status_code == 200 else "error"
+                except:
+                    services_status[service_name] = "unavailable"
+            
+            return {
+                "current_service": self.service_config,
+                "logodev_status": logodev_status,
+                "services_status": services_status,
+                "has_token": bool(self.logo_dev_token and self.logo_dev_token.strip()),
+                "available_services": [
+                    "auto", "logodev", "clearbit", "iconhorse", "favicon", "fallback"
+                ]
+            }
+        except Exception as e:
+            print(f"Error getting service config: {e}")
+            return {
+                "current_service": self.service_config,
+                "error": str(e)
+            }
+
+    def set_service_config(self, service_type):
+        """Set logo service configuration"""
+        try:
+            valid_services = ['auto', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            if service_type not in valid_services:
+                return {"error": "Invalid service type"}
+            
+            self.service_config = service_type
+            
+            # Store in Redis for persistence
+            if self.redis_client:
+                try:
+                    text_redis = redis.Redis(
+                        host=Config.REDIS_HOST,
+                        port=Config.REDIS_PORT,
+                        db=Config.REDIS_DB,
+                        decode_responses=True
+                    )
+                    text_redis.set("logo_service_config", service_type)
+                except Exception as e:
+                    print(f"Failed to store service config in Redis: {e}")
+            
+            return {
+                "service_type": service_type,
+                "message": f"Logo service set to: {service_type}",
+                "success": True
+            }
+        except Exception as e:
+            print(f"Error setting service config: {e}")
+            return {"error": str(e)}
+
+    def load_service_config(self):
+        """Load service configuration from Redis"""
+        try:
+            if self.redis_client:
+                text_redis = redis.Redis(
+                    host=Config.REDIS_HOST,
+                    port=Config.REDIS_PORT,
+                    db=Config.REDIS_DB,
+                    decode_responses=True
+                )
+                stored_config = text_redis.get("logo_service_config")
+                if stored_config:
+                    self.service_config = stored_config
+        except Exception as e:
+            print(f"Error loading service config: {e}")
+
+    def should_use_logodev(self):
+        """Check if we should use logo.dev based on configuration"""
+        if self.service_config == 'logodev':
+            return True
+        elif self.service_config == 'auto':
+            return bool(self.logo_dev_token and self.logo_dev_token.strip())
+        else:
+            return False
+
+    def get_preferred_fallback_url(self, domain):
+        """Get fallback URL based on service configuration"""
+        if self.service_config == 'clearbit':
+            return f"https://logo.clearbit.com/{domain}"
+        elif self.service_config == 'iconhorse':
+            return f"https://icon.horse/icon/{domain}"
+        elif self.service_config == 'favicon':
+            return f"https://www.google.com/s2/favicons?domain={domain}&sz=128"
+        else:
+            # Default fallback order for 'auto' and 'fallback'
+            return [
+                f"https://icon.horse/icon/{domain}",
+                f"https://www.google.com/s2/favicons?domain={domain}&sz=128",
+                f"https://logo.clearbit.com/{domain}",
+            ]
 
 # Global instance
 logo_cache = LogoCacheService()
