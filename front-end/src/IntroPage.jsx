@@ -11,6 +11,9 @@ function IntroPage({ darkMode, toggleTheme }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
+  // Remove resendCooldown, rely on backend
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -29,8 +32,25 @@ function IntroPage({ darkMode, toggleTheme }) {
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError(""); // Clear error when user types
+    setResendSuccess("");
   };
 
+  // Handle resend verification email
+  const handleResendVerification = async () => {
+    if (resendLoading) return;
+    setResendLoading(true);
+    setResendSuccess("");
+    try {
+      const res = await axios.post(`${config.API_BASE_URL}/auth/resend-verification`, {
+        email: formData.email
+      });
+      setResendSuccess("Verification email sent!");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to resend verification email");
+    } finally {
+      setResendLoading(false);
+    }
+  };
   // Validate email
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -111,6 +131,19 @@ function IntroPage({ darkMode, toggleTheme }) {
         {error && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg animate-slideDown">
             <p className="text-sm">{error}</p>
+            {error.toLowerCase().includes("verify your email") && isLogin && isValidEmail(formData.email) && (
+              <div className="mt-2 flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendLoading}
+                  className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold transition-all duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed`}
+                >
+                  {resendLoading ? "Sending..." : "Resend Verification Email"}
+                </button>
+                {resendSuccess && <span className="text-green-600 dark:text-green-400 mt-1 text-sm">{resendSuccess}</span>}
+              </div>
+            )}
           </div>
         )}
 

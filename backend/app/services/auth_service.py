@@ -35,26 +35,32 @@ def register_user(username, email, password):
     cursor.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, username))
     if cursor.fetchone():
         return {"error": "User already exists", "code": 409}
-    
+
+    # Ensure last_verification_sent column exists
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN last_verification_sent DATETIME NULL")
+    except mariadb.Error:
+        pass  # Ignore if already exists
+
     # Generate verification token
     verification_token = generate_verification_token()
     verification_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-    
+
     try:
         # Hash password and create user
         hashed_password = hash_password(password)
         cursor.execute("""
-            INSERT INTO users (username, email, password_hash, verification_token, verification_token_expires)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, email, password_hash, verification_token, verification_token_expires, last_verification_sent)
+            VALUES (?, ?, ?, ?, ?, NULL)
         """, (username, email, hashed_password, verification_token, verification_expires))
-        
+
         user_id = cursor.lastrowid
-        
+
         # Send verification email
         send_verification_email(email, verification_token)
-        
+
         return {"success": True, "user_id": user_id, "message": "Registration successful. Please check your email to verify your account."}
-        
+
     except mariadb.Error as e:
         print(f"Database error during registration: {e}")
         return {"error": "Registration failed", "code": 500}
@@ -119,32 +125,36 @@ def verify_email_token(token):
 def resend_verification_email(email):
     """Resend verification email"""
     conn, cursor = get_db()
-    
     try:
-        cursor.execute("SELECT id, email_verified FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT id, email_verified, last_verification_sent FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
-        
         if not user:
             return {"error": "User not found", "code": 404}
-        
         if user['email_verified']:
             return {"error": "Email already verified", "code": 400}
-        
+        # Cooldown check
+        now = datetime.datetime.utcnow()
+        last_sent = user.get('last_verification_sent')
+        if last_sent:
+            if isinstance(last_sent, str):
+                try:
+                    last_sent = datetime.datetime.strptime(last_sent, "%Y-%m-%d %H:%M:%S")
+                except Exception:
+                    last_sent = None
+            if last_sent:
+                seconds_since = (now - last_sent).total_seconds()
+                if seconds_since < 60:
+                    return {"error": f"Please wait {int(60-seconds_since)} seconds before resending verification email.", "code": 429}
         # Generate new verification token
         verification_token = generate_verification_token()
-        verification_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        
+        verification_expires = now + datetime.timedelta(hours=24)
         cursor.execute("""
             UPDATE users 
-            SET verification_token = ?, verification_token_expires = ? 
+            SET verification_token = ?, verification_token_expires = ?, last_verification_sent = ? 
             WHERE id = ?
-        """, (verification_token, verification_expires, user['id']))
-        
-        # Send verification email
+        """, (verification_token, verification_expires, now.strftime("%Y-%m-%d %H:%M:%S"), user['id']))
         send_verification_email(email, verification_token)
-        
         return {"success": True, "message": "Verification email sent"}
-        
     except mariadb.Error as e:
         print(f"Database error during resend verification: {e}")
         return {"error": "Failed to resend verification email", "code": 500}
