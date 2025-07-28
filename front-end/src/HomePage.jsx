@@ -117,21 +117,21 @@ function HomePage({ darkMode, toggleTheme }) {
           {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-12 animate-slideInUp delay-500">
             <div className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-400/20 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl mb-4"><FaCrosshairs className="text-blue-300" /></div>
+              <div className="flex items-center justify-center text-4xl mb-4"><FaCrosshairs className="text-blue-300" /></div>
               <h3 className="text-xl font-bold text-blue-100 dark:text-blue-100 mb-2">Track Applications</h3>
               <p className="text-blue-200 dark:text-blue-200">
                 Keep track of every application with detailed status updates and notes.
               </p>
             </div>
             <div className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-400/20 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl mb-4"><FaChartLine className="text-cyan-300" /></div>
+              <div className="flex items-center justify-center text-4xl mb-4"><FaChartLine className="text-cyan-300" /></div>
               <h3 className="text-xl font-bold text-blue-100 dark:text-blue-100 mb-2">Visual Dashboard</h3>
               <p className="text-blue-200 dark:text-blue-200">
                 See your progress at a glance with beautiful charts and statistics.
               </p>
             </div>
             <div className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-400/20 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <div className="text-4xl mb-4"><FaRocket className="text-blue-300" /></div>
+              <div className="flex items-center justify-center text-4xl mb-4"><FaRocket className="text-blue-300" /></div>
               <h3 className="text-xl font-bold text-blue-100 dark:text-blue-100 mb-2">Stay Organized</h3>
               <p className="text-blue-200 dark:text-blue-200">
                 Never lose track of deadlines, interviews, or follow-ups again.
