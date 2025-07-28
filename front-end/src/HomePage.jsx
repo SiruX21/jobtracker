@@ -11,12 +11,11 @@ import {
 
 function HomePage() {
   const navigate = useNavigate();
+  // Dark mode state and toggle logic (copied from IntroPage)
   const [darkMode, setDarkMode] = useState(() => {
-    // Check for saved preference first, then OS preference
     const savedTheme = localStorage.getItem("darkMode");
     if (savedTheme !== null) {
       const isDark = savedTheme === "true";
-      // Apply dark class to document element on initial load
       if (isDark) {
         document.documentElement.classList.add('dark');
       } else {
@@ -24,19 +23,27 @@ function HomePage() {
       }
       return isDark;
     }
-    
-    // If no saved preference, use OS preference
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    // Apply dark class to document element based on OS preference
     if (prefersDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    // Save the OS preference
     localStorage.setItem("darkMode", prefersDark.toString());
     return prefersDark;
   });
+  const toggleTheme = () => {
+    setDarkMode((prev) => {
+      const newMode = !prev;
+      if (newMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem("darkMode", newMode.toString());
+      return newMode;
+    });
+  };
   const [rainIcons, setRainIcons] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
