@@ -723,17 +723,54 @@ function TrackerPage({ darkMode, toggleTheme }) {
       });
       
       const statuses = response.data;
-      setJobStatuses(statuses);
       
-      // Create color mapping
-      const colorMap = {};
-      statuses.forEach(status => {
-        colorMap[status.status_name] = status.color_code;
-      });
-      setStatusColorMap(colorMap);
+      // Ensure statuses is an array
+      if (Array.isArray(statuses)) {
+        setJobStatuses(statuses);
+        
+        // Create color mapping
+        const colorMap = {};
+        statuses.forEach(status => {
+          colorMap[status.status_name] = status.color_code;
+        });
+        setStatusColorMap(colorMap);
+      } else {
+        console.error("Job statuses response is not an array:", statuses);
+        // Set default statuses if backend fails
+        const defaultStatuses = [
+          { status_name: "Applied", color_code: "#3B82F6" },
+          { status_name: "Interview", color_code: "#10B981" },
+          { status_name: "Offered", color_code: "#8B5CF6" },
+          { status_name: "Rejected", color_code: "#EF4444" },
+          { status_name: "Ghosted", color_code: "#6B7280" }
+        ];
+        setJobStatuses(defaultStatuses);
+        
+        const colorMap = {};
+        defaultStatuses.forEach(status => {
+          colorMap[status.status_name] = status.color_code;
+        });
+        setStatusColorMap(colorMap);
+      }
       
     } catch (error) {
       console.error("Error fetching job statuses:", error);
+      
+      // Set default statuses on error
+      const defaultStatuses = [
+        { status_name: "Applied", color_code: "#3B82F6" },
+        { status_name: "Interview", color_code: "#10B981" },
+        { status_name: "Offered", color_code: "#8B5CF6" },
+        { status_name: "Rejected", color_code: "#EF4444" },
+        { status_name: "Ghosted", color_code: "#6B7280" }
+      ];
+      setJobStatuses(defaultStatuses);
+      
+      const colorMap = {};
+      defaultStatuses.forEach(status => {
+        colorMap[status.status_name] = status.color_code;
+      });
+      setStatusColorMap(colorMap);
       
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
