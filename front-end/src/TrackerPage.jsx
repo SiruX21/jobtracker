@@ -722,7 +722,8 @@ function TrackerPage({ darkMode, toggleTheme }) {
         },
       });
       
-      const statuses = response.data;
+      // Handle both array response and object with statuses property
+      const statuses = Array.isArray(response.data) ? response.data : response.data.statuses;
       
       // Ensure statuses is an array
       if (Array.isArray(statuses)) {
@@ -735,7 +736,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
         });
         setStatusColorMap(colorMap);
       } else {
-        console.error("Job statuses response is not an array:", statuses);
+        console.error("Job statuses response is not an array:", response.data);
         // Set default statuses if backend fails
         const defaultStatuses = [
           { status_name: "Applied", color_code: "#3B82F6" },
