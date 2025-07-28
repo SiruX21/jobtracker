@@ -25,6 +25,11 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   
+  // Account deletion
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
     localStorage.getItem('developerMode') === 'true'
@@ -185,6 +190,37 @@ function SettingsPage({ darkMode, toggleTheme }) {
       toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error('❌ Please enter your password to confirm deletion');
+      return;
+    }
+
+    setDeleteLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.delete(`${API_BASE_URL}/auth/delete-account`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: { password: deletePassword }
+      });
+
+      toast.success('🗑️ Account deleted successfully');
+      // Clear all storage and redirect to login
+      Cookies.remove('authToken');
+      localStorage.clear();
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error) {
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
+      setDeletePassword('');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -503,6 +539,23 @@ function SettingsPage({ darkMode, toggleTheme }) {
                           Export Data
                         </button>
                       </div>
+
+                      {/* Delete Account - Danger Zone */}
+                      <div className="pt-4 border-t border-red-200 dark:border-red-800">
+                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                          <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
+                          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+                          </p>
+                          <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          >
+                            <FaTrash className="mr-2" />
+                            Delete Account
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -688,6 +741,66 @@ function SettingsPage({ darkMode, toggleTheme }) {
           </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+              Confirm Account Deletion
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              This action cannot be undone. This will permanently delete your account and all your data.
+            </p>
+            <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">
+              Please enter your password to confirm:
+            </p>
+            <div className="mb-4">
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleDeleteAccount();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword('');
+                }}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading || !deletePassword.trim()}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FaTrash className="mr-2" />
+                    Delete Account
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
