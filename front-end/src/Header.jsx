@@ -89,15 +89,6 @@ function Header({ darkMode, toggleTheme }) {
             Settings
           </button>
         )}
-        {authToken && isAdmin && (
-          <button
-            onClick={() => navigate("/admin")}
-            className="flex items-center text-white hover:text-red-300 transition bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg"
-          >
-            <FaUserShield className="mr-1" />
-            Admin
-          </button>
-        )}
         {!authToken && !isAuthPage && (
           <button
             onClick={() => navigate("/auth")}
