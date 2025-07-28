@@ -266,7 +266,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
         window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
           detail: { position: value, theme: toastTheme } 
         }));
-        toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`);
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
+            position: value,
+            theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+          });
+        }, 100);
         break;
       case 'toastTheme':
         setToastTheme(value);
@@ -275,7 +281,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
         window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
           detail: { position: toastPosition, theme: value } 
         }));
-        toast.success(`🎨 Toast theme changed to ${value}`);
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          toast.success(`🎨 Toast theme changed to ${value}`, {
+            position: toastPosition,
+            theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
+          });
+        }, 100);
         break;
     }
   };
@@ -295,15 +307,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
         notifications,
         autoRefresh,
         dataRetention,
-        darkMode,
         toastPosition,
-        toastTheme
+        toastTheme,
+        darkMode
       },
       cache: localStorage.getItem('jobTracker_jobs_cache'),
       timestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    };    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -644,10 +654,18 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                           <button
                             onClick={() => {
-                              toast.success("🎉 This is a test notification!", {
-                                position: toastPosition,
-                                theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
-                              });
+                              // Apply settings immediately before showing test toast
+                              window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+                                detail: { position: toastPosition, theme: toastTheme } 
+                              }));
+                              
+                              // Small delay to ensure settings are applied
+                              setTimeout(() => {
+                                toast.success("🎉 This is a test notification!", {
+                                  position: toastPosition,
+                                  theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+                                });
+                              }, 100);
                             }}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
                           >
