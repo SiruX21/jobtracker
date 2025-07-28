@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Import useState here
+import React, { useState, useEffect } from "react"; // Import useState and useEffect here
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./Header";
 import HomePage from "./HomePage";
@@ -12,15 +12,48 @@ import ResetPassword from "./ResetPassword";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("darkMode") === "true";
-    // Apply dark class to document element on initial load
-    if (savedTheme) {
+    const savedTheme = localStorage.getItem("darkMode");
+    if (savedTheme !== null) {
+      const isDark = savedTheme === "true";
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return isDark;
+    }
+    // If no saved preference, use system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    return savedTheme;
+    localStorage.setItem("darkMode", prefersDark.toString());
+    return prefersDark;
   });
+
+  // Listen for OS color scheme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e) => {
+      // Only update if no manual preference is saved
+      const savedTheme = localStorage.getItem("darkMode");
+      if (savedTheme === null) {
+        const newDarkMode = e.matches;
+        setDarkMode(newDarkMode);
+        if (newDarkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const toggleTheme = () => {
     const newDarkMode = !darkMode;

@@ -9,41 +9,8 @@ import {
   FaClipboard, FaTrophy, FaArrowUp, FaArrowDown, FaPlay
 } from 'react-icons/fa';
 
-function HomePage() {
+function HomePage({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
-  // Dark mode state and toggle logic (copied from IntroPage)
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("darkMode");
-    if (savedTheme !== null) {
-      const isDark = savedTheme === "true";
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return isDark;
-    }
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem("darkMode", prefersDark.toString());
-    return prefersDark;
-  });
-  const toggleTheme = () => {
-    setDarkMode((prev) => {
-      const newMode = !prev;
-      if (newMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      localStorage.setItem("darkMode", newMode.toString());
-      return newMode;
-    });
-  };
   const [rainIcons, setRainIcons] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -51,28 +18,6 @@ function HomePage() {
   useEffect(() => {
     const authToken = Cookies.get("authToken");
     setIsAuthenticated(!!authToken);
-  }, []);
-
-  // Listen for OS color scheme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e) => {
-      // Only update if no manual preference is saved
-      const savedTheme = localStorage.getItem("darkMode");
-      if (savedTheme === null) {
-        const newDarkMode = e.matches;
-        setDarkMode(newDarkMode);
-        if (newDarkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   useEffect(() => {
