@@ -1642,14 +1642,28 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         <CreatableSelect
                           value={getStatusOptions().find(option => option.value === newJob.status)}
                           onChange={async (selectedOption, actionMeta) => {
+                            if (!selectedOption) {
+                              // Handle clear action
+                              setNewJob({ ...newJob, status: '' });
+                              return;
+                            }
+                            
                             if (actionMeta.action === 'create-option') {
                               try {
                                 const newStatus = await createStatus(selectedOption.value);
                                 setNewJob({ ...newJob, status: newStatus.status_name });
                               } catch (error) {
                                 console.error("Failed to create status:", error);
-                                // Still set the status even if creation fails
-                                setNewJob({ ...newJob, status: selectedOption.value });
+                                // Check if it's a conflict error (status already exists)
+                                if (error.response?.status === 409) {
+                                  // Status already exists, just set it
+                                  setNewJob({ ...newJob, status: selectedOption.value });
+                                  // Refresh statuses to get the existing one
+                                  await fetchJobStatuses();
+                                } else {
+                                  // Still set the status even if creation fails for other reasons
+                                  setNewJob({ ...newJob, status: selectedOption.value });
+                                }
                               }
                             } else {
                               setNewJob({ ...newJob, status: selectedOption.value });
@@ -1905,14 +1919,28 @@ function TrackerPage({ darkMode, toggleTheme }) {
                       <CreatableSelect
                         value={getStatusOptions().find(option => option.value === newJob.status)}
                         onChange={async (selectedOption, actionMeta) => {
+                          if (!selectedOption) {
+                            // Handle clear action
+                            setNewJob({ ...newJob, status: '' });
+                            return;
+                          }
+                          
                           if (actionMeta.action === 'create-option') {
                             try {
                               const newStatus = await createStatus(selectedOption.value);
                               setNewJob({ ...newJob, status: newStatus.status_name });
                             } catch (error) {
                               console.error("Failed to create status:", error);
-                              // Still set the status even if creation fails
-                              setNewJob({ ...newJob, status: selectedOption.value });
+                              // Check if it's a conflict error (status already exists)
+                              if (error.response?.status === 409) {
+                                // Status already exists, just set it
+                                setNewJob({ ...newJob, status: selectedOption.value });
+                                // Refresh statuses to get the existing one
+                                await fetchJobStatuses();
+                              } else {
+                                // Still set the status even if creation fails for other reasons
+                                setNewJob({ ...newJob, status: selectedOption.value });
+                              }
                             }
                           } else {
                             setNewJob({ ...newJob, status: selectedOption.value });
