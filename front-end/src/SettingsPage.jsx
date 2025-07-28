@@ -546,12 +546,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       <div className="text-center py-8">
                         <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
                         <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
-                        <button
-                          onClick={() => handleSettingChange('developerMode', true)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                          Enable Developer Mode
-                        </button>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">Use the toggle above to enable developer tools</p>
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -705,6 +700,25 @@ function SettingsPage({ darkMode, toggleTheme }) {
           </div>
         </div>
       </div>
+      
+      {/* Developer Mode Toggle Notification */}
+      {message.text.includes('developerMode') && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+          <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 backdrop-blur-sm border ${
+            developerMode 
+              ? 'bg-green-100/90 dark:bg-green-900/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200' 
+              : 'bg-orange-100/90 dark:bg-orange-900/80 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200'
+          }`}>
+            <FaCode className="text-lg" />
+            <span className="font-medium">
+              Developer mode {developerMode ? 'enabled' : 'disabled'}
+            </span>
+            {developerMode && (
+              <span className="text-sm opacity-80">Advanced tools are now available</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
