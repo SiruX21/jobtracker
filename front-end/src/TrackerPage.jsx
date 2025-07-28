@@ -9,6 +9,15 @@ import { FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaExternalLinkAlt, FaBuild
 import companySuggestions, { getCompanyLogoSync, getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
 
+// Utility function to get current date in YYYY-MM-DD format
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Cache utilities
 const CACHE_KEY = 'jobTracker_jobs_cache';
 const CACHE_EXPIRY_KEY = 'jobTracker_cache_expiry';
