@@ -25,9 +25,11 @@ function AdminPanel({ darkMode, toggleTheme }) {
   
   // Users data
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [usersPage, setUsersPage] = useState(1);
   const [usersPagination, setUsersPagination] = useState({});
   const [usersSearch, setUsersSearch] = useState('');
+  const [usersFilter, setUsersFilter] = useState('all'); // 'all', 'verified', 'unverified', 'admin', 'user'
   
   // Jobs data
   const [jobs, setJobs] = useState([]);
@@ -68,6 +70,42 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
     return () => clearTimeout(delayedSearch);
   }, [usersSearch]);
+
+  // Client-side filtering effect for additional filtering
+  useEffect(() => {
+    if (users.length > 0) {
+      let filtered = [...users];
+      
+      // Apply additional filters that weren't handled by backend search
+      if (usersFilter !== 'all') {
+        filtered = filtered.filter(user => {
+          switch (usersFilter) {
+            case 'verified':
+              return user.email_verified === true;
+            case 'unverified':
+              return user.email_verified === false;
+            case 'admin':
+              return user.role === 'admin';
+            case 'user':
+              return user.role === 'user';
+            default:
+              return true;
+          }
+        });
+      }
+      
+      setFilteredUsers(filtered);
+    } else {
+      setFilteredUsers([]);
+    }
+  }, [users, usersFilter]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    if (usersFilter !== 'all') {
+      setUsersPage(1);
+    }
+  }, [usersFilter]);
 
   // Debounced search effect for jobs  
   useEffect(() => {
@@ -134,22 +172,33 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadUsers = async () => {
     try {
+      setLoading(true);
       const token = Cookies.get('authToken');
       const params = {
         page: usersPage,
         per_page: 20,
-        search: usersSearch
+        search: usersSearch.trim()
       };
+      
+      console.log('Loading users with params:', params); // Debug log
       
       const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
       
-      setUsers(response.data.users);
-      setUsersPagination(response.data.pagination);
+      console.log('Users response:', response.data); // Debug log
+      
+      setUsers(response.data.users || []);
+      setUsersPagination(response.data.pagination || {});
+      setError(''); // Clear any previous errors
     } catch (error) {
-      setError('Failed to load users');
+      console.error('Error loading users:', error);
+      setError('Failed to load users: ' + (error.response?.data?.message || error.message));
+      setUsers([]);
+      setUsersPagination({});
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -413,7 +462,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         break;
       case 'verified':
         setActiveTab('users');
-        setUsersSearch('verified:true');
+        setUsersSearch('status:verified');
         break;
       case 'unverified':
         setActiveTab('users');
@@ -568,9 +617,6 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {dashboardData.statistics.users.total}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                      Click to view all users
-                    </p>
                   </div>
                 </div>
               </button>
@@ -608,9 +654,6 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Job Applications</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                       {dashboardData.statistics.jobs.total}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                      Click to view all applications
                     </p>
                   </div>
                 </div>
@@ -734,7 +777,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
                               <p className="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{job.company_name}</p>
                               <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">{job.position_title}</p>
                               <p className="text-xs text-gray-500 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                                Applied by <span className="font-medium">{job.username}</span> • {new Date(job.applied_date).toLocaleDateString()}
+                                Submitted by <span className="font-medium">{job.username}</span> • {new Date(job.applied_date).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
@@ -768,6 +811,22 @@ function AdminPanel({ darkMode, toggleTheme }) {
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-center">
+                  <FaExclamationTriangle className="w-5 h-5 text-red-500 mr-2" />
+                  <span className="text-red-700 dark:text-red-300">{error}</span>
+                  <button
+                    onClick={() => setError('')}
+                    className="ml-auto text-red-500 hover:text-red-700"
+                  >
+                    <FaTimes className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+            
             {/* Users Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -791,17 +850,55 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     </button>
                   )}
                 </div>
+                
+                {/* Filter Dropdown */}
+                <div className="relative">
+                  <select
+                    value={usersFilter}
+                    onChange={(e) => setUsersFilter(e.target.value)}
+                    className="appearance-none pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                             focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  >
+                    <option value="all">All Users</option>
+                    <option value="verified">Verified Only</option>
+                    <option value="unverified">Unverified Only</option>
+                    <option value="admin">Admins Only</option>
+                    <option value="user">Users Only</option>
+                  </select>
+                  <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </div>
+                
                 <button
                   onClick={() => {
                     setUsersPage(1);
                     loadUsers();
                   }}
-                  className="inline-flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+                  disabled={loading}
+                  className="inline-flex items-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FaSync className="w-4 h-4 mr-2" />
-                  Refresh
+                  <FaSync className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Loading...' : 'Refresh'}
                 </button>
               </div>
+              
+              {/* Results Info */}
+              {(usersSearch || usersFilter !== 'all') && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {filteredUsers.length > 0 ? (
+                    <span>
+                      Showing {filteredUsers.length} of {usersPagination.total || 0} users
+                      {usersSearch && ` matching "${usersSearch}"`}
+                      {usersFilter !== 'all' && ` (${usersFilter} filter)`}
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      No users found matching your search criteria
+                    </span>
+                  )}
+                </div>
+              )}
+              
               <button
                 onClick={() => setShowCreateAdmin(true)}
                 className="inline-flex items-center px-4 py-2.5 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm font-medium"
@@ -835,7 +932,44 @@ function AdminPanel({ darkMode, toggleTheme }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {users.map((user) => (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-8 text-center">
+                          <div className="flex items-center justify-center">
+                            <FaSync className="animate-spin w-5 h-5 mr-2 text-blue-500" />
+                            <span className="text-gray-500 dark:text-gray-400">Loading users...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-8 text-center">
+                          <div className="text-gray-500 dark:text-gray-400">
+                            {usersSearch || usersFilter !== 'all' ? (
+                              <div>
+                                <FaSearch className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                <p>No users found matching your search criteria.</p>
+                                <button
+                                  onClick={() => {
+                                    setUsersSearch('');
+                                    setUsersFilter('all');
+                                  }}
+                                  className="mt-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  Clear filters
+                                </button>
+                              </div>
+                            ) : (
+                              <div>
+                                <FaUsers className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                <p>No users found.</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -907,7 +1041,8 @@ function AdminPanel({ darkMode, toggleTheme }) {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

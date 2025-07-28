@@ -138,6 +138,8 @@ def get_users():
         per_page = int(request.args.get('per_page', 20))
         search = request.args.get('search', '').strip()
         
+        print(f"Admin users request - page: {page}, per_page: {per_page}, search: '{search}'")
+        
         conn, cursor = get_db()
         
         # Build search query
@@ -145,13 +147,17 @@ def get_users():
         params = []
         
         if search:
-            where_clause = "WHERE username LIKE ? OR email LIKE ?"
-            params = [f"%{search}%", f"%{search}%"]
+            # Search in username, email, and role
+            where_clause = "WHERE (username LIKE ? OR email LIKE ? OR role LIKE ?)"
+            search_term = f"%{search}%"
+            params = [search_term, search_term, search_term]
         
         # Get total count
         count_query = f"SELECT COUNT(*) as total FROM users {where_clause}"
         cursor.execute(count_query, params)
         total = cursor.fetchone()['total']
+        
+        print(f"Total users found: {total}")
         
         # Calculate pagination
         offset = (page - 1) * per_page
@@ -168,6 +174,8 @@ def get_users():
         cursor.execute(query, params)
         users = cursor.fetchall()
         
+        print(f"Returning {len(users)} users for page {page}")
+        
         return jsonify({
             "users": users,
             "pagination": {
@@ -175,7 +183,8 @@ def get_users():
                 "per_page": per_page,
                 "total": total,
                 "pages": total_pages
-            }
+            },
+            "search": search
         })
         
     except Exception as e:

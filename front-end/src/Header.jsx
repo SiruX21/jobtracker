@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield } from "react-icons/fa";
+import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield, FaFileAlt } from "react-icons/fa";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
@@ -62,7 +62,7 @@ function Header({ darkMode, toggleTheme }) {
 
       {/* Navigation Links */}
       <nav className="flex items-center space-x-4">
-        {!isHomePage && (
+        {authToken && (
           <button
             onClick={() => navigate("/")}
             className="flex items-center text-white hover:text-blue-300 transition"
@@ -71,16 +71,15 @@ function Header({ darkMode, toggleTheme }) {
             Home
           </button>
         )}
-        
         {authToken && (
           <button
             onClick={() => navigate("/tracker")}
-            className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition"
+            className="flex items-center text-white hover:text-blue-300 transition"
           >
+            <FaFileAlt className="mr-1" />
             Applications
           </button>
         )}
-
         {authToken && (
           <button
             onClick={() => navigate("/settings")}
@@ -90,7 +89,6 @@ function Header({ darkMode, toggleTheme }) {
             Settings
           </button>
         )}
-
         {authToken && isAdmin && (
           <button
             onClick={() => navigate("/admin")}
@@ -100,7 +98,6 @@ function Header({ darkMode, toggleTheme }) {
             Admin
           </button>
         )}
-
         {!authToken && !isAuthPage && (
           <button
             onClick={() => navigate("/auth")}
@@ -110,7 +107,6 @@ function Header({ darkMode, toggleTheme }) {
             Sign In
           </button>
         )}
-
         {authToken && (
           <button
             onClick={handleLogout}
@@ -120,7 +116,6 @@ function Header({ darkMode, toggleTheme }) {
             Logout
           </button>
         )}
-
         {/* Theme Toggle - only show if toggleTheme function is provided */}
         {toggleTheme && (
           <button
