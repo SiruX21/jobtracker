@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react"; // Import useState and useEffect here
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from "./Header";
 import HomePage from "./HomePage";
 import IntroPage from "./IntroPage";
@@ -109,6 +111,21 @@ function App() {
             element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
         </Routes>
+        
+        {/* Toast Container for global notifications */}
+        <ToastContainer
+          position="bottom-center"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme={darkMode ? "dark" : "light"}
+          className="custom-toast-container"
+        />
       </div>
     </Router>
   );

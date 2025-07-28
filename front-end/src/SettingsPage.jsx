@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { 
@@ -44,7 +45,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
   
   // UI state
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
 
   // Check authentication and load user data
   useEffect(() => {
@@ -77,7 +77,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
     } catch (error) {
       console.error('Error loading user profile:', error);
       console.error('Error response:', error.response); // Debug log
-      showMessage('Failed to load user profile', 'error');
+      toast.error('Failed to load user profile');
     }
   };
 
@@ -154,21 +154,16 @@ function SettingsPage({ darkMode, toggleTheme }) {
     });
   };
 
-  const showMessage = (text, type = 'info') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 5000);
-  };
-
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
-      showMessage('New passwords do not match', 'error');
+      toast.error('New passwords do not match');
       return;
     }
     
     if (newPassword.length < 6) {
-      showMessage('Password must be at least 6 characters long', 'error');
+      toast.error('Password must be at least 6 characters long');
       return;
     }
     
@@ -185,9 +180,9 @@ function SettingsPage({ darkMode, toggleTheme }) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      showMessage('Password changed successfully', 'success');
+      toast.success('Password changed successfully');
     } catch (error) {
-      showMessage(error.response?.data?.message || 'Failed to change password', 'error');
+      toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -198,22 +193,29 @@ function SettingsPage({ darkMode, toggleTheme }) {
       case 'developerMode':
         setDeveloperMode(value);
         localStorage.setItem('developerMode', value.toString());
-        if (value) loadDeveloperInfo();
+        if (value) {
+          loadDeveloperInfo();
+          toast.success('🔧 Developer mode enabled - Advanced tools are now available');
+        } else {
+          toast.info('🔧 Developer mode disabled');
+        }
         break;
       case 'notifications':
         setNotifications(value);
         localStorage.setItem('notifications', value.toString());
+        toast.success(`🔔 Notifications ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'autoRefresh':
         setAutoRefresh(value);
         localStorage.setItem('autoRefresh', value.toString());
+        toast.success(`🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'dataRetention':
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
+        toast.success(`📅 Data retention set to ${value} days`);
         break;
     }
-    showMessage(`${setting} updated`, 'success');
   };
 
   const clearCache = () => {
@@ -221,7 +223,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
     localStorage.removeItem('jobTracker_cache_expiry');
     localStorage.removeItem('jobTracker_cache_version');
     loadDeveloperInfo();
-    showMessage('Cache cleared successfully', 'success');
+    toast.success('🗑️ Cache cleared successfully');
   };
 
   const exportData = () => {
@@ -246,7 +248,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showMessage('Data exported successfully', 'success');
+    toast.success('📁 Data exported successfully');
   };
 
   const formatBytes = (bytes) => {
@@ -276,20 +278,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
             <p className="text-gray-600 dark:text-gray-400">Manage your account and application preferences</p>
           </div>
-
-          {/* Message Display */}
-          {message.text && (
-            <div className={`mb-6 p-4 rounded-lg flex items-center ${
-              message.type === 'success' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-              message.type === 'error' ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400' :
-              'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
-            }`}>
-              {message.type === 'success' && <FaCheckCircle className="mr-2" />}
-              {message.type === 'error' && <FaExclamationTriangle className="mr-2" />}
-              {message.type === 'info' && <FaInfoCircle className="mr-2" />}
-              {message.text}
-            </div>
-          )}
 
           <div className="grid lg:grid-cols-4 gap-8">
             {/* Sidebar */}
@@ -700,25 +688,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
           </div>
         </div>
       </div>
-      
-      {/* Developer Mode Toggle Notification */}
-      {message.text.includes('developerMode') && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-          <div className={`px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 backdrop-blur-sm border ${
-            developerMode 
-              ? 'bg-green-100/90 dark:bg-green-900/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200' 
-              : 'bg-orange-100/90 dark:bg-orange-900/80 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200'
-          }`}>
-            <FaCode className="text-lg" />
-            <span className="font-medium">
-              Developer mode {developerMode ? 'enabled' : 'disabled'}
-            </span>
-            {developerMode && (
-              <span className="text-sm opacity-80">Advanced tools are now available</span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

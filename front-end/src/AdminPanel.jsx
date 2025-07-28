@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
@@ -385,7 +386,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       loadSystemInfo();
-      alert('System cache cleared successfully');
+      toast.success('🗑️ System cache cleared successfully');
     } catch (error) {
       setError('Failed to clear cache');
     }

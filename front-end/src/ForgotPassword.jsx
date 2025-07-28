@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 
@@ -8,8 +9,6 @@ const ForgotPassword = ({ darkMode, toggleTheme }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
 
   // Validate email
   const isValidEmail = (email) => {
@@ -19,17 +18,15 @@ const ForgotPassword = ({ darkMode, toggleTheme }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
 
     // Validate email
     if (!email) {
-      setError('Please enter your email address.');
+      toast.error('Please enter your email address.');
       return;
     }
 
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address.');
+      toast.error('Please enter a valid email address.');
       return;
     }
 
@@ -40,10 +37,10 @@ const ForgotPassword = ({ darkMode, toggleTheme }) => {
         email: email
       });
 
-      setMessage(response.data.message);
+      toast.success(response.data.message);
       setEmail(''); // Clear the form
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to send reset email. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }

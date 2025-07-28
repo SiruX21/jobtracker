@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
+import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 
 const EmailVerification = ({ darkMode, toggleTheme }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
-  const [message, setMessage] = useState('');
   const [hasVerified, setHasVerified] = useState(false); // Prevent duplicate calls
 
   useEffect(() => {
@@ -16,7 +17,7 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
     
     if (!token) {
       setStatus('error');
-      setMessage('Invalid verification link. No token provided.');
+      toast.error('Invalid verification link. No token provided.');
       return;
     }
 
@@ -36,7 +37,7 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
         
         if (response.status === 200) {
           setStatus('success');
-          setMessage('Email verified successfully! You can now log in to your account.');
+          toast.success('✅ Email verified successfully! Redirecting to login...');
           
           // Redirect to login page after 3 seconds
           setTimeout(() => {
@@ -46,9 +47,9 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
       } catch (error) {
         setStatus('error');
         if (error.response?.data?.error) {
-          setMessage(error.response.data.error);
+          toast.error(error.response.data.error);
         } else {
-          setMessage('Failed to verify email. Please try again or contact support.');
+          toast.error('Failed to verify email. Please try again or contact support.');
         }
       }
     };

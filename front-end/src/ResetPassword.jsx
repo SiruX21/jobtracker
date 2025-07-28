@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaLock, FaSpinner } from 'react-icons/fa';
 
 const ResetPassword = ({ darkMode, toggleTheme }) => {
   const [searchParams] = useSearchParams();
@@ -13,8 +14,6 @@ const ResetPassword = ({ darkMode, toggleTheme }) => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [token, setToken] = useState('');
@@ -35,28 +34,26 @@ const ResetPassword = ({ darkMode, toggleTheme }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
 
     // Validate password
     if (!formData.password) {
-      setError('Please enter a new password.');
+      toast.error('Please enter a new password.');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      toast.error('Password must be at least 6 characters long.');
       return;
     }
 
     // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
+      toast.error('Passwords do not match.');
       return;
     }
 
     if (!token) {
-      setError('Invalid reset token. Please request a new password reset.');
+      toast.error('Invalid reset token. Please request a new password reset.');
       return;
     }
 
@@ -68,7 +65,7 @@ const ResetPassword = ({ darkMode, toggleTheme }) => {
         password: formData.password
       });
 
-      setMessage('Password reset successfully! You can now log in with your new password.');
+      toast.success('✅ Password reset successfully! Redirecting to login...');
       setFormData({ password: '', confirmPassword: '' });
 
       // Redirect to login after 3 seconds
@@ -76,7 +73,7 @@ const ResetPassword = ({ darkMode, toggleTheme }) => {
         navigate('/auth');
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reset password. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
