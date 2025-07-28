@@ -525,23 +525,21 @@ function SettingsPage({ darkMode, toggleTheme }) {
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Developer Tools</h2>
                     
                     <div className="space-y-6">
-                      {/* Admin Panel Link */}
-                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium text-red-900 dark:text-red-200">Admin Panel</h3>
-                            <p className="text-sm text-red-700 dark:text-red-300">
-                              Full system administration and management console
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => navigate('/admin')}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
-                          >
-                            <FaExternalLinkAlt className="mr-2" />
-                            Open Admin Panel
-                          </button>
+                      {/* Developer Mode Toggle */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Enable advanced developer tools and debugging features</p>
                         </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={developerMode}
+                            onChange={(e) => handleSettingChange('developerMode', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
                       </div>
 
                     {!developerMode ? (
