@@ -5,6 +5,7 @@ import axios from "axios";
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import { FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaExternalLinkAlt, FaBuilding, FaCalendar, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaCog, FaCheckCircle, FaTimes, FaClock, FaThumbsUp, FaSpinner, FaSync, FaDatabase } from 'react-icons/fa';
 import companySuggestions, { getCompanyLogoSync, getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
@@ -778,6 +779,46 @@ function TrackerPage({ darkMode, toggleTheme }) {
         navigate("/auth");
       }
     }
+  };
+
+  // Create a new status
+  const createStatus = async (statusName) => {
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.post(`${API_BASE_URL}/job-statuses`, {
+        status_name: statusName
+      }, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      
+      // Add the new status to the local state
+      const newStatus = response.data;
+      setJobStatuses(prev => [...prev, newStatus]);
+      setStatusColorMap(prev => ({
+        ...prev,
+        [newStatus.status_name]: newStatus.color_code
+      }));
+      
+      return newStatus;
+    } catch (error) {
+      console.error("Error creating status:", error);
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      }
+      throw error;
+    }
+  };
+
+  // Get status options for select dropdown
+  const getStatusOptions = () => {
+    return jobStatuses.map(status => ({
+      value: status.status_name,
+      label: status.status_name,
+      color: status.color_code
+    }));
   };
 
   // Fetch jobs from backend with caching
@@ -1598,17 +1639,55 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Status
                         </label>
-                        <select
-                          value={newJob.status}
-                          onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
-                          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                        >
-                          {jobStatuses.map(status => (
-                            <option key={status.status_name} value={status.status_name}>
-                              {status.status_name}
-                            </option>
-                          ))}
-                        </select>
+                        <CreatableSelect
+                          value={getStatusOptions().find(option => option.value === newJob.status)}
+                          onChange={async (selectedOption, actionMeta) => {
+                            if (actionMeta.action === 'create-option') {
+                              try {
+                                const newStatus = await createStatus(selectedOption.value);
+                                setNewJob({ ...newJob, status: newStatus.status_name });
+                              } catch (error) {
+                                console.error("Failed to create status:", error);
+                                // Still set the status even if creation fails
+                                setNewJob({ ...newJob, status: selectedOption.value });
+                              }
+                            } else {
+                              setNewJob({ ...newJob, status: selectedOption.value });
+                            }
+                          }}
+                          options={getStatusOptions()}
+                          placeholder="Select or create a status..."
+                          isClearable
+                          isSearchable
+                          formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+                          styles={{
+                            ...customSelectStyles,
+                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            menu: (base) => ({ ...base, zIndex: 9999 }),
+                            option: (base, state) => ({
+                              ...base,
+                              backgroundColor: state.isFocused 
+                                ? (state.data.color ? `${state.data.color}20` : base.backgroundColor)
+                                : base.backgroundColor,
+                              borderLeft: state.data.color ? `4px solid ${state.data.color}` : 'none',
+                              paddingLeft: state.data.color ? '12px' : base.paddingLeft
+                            })
+                          }}
+                          menuPortalTarget={document.body}
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                          formatOptionLabel={(option) => (
+                            <div className="flex items-center">
+                              {option.color && (
+                                <div 
+                                  className="w-3 h-3 rounded-full mr-2 border border-gray-300"
+                                  style={{ backgroundColor: option.color }}
+                                ></div>
+                              )}
+                              <span>{option.label}</span>
+                            </div>
+                          )}
+                        />
                       </div>
 
                       <div>
@@ -1823,17 +1902,55 @@ function TrackerPage({ darkMode, toggleTheme }) {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Status
                       </label>
-                      <select
-                        value={newJob.status}
-                        onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                      >
-                        {jobStatuses.map(status => (
-                          <option key={status.status_name} value={status.status_name}>
-                            {status.status_name}
-                          </option>
-                        ))}
-                      </select>
+                      <CreatableSelect
+                        value={getStatusOptions().find(option => option.value === newJob.status)}
+                        onChange={async (selectedOption, actionMeta) => {
+                          if (actionMeta.action === 'create-option') {
+                            try {
+                              const newStatus = await createStatus(selectedOption.value);
+                              setNewJob({ ...newJob, status: newStatus.status_name });
+                            } catch (error) {
+                              console.error("Failed to create status:", error);
+                              // Still set the status even if creation fails
+                              setNewJob({ ...newJob, status: selectedOption.value });
+                            }
+                          } else {
+                            setNewJob({ ...newJob, status: selectedOption.value });
+                          }
+                        }}
+                        options={getStatusOptions()}
+                        placeholder="Select or create a status..."
+                        isClearable
+                        isSearchable
+                        formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+                        styles={{
+                          ...customSelectStyles,
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
+                          option: (base, state) => ({
+                            ...base,
+                            backgroundColor: state.isFocused 
+                              ? (state.data.color ? `${state.data.color}20` : base.backgroundColor)
+                              : base.backgroundColor,
+                            borderLeft: state.data.color ? `4px solid ${state.data.color}` : 'none',
+                            paddingLeft: state.data.color ? '12px' : base.paddingLeft
+                          })
+                        }}
+                        menuPortalTarget={document.body}
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        formatOptionLabel={(option) => (
+                          <div className="flex items-center">
+                            {option.color && (
+                              <div 
+                                className="w-3 h-3 rounded-full mr-2 border border-gray-300"
+                                style={{ backgroundColor: option.color }}
+                              ></div>
+                            )}
+                            <span>{option.label}</span>
+                          </div>
+                        )}
+                      />
                     </div>
 
                     <div>
