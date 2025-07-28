@@ -887,6 +887,84 @@ function SettingsPage({ darkMode, toggleTheme }) {
                                 {navigator.cookieEnabled ? 'Yes' : 'No'}
                               </span>
                             </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">API Base URL:</span>
+                              <span className="ml-2 font-mono text-blue-600 dark:text-blue-400">{API_BASE_URL}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Logo Backend Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaExternalLinkAlt className="mr-2" />
+                            Logo Backend Services
+                          </h3>
+                          
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4 text-sm">
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Clearbit Logo API</span>
+                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Primary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://logo.clearbit.com/{'{company}'}</div>
+                                  <div>Format: High-quality PNG/SVG logos</div>
+                                  <div>Fallback: Company initials with generated colors</div>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Logo.dev API</span>
+                                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Secondary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://img.logo.dev/{'{company}'}.com</div>
+                                  <div>Format: Optimized company logos</div>
+                                  <div>Usage: Fallback when Clearbit fails</div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Favicon Service</span>
+                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 rounded">Tertiary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://www.google.com/s2/favicons</div>
+                                  <div>Format: Favicon/small icons</div>
+                                  <div>Usage: Last resort fallback</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-white">Logo Cache Status</h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Logos are cached locally for better performance
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    // Clear logo cache from localStorage
+                                    Object.keys(localStorage).forEach(key => {
+                                      if (key.startsWith('logo_cache_')) {
+                                        localStorage.removeItem(key);
+                                      }
+                                    });
+                                    toast.success('🗑️ Logo cache cleared successfully');
+                                  }}
+                                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                >
+                                  <FaTrash className="inline mr-1" />
+                                  Clear Logo Cache
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
