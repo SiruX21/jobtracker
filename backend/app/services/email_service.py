@@ -354,3 +354,333 @@ def send_password_reset_email(user_email, token):
     except Exception as e:
         print(f"Failed to send password reset email: {e}")
         return False
+
+def send_email_change_confirmation(user_email, token):
+    """Send confirmation email to current email for email change request"""
+    smtp_server = os.getenv('MAIL_SERVER')
+    smtp_port = int(os.getenv('MAIL_PORT', 587))
+    smtp_username = os.getenv('MAIL_USERNAME')
+    smtp_password = os.getenv('MAIL_PASSWORD')
+    
+    if not all([smtp_server, smtp_username, smtp_password]):
+        print("Email configuration missing")
+        return False
+    
+    # Get backend URL for confirmation link
+    backend_url = os.getenv('BACKEND_URL', 'http://localhost:5000')
+    confirmation_link = f"{backend_url}/api/auth/confirm-email-change?token={token}"
+    
+    subject = "Confirm Email Change Request"
+    
+    # HTML email body
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirm Email Change</title>
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f8fafc;
+            }}
+            .container {{
+                background: white;
+                border-radius: 12px;
+                padding: 40px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .logo {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }}
+            .button {{
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 14px 28px;
+                text-decoration: none;
+                border-radius: 8px;
+                margin: 20px 0;
+                font-weight: 600;
+                text-align: center;
+            }}
+            .warning {{
+                background: #fef3cd;
+                border: 1px solid #faebcd;
+                border-radius: 8px;
+                padding: 16px;
+                margin: 20px 0;
+                color: #856404;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📧</div>
+                <h1 style="color: #2d3748; margin: 0;">Confirm Email Change</h1>
+            </div>
+            
+            <p>Hello,</p>
+            
+            <p>We received a request to change the email address associated with your Job Tracker account.</p>
+            
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong> If you did not request this email change, please ignore this email and consider changing your password.
+            </div>
+            
+            <p>To proceed with the email change, click the button below:</p>
+            
+            <div style="text-align: center;">
+                <a href="{confirmation_link}" class="button">Confirm Email Change</a>
+            </div>
+            
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f7fafc; padding: 10px; border-radius: 4px; font-family: monospace;">
+                {confirmation_link}
+            </p>
+            
+            <p><strong>This confirmation link will expire in 1 hour.</strong></p>
+            
+            <p>After confirming, you'll be asked to provide your new email address.</p>
+            
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+            
+            <p style="font-size: 14px; color: #718096;">
+                Best regards,<br>
+                Job Tracker Team
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Plain text version
+    text_body = f"""
+    Confirm Email Change Request
+    
+    Hello,
+    
+    We received a request to change the email address associated with your Job Tracker account.
+    
+    SECURITY NOTICE: If you did not request this email change, please ignore this email and consider changing your password.
+    
+    To proceed with the email change, visit this link:
+    {confirmation_link}
+    
+    This confirmation link will expire in 1 hour.
+    
+    After confirming, you'll be asked to provide your new email address.
+    
+    Best regards,
+    Job Tracker Team
+    """
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['From'] = smtp_username
+        msg['To'] = user_email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(text_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+        server.login(smtp_username, smtp_password)
+        text = msg.as_string()
+        server.sendmail(smtp_username, user_email, text)
+        server.quit()
+        
+        print(f"Email change confirmation sent to {user_email}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send email change confirmation: {e}")
+        return False
+
+def send_new_email_verification(new_email, token):
+    """Send verification email to new email address"""
+    smtp_server = os.getenv('MAIL_SERVER')
+    smtp_port = int(os.getenv('MAIL_PORT', 587))
+    smtp_username = os.getenv('MAIL_USERNAME')
+    smtp_password = os.getenv('MAIL_PASSWORD')
+    
+    if not all([smtp_server, smtp_username, smtp_password]):
+        print("Email configuration missing")
+        return False
+    
+    # Get backend URL for verification link
+    backend_url = os.getenv('BACKEND_URL', 'http://localhost:5000')
+    verification_link = f"{backend_url}/api/auth/verify-new-email?token={token}"
+    
+    subject = "Verify Your New Email Address"
+    
+    # HTML email body
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verify New Email</title>
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f8fafc;
+            }}
+            .container {{
+                background: white;
+                border-radius: 12px;
+                padding: 40px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .logo {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }}
+            .button {{
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 14px 28px;
+                text-decoration: none;
+                border-radius: 8px;
+                margin: 20px 0;
+                font-weight: 600;
+                text-align: center;
+            }}
+            .success {{
+                background: #d1f2eb;
+                border: 1px solid #a7f3d0;
+                border-radius: 8px;
+                padding: 16px;
+                margin: 20px 0;
+                color: #065f46;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">✉️</div>
+                <h1 style="color: #2d3748; margin: 0;">Verify Your New Email</h1>
+            </div>
+            
+            <p>Hello,</p>
+            
+            <p>Please verify this email address to complete your email change for your Job Tracker account.</p>
+            
+            <div class="success">
+                <strong>✅ Almost Done!</strong> Just one more step to complete your email change.
+            </div>
+            
+            <p>Click the button below to verify this email address:</p>
+            
+            <div style="text-align: center;">
+                <a href="{verification_link}" class="button">Verify New Email</a>
+            </div>
+            
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f7fafc; padding: 10px; border-radius: 4px; font-family: monospace;">
+                {verification_link}
+            </p>
+            
+            <p><strong>This verification link will expire in 24 hours.</strong></p>
+            
+            <p>Once verified, this will become your new login email address.</p>
+            
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+            
+            <p style="font-size: 14px; color: #718096;">
+                Best regards,<br>
+                Job Tracker Team
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Plain text version
+    text_body = f"""
+    Verify Your New Email Address
+    
+    Hello,
+    
+    Please verify this email address to complete your email change for your Job Tracker account.
+    
+    Click this link to verify your new email address:
+    {verification_link}
+    
+    This verification link will expire in 24 hours.
+    
+    Once verified, this will become your new login email address.
+    
+    Best regards,
+    Job Tracker Team
+    """
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['From'] = smtp_username
+        msg['To'] = new_email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(text_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+        server.login(smtp_username, smtp_password)
+        text = msg.as_string()
+        server.sendmail(smtp_username, new_email, text)
+        server.quit()
+        
+        print(f"New email verification sent to {new_email}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send new email verification: {e}")
+        return False

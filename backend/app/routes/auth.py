@@ -4,7 +4,7 @@ import mariadb
 from functools import wraps
 from app import get_db
 from app.config import Config
-from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password
+from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -368,3 +368,263 @@ def delete_account():
     except Exception as e:
         print(f"Unexpected error during account deletion: {e}")
         return jsonify({"message": "Failed to delete account"}), 500
+
+@auth_bp.route("/initiate-email-change", methods=["POST"])
+@token_required
+def initiate_email_change_route():
+    """Step 1: Initiate email change process"""
+    data = request.get_json()
+    current_password = data.get("current_password")
+    
+    if not current_password:
+        return jsonify({"error": "Current password is required"}), 400
+    
+    # Get user ID from token
+    token = request.headers.get('Authorization').split(" ")[1]
+    user_data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+    user_id = user_data['sub']
+    
+    result = initiate_email_change(user_id, current_password)
+    
+    if "error" in result:
+        return jsonify(result), result.get("code", 500)
+    
+    return jsonify(result), 200
+
+@auth_bp.route("/confirm-email-change", methods=["GET", "POST"])
+def confirm_email_change_route():
+    """Step 2: Confirm email change and provide new email"""
+    if request.method == "GET":
+        # Handle email confirmation link click
+        token = request.args.get('token')
+        
+        if not token:
+            return """
+            <html>
+                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                    <h2 style="color: #dc2626;">Invalid Link</h2>
+                    <p>Email change confirmation token is missing.</p>
+                </body>
+            </html>
+            """, 400
+        
+        # Show form to enter new email
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Enter New Email</title>
+            <style>
+                body {{
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: #f8fafc;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                }}
+                .container {{
+                    background: white;
+                    border-radius: 12px;
+                    padding: 40px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                    max-width: 400px;
+                    width: 100%;
+                }}
+                .logo {{
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    margin: 0 auto 20px;
+                }}
+                h1 {{
+                    color: #2d3748;
+                    text-align: center;
+                    margin-bottom: 30px;
+                }}
+                .form-group {{
+                    margin-bottom: 20px;
+                }}
+                label {{
+                    display: block;
+                    margin-bottom: 8px;
+                    color: #374151;
+                    font-weight: 500;
+                }}
+                input[type="email"] {{
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    box-sizing: border-box;
+                }}
+                button {{
+                    width: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                }}
+                button:hover {{
+                    opacity: 0.9;
+                }}
+                .message {{
+                    margin-top: 20px;
+                    padding: 12px;
+                    border-radius: 6px;
+                    text-align: center;
+                    display: none;
+                }}
+                .success {{
+                    background: #d1f2eb;
+                    color: #065f46;
+                    border: 1px solid #a7f3d0;
+                }}
+                .error {{
+                    background: #fee2e2;
+                    color: #dc2626;
+                    border: 1px solid #fecaca;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="logo">📧</div>
+                <h1>Enter New Email</h1>
+                <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                    Please enter your new email address to complete the email change.
+                </p>
+                
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="newEmail">New Email Address</label>
+                        <input type="email" id="newEmail" name="newEmail" required>
+                    </div>
+                    <button type="submit">Send Verification Email</button>
+                </form>
+                
+                <div id="message" class="message"></div>
+            </div>
+            
+            <script>
+                document.getElementById('emailForm').onsubmit = async function(e) {{
+                    e.preventDefault();
+                    
+                    const newEmail = document.getElementById('newEmail').value;
+                    const messageDiv = document.getElementById('message');
+                    const button = document.querySelector('button');
+                    
+                    button.disabled = true;
+                    button.textContent = 'Sending...';
+                    
+                    try {{
+                        const response = await fetch('/api/auth/confirm-email-change', {{
+                            method: 'POST',
+                            headers: {{
+                                'Content-Type': 'application/json'
+                            }},
+                            body: JSON.stringify({{
+                                token: '{token}',
+                                new_email: newEmail
+                            }})
+                        }});
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {{
+                            messageDiv.className = 'message success';
+                            messageDiv.textContent = result.message;
+                            messageDiv.style.display = 'block';
+                            document.getElementById('emailForm').style.display = 'none';
+                        }} else {{
+                            messageDiv.className = 'message error';
+                            messageDiv.textContent = result.error || 'An error occurred';
+                            messageDiv.style.display = 'block';
+                        }}
+                    }} catch (error) {{
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = 'Network error occurred';
+                        messageDiv.style.display = 'block';
+                    }}
+                    
+                    button.disabled = false;
+                    button.textContent = 'Send Verification Email';
+                }};
+            </script>
+        </body>
+        </html>
+        """
+    
+    elif request.method == "POST":
+        # Handle form submission with new email
+        data = request.get_json()
+        token = data.get("token")
+        new_email = data.get("new_email")
+        
+        if not token or not new_email:
+            return jsonify({"error": "Token and new email are required"}), 400
+        
+        result = confirm_email_change_request(token, new_email)
+        
+        if "error" in result:
+            return jsonify(result), result.get("code", 500)
+        
+        return jsonify(result), 200
+
+@auth_bp.route("/verify-new-email", methods=["GET"])
+def verify_new_email_route():
+    """Step 3: Verify new email address"""
+    token = request.args.get('token')
+    
+    if not token:
+        return """
+        <html>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h2 style="color: #dc2626;">Invalid Link</h2>
+                <p>Email verification token is missing.</p>
+            </body>
+        </html>
+        """, 400
+    
+    result = verify_new_email(token)
+    
+    if "error" in result:
+        from app.config import Config
+        frontend_url = Config.get_frontend_url()
+        return f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h2 style="color: #dc2626;">Email Verification Failed</h2>
+                <p>{result["error"]}</p>
+                <a href="{frontend_url}" style="color: #2563eb;">Go to App</a>
+            </body>
+        </html>
+        """, result["code"]
+    
+    # Success
+    from app.config import Config
+    frontend_url = Config.get_frontend_url()
+    return f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: #16a34a;">Email Changed Successfully!</h2>
+            <p>Your email address has been updated. You can now use your new email to log in.</p>
+            <a href="{frontend_url}" style="color: #2563eb; text-decoration: none; background: #2563eb; color: white; padding: 10px 20px; border-radius: 5px;">Go to App</a>
+        </body>
+    </html>
+    """

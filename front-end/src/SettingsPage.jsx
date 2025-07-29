@@ -32,6 +32,11 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
   
+  // Email change
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+  const [emailChangePassword, setEmailChangePassword] = useState('');
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
     localStorage.getItem('developerMode') === 'true'
@@ -234,6 +239,33 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     }
   };
 
+  const handleEmailChange = async () => {
+    if (!emailChangePassword.trim()) {
+      toast.error('❌ Please enter your current password to confirm email change');
+      return;
+    }
+
+    setEmailChangeLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.post(`${API_BASE_URL}/api/auth/initiate-email-change`, {
+        current_password: emailChangePassword
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+
+      toast.success('📧 Confirmation email sent to your current email address. Please check your inbox.');
+      setEmailChangePassword('');
+      setShowEmailChangeModal(false);
+    } catch (error) {
+      toast.error(`❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
+      setEmailChangePassword('');
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
   const handleSettingChange = (setting, value) => {
     switch (setting) {
       case 'developerMode':
@@ -417,7 +449,15 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     {/* User Info */}
                     {user && (
                       <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h3 className="font-medium text-gray-900 dark:text-white mb-2">Account Information</h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium text-gray-900 dark:text-white">Account Information</h3>
+                          <button
+                            onClick={() => setShowEmailChangeModal(true)}
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
+                          >
+                            Change Email
+                          </button>
+                        </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Member since: {formatDate(user.created_at)}
@@ -1056,6 +1096,73 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                   <>
                     <FaTrash className="mr-2" />
                     Delete Account
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Change Confirmation Modal */}
+      {showEmailChangeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out">
+          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+            <h3 className={`font-bold text-blue-600 dark:text-blue-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+              Change Email Address
+            </h3>
+            <p className={`text-gray-700 dark:text-gray-300 mb-4 ${isMobile ? 'text-sm' : ''}`}>
+              To change your email address, we'll send a confirmation email to your current email address first.
+            </p>
+            <p className={`text-gray-700 dark:text-gray-300 mb-4 font-medium ${isMobile ? 'text-sm' : ''}`}>
+              Please enter your password to confirm:
+            </p>
+            <div className="mb-4">
+              <input
+                type="password"
+                value={emailChangePassword}
+                onChange={(e) => setEmailChangePassword(e.target.value)}
+                placeholder="Enter your current password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleEmailChange();
+                  }
+                }}
+              />
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>📧 Process:</strong>
+                <br />1. Confirm with your current email
+                <br />2. Enter your new email address
+                <br />3. Verify your new email
+              </p>
+            </div>
+            <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-end space-x-3'}`}>
+              <button
+                onClick={() => {
+                  setShowEmailChangeModal(false);
+                  setEmailChangePassword('');
+                }}
+                className={`px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all duration-200 ease-in-out transform hover:scale-105 ${isMobile ? 'w-full' : ''}`}
+                disabled={emailChangeLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEmailChange}
+                disabled={emailChangeLoading || !emailChangePassword.trim()}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 disabled:hover:scale-100 hover:shadow-lg disabled:hover:shadow-none ${isMobile ? 'w-full justify-center' : ''}`}
+              >
+                {emailChangeLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    📧 Send Confirmation
                   </>
                 )}
               </button>

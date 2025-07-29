@@ -239,3 +239,121 @@ def reset_password(token, new_password):
     except mariadb.Error as e:
         print(f"Database error during password reset: {e}")
         return {"error": "Failed to reset password", "code": 500}
+
+def initiate_email_change(user_id, current_password):
+    """Step 1: Initiate email change by sending confirmation to current email"""
+    conn, cursor = get_db()
+    
+    try:
+        # Get user and verify password
+        cursor.execute("SELECT id, email, password_hash FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return {"error": "User not found", "code": 404}
+        
+        if not verify_password(current_password, user['password_hash']):
+            return {"error": "Invalid current password", "code": 400}
+        
+        # Generate confirmation token for current email
+        confirmation_token = generate_verification_token()
+        token_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # 1 hour expiry
+        
+        # Store token in database
+        cursor.execute("""
+            UPDATE users 
+            SET email_change_token = ?, email_change_token_expires = ?
+            WHERE id = ?
+        """, (confirmation_token, token_expires, user_id))
+        
+        # Send confirmation email to current email
+        from app.services.email_service import send_email_change_confirmation
+        send_email_change_confirmation(user['email'], confirmation_token)
+        
+        return {"success": True, "message": "Confirmation email sent to your current email address"}
+        
+    except mariadb.Error as e:
+        print(f"Database error during email change initiation: {e}")
+        return {"error": "Failed to initiate email change", "code": 500}
+
+def confirm_email_change_request(token, new_email):
+    """Step 2: Confirm email change request and send verification to new email"""
+    conn, cursor = get_db()
+    
+    try:
+        # Validate email format
+        if not new_email or "@" not in new_email:
+            return {"error": "Invalid email format", "code": 400}
+        
+        # Check if new email is already in use
+        cursor.execute("SELECT id FROM users WHERE email = ?", (new_email,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return {"error": "Email address is already in use", "code": 400}
+        
+        # Find user with valid confirmation token
+        cursor.execute("""
+            SELECT id, email 
+            FROM users 
+            WHERE email_change_token = ? AND email_change_token_expires > ?
+        """, (token, datetime.datetime.utcnow()))
+        
+        user = cursor.fetchone()
+        
+        if not user:
+            return {"error": "Invalid or expired confirmation token", "code": 400}
+        
+        # Generate new email verification token
+        verification_token = generate_verification_token()
+        verification_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # 24 hour expiry
+        
+        # Store new email and verification token
+        cursor.execute("""
+            UPDATE users 
+            SET new_email = ?, new_email_token = ?, new_email_token_expires = ?,
+                email_change_token = NULL, email_change_token_expires = NULL
+            WHERE id = ?
+        """, (new_email, verification_token, verification_expires, user['id']))
+        
+        # Send verification email to new email address
+        from app.services.email_service import send_new_email_verification
+        send_new_email_verification(new_email, verification_token)
+        
+        return {"success": True, "message": f"Verification email sent to {new_email}"}
+        
+    except mariadb.Error as e:
+        print(f"Database error during email change confirmation: {e}")
+        return {"error": "Failed to confirm email change", "code": 500}
+
+def verify_new_email(token):
+    """Step 3: Verify new email and complete the email change"""
+    conn, cursor = get_db()
+    
+    try:
+        # Find user with valid new email token
+        cursor.execute("""
+            SELECT id, email, new_email 
+            FROM users 
+            WHERE new_email_token = ? AND new_email_token_expires > ?
+        """, (token, datetime.datetime.utcnow()))
+        
+        user = cursor.fetchone()
+        
+        if not user:
+            return {"error": "Invalid or expired verification token", "code": 400}
+        
+        # Update email and clear temporary fields
+        cursor.execute("""
+            UPDATE users 
+            SET email = new_email, 
+                new_email = NULL, 
+                new_email_token = NULL, 
+                new_email_token_expires = NULL
+            WHERE id = ?
+        """, (user['id'],))
+        
+        return {"success": True, "message": "Email address updated successfully"}
+        
+    except mariadb.Error as e:
+        print(f"Database error during new email verification: {e}")
+        return {"error": "Failed to verify new email", "code": 500}
