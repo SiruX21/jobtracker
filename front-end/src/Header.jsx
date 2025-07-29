@@ -139,8 +139,14 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
       {/* Mobile Navigation Menu */}
       {isMobile && showMobileMenu && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out">
-          <div className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg transform transition-transform duration-300 ease-in-out mt-16">
+        <div 
+          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
+          onClick={() => setShowMobileMenu(false)}
+        >
+          <div 
+            className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg transform transition-transform duration-300 ease-in-out mt-16"
+            onClick={(e) => e.stopPropagation()}
+          >
             <nav className="py-4 px-4 space-y-3">
               {authToken && (
                 <button
