@@ -52,12 +52,12 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <>
-      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg ${isMobile ? 'py-3 px-4' : 'py-4 px-6'} flex items-center justify-between transition-all duration-300 ${
+      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg transition-all duration-300 ease-in-out ${isMobile ? 'py-3 px-4' : 'py-4 px-6'} flex items-center justify-between ${
         isHomePage ? "relative" : "fixed top-0 left-0 z-50"
       }`}>
         {/* Logo */}
         <div 
-          className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-all duration-200 ease-in-out transform hover:scale-105"
           onClick={() => handleNavigation("/")}
         >
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-2 rounded-full shadow-lg">
@@ -72,7 +72,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
         {isMobile ? (
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="text-white hover:text-blue-300 transition p-2"
+            className="text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
           >
             {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
@@ -100,7 +100,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
             {authToken && (
               <button
                 onClick={() => navigate("/settings")}
-                className="flex items-center text-white hover:text-blue-300 transition"
+                className="flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
               >
                 <FaCog className="mr-1" />
                 Settings
@@ -109,7 +109,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
             {!authToken && !isAuthPage && (
               <button
                 onClick={() => navigate("/auth")}
-                className="flex items-center text-white hover:text-blue-300 transition"
+                className="flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
               >
                 <FaSignInAlt className="mr-1" />
                 Sign In
@@ -118,7 +118,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
             {authToken && (
               <button
                 onClick={handleLogout}
-                className="flex items-center text-white hover:text-red-300 transition"
+                className="flex items-center text-white hover:text-red-300 transition-all duration-200 ease-in-out transform hover:scale-105"
               >
                 <FaSignOutAlt className="mr-1" />
                 Logout
@@ -128,7 +128,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
             {toggleTheme && (
               <button
                 onClick={toggleTheme}
-                className="flex items-center bg-blue-500 dark:bg-blue-700 text-white px-3 py-2 rounded-full hover:bg-blue-600 dark:hover:bg-blue-800 transition"
+                className="flex items-center bg-blue-500 dark:bg-blue-700 text-white px-3 py-2 rounded-full hover:bg-blue-600 dark:hover:bg-blue-800 transition-all duration-200 ease-in-out transform hover:scale-105"
               >
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
@@ -139,13 +139,13 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
       {/* Mobile Navigation Menu */}
       {isMobile && showMobileMenu && (
-        <div className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 ${isHomePage ? 'top-16' : 'top-16'}`}>
-          <div className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg">
+        <div className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out ${isHomePage ? 'top-16' : 'top-16'}`}>
+          <div className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg transform transition-transform duration-300 ease-in-out">
             <nav className="py-4 px-4 space-y-3">
               {authToken && (
                 <button
                   onClick={() => handleNavigation("/")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
                 >
                   <FaHome className="mr-3" />
                   Home
@@ -154,7 +154,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               {authToken && (
                 <button
                   onClick={() => handleNavigation("/tracker")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
                 >
                   <FaFileAlt className="mr-3" />
                   Applications
@@ -163,7 +163,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               {authToken && (
                 <button
                   onClick={() => handleNavigation("/settings")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
                 >
                   <FaCog className="mr-3" />
                   Settings
@@ -172,7 +172,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               {!authToken && !isAuthPage && (
                 <button
                   onClick={() => handleNavigation("/auth")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
                 >
                   <FaSignInAlt className="mr-3" />
                   Sign In
@@ -181,7 +181,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               {authToken && (
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center text-white hover:text-red-300 transition py-3 px-4 rounded-lg hover:bg-red-600 dark:hover:bg-red-700"
+                  className="w-full flex items-center text-white hover:text-red-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transform hover:scale-105"
                 >
                   <FaSignOutAlt className="mr-3" />
                   Logout
@@ -194,7 +194,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
                     toggleTheme();
                     setShowMobileMenu(false);
                   }}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
                 >
                   {darkMode ? <FaSun className="mr-3" /> : <FaMoon className="mr-3" />}
                   {darkMode ? 'Light Mode' : 'Dark Mode'}

@@ -360,18 +360,26 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
               {isMobile && (
                 <button
                   onClick={() => setShowMobileSidebar(!showMobileSidebar)}
-                  className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                  className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg active:scale-95"
                 >
-                  <FaBars className="text-gray-600 dark:text-gray-400" />
+                  <FaBars className={`text-gray-600 dark:text-gray-400 transition-transform duration-200 ${showMobileSidebar ? 'rotate-90' : 'rotate-0'}`} />
                 </button>
               )}
             </div>
           </div>
 
           <div className={`${isMobile ? 'block' : 'grid lg:grid-cols-4 gap-8'}`}>
+            {/* Mobile Sidebar Overlay */}
+            {isMobile && showMobileSidebar && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
+                onClick={() => setShowMobileSidebar(false)}
+              />
+            )}
+            
             {/* Sidebar */}
             <div className={`lg:col-span-1 ${isMobile ? (showMobileSidebar ? 'block mb-4' : 'hidden') : ''}`}>
-              <nav className={`space-y-2 ${isMobile ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4' : ''}`}>
+              <nav className={`space-y-2 transition-all duration-300 ease-in-out ${isMobile ? `fixed top-20 left-4 right-4 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 transform ${showMobileSidebar ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}` : ''}`}>
                 {[
                   { id: 'profile', name: 'Profile & Security', icon: FaUser },
                   { id: 'preferences', name: 'Preferences', icon: FaCog },
@@ -384,9 +392,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                       setActiveTab(tab.id);
                       if (isMobile) setShowMobileSidebar(false);
                     }}
-                    className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition ${
+                    className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${
                       activeTab === tab.id
-                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     } ${isMobile ? 'text-sm' : ''}`}
                   >
@@ -399,7 +407,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
             {/* Main Content */}
             <div className={`lg:col-span-3 ${isMobile ? 'w-full' : ''}`}>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-xl">
                 
                 {/* Profile & Security Tab */}
                 {activeTab === 'profile' && (
@@ -476,7 +484,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         <button
                           type="submit"
                           disabled={loading}
-                          className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 ${isMobile ? 'w-full justify-center' : ''}`}
+                          className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaSave className="mr-2" />
                           {loading ? 'Changing...' : 'Change Password'}
@@ -493,7 +501,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         </p>
                         <button
                           onClick={() => setShowDeleteModal(true)}
-                          className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ${isMobile ? 'w-full justify-center' : ''}`}
+                          className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaTrash className="mr-2" />
                           Delete Account
@@ -517,7 +525,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         </div>
                         <button
                           onClick={toggleTheme}
-                          className={`flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 ${isMobile ? 'w-full justify-center' : ''}`}
+                          className={`flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 ease-in-out transform hover:scale-105 ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaPalette className="mr-2" />
                           {darkMode ? 'Dark' : 'Light'} Mode
@@ -530,14 +538,14 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           <h3 className="font-medium text-gray-900 dark:text-white">Notifications</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Enable browser notifications</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="relative inline-flex items-center cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={notifications}
                             onChange={(e) => handleSettingChange('notifications', e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 dark:border-gray-600 peer-checked:bg-blue-600 group-hover:scale-105 transition-transform duration-200"></div>
                         </label>
                       </div>
 
@@ -547,14 +555,14 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           <h3 className="font-medium text-gray-900 dark:text-white">Auto Refresh</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Automatically refresh job data</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="relative inline-flex items-center cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={autoRefresh}
                             onChange={(e) => handleSettingChange('autoRefresh', e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 dark:border-gray-600 peer-checked:bg-blue-600 group-hover:scale-105 transition-transform duration-200"></div>
                         </label>
                       </div>
 
@@ -567,7 +575,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         <select
                           value={dataRetention}
                           onChange={(e) => handleSettingChange('dataRetention', e.target.value)}
-                          className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${isMobile ? 'w-full' : ''}`}
+                          className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ease-in-out hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 ${isMobile ? 'w-full' : ''}`}
                         >
                           <option value="7">7 days</option>
                           <option value="30">30 days</option>
@@ -580,7 +588,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                           onClick={exportData}
-                          className={`flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${isMobile ? 'w-full justify-center' : ''}`}
+                          className={`flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaDownload className="mr-2" />
                           Export Data
@@ -658,7 +666,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                                 });
                               }, 100);
                             }}
-                            className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
+                            className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
                           >
                             <FaBell className="mr-2" />
                             Test Notification
@@ -721,14 +729,14 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Enable advanced developer tools and debugging features</p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                        <label className="relative inline-flex items-center cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={developerMode}
                             onChange={(e) => handleSettingChange('developerMode', e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 dark:border-gray-600 peer-checked:bg-blue-600 group-hover:scale-105 transition-transform duration-200"></div>
                         </label>
                       </div>
 
@@ -741,7 +749,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           </div>
                           <button
                             onClick={() => navigate('/admin')}
-                            className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
+                            className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
                           >
                             <FaCode className="mr-2" />
                             Open Admin Panel
@@ -998,8 +1006,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out">
+          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
             <h3 className={`font-bold text-red-600 dark:text-red-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               Confirm Account Deletion
             </h3>
@@ -1015,7 +1023,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-red-500"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
                     handleDeleteAccount();
@@ -1029,7 +1037,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                   setShowDeleteModal(false);
                   setDeletePassword('');
                 }}
-                className={`px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 ${isMobile ? 'w-full' : ''}`}
+                className={`px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all duration-200 ease-in-out transform hover:scale-105 ${isMobile ? 'w-full' : ''}`}
                 disabled={deleteLoading}
               >
                 Cancel
@@ -1037,7 +1045,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading || !deletePassword.trim()}
-                className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
+                className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 disabled:hover:scale-100 hover:shadow-lg disabled:hover:shadow-none ${isMobile ? 'w-full justify-center' : ''}`}
               >
                 {deleteLoading ? (
                   <>
