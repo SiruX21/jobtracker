@@ -533,7 +533,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     </form>
 
                     {/* Delete Account - Danger Zone */}
-                    <div className="mt-8 pt-4 border-t border-red-200 dark:border-red-800">
+                    <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
                         <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
                         <p className="text-sm text-red-700 dark:text-red-300 mb-3">
