@@ -139,14 +139,14 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
       {/* Mobile Navigation Menu */}
       {isMobile && showMobileMenu && (
-        <>
+        <div className="fixed inset-0 z-[70] transition-opacity duration-300 ease-in-out">
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-[65]" 
+            className="absolute inset-0 bg-black bg-opacity-50" 
             onClick={() => setShowMobileMenu(false)}
           />
           {/* Menu Content */}
-          <div className={`fixed w-full bg-blue-800 dark:bg-blue-900 shadow-xl z-[70] transition-all duration-300 ease-in-out ${
+          <div className={`absolute w-full bg-blue-800 dark:bg-blue-900 shadow-xl transform transition-all duration-300 ease-in-out ${
             isHomePage ? 'top-[60px]' : 'top-[64px]'
           }`}>
             <nav className="py-4 px-4 space-y-3">
@@ -210,7 +210,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               )}
             </nav>
           </div>
-        </>
+        </div>
       )}
     </>
   );
