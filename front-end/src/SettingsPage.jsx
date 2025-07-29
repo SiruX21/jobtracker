@@ -10,7 +10,7 @@ import {
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
   FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess,
-  FaBars
+  FaBars, FaEnvelope
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme, isMobile }) {
