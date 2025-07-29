@@ -139,7 +139,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
       {/* Mobile Navigation Menu */}
       {isMobile && showMobileMenu && (
-        <div className="fixed inset-0 z-[70] transition-opacity duration-300 ease-in-out">
+        <div className="fixed inset-0 z-[60] transition-opacity duration-300 ease-in-out">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black bg-opacity-50" 
