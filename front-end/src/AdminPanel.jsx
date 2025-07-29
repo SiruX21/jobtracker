@@ -350,39 +350,11 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
     try {
       const token = Cookies.get('authToken');
-      
-      // Find the job to get details for the toast message
-      const jobToDelete = jobs.find(job => job.id === jobId);
-      
       await axios.delete(`${API_BASE_URL}/api/admin/jobs/${jobId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       loadJobs();
-      
-      // Show success toast notification
-      toast.success(`Job application for ${jobToDelete?.company_name || 'Unknown Company'} - ${jobToDelete?.position_title || 'Unknown Position'} deleted successfully!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      
     } catch (error) {
-      console.error('Error deleting job:', error);
-      
-      // Show error toast notification
-      toast.error('Failed to delete job application. Please try again.', {
-        position: "top-right",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      
       setError('Failed to delete job');
     }
   };

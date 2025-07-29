@@ -9,7 +9,7 @@ import {
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
-  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess
+  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme }) {
@@ -42,14 +42,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
   );
   const [dataRetention, setDataRetention] = useState(() => 
     localStorage.getItem('dataRetention') || '30'
-  );
-  
-  // Accessibility settings
-  const [toastPosition, setToastPosition] = useState(() => 
-    localStorage.getItem('toastPosition') || 'bottom-center'
-  );
-  const [toastTheme, setToastTheme] = useState(() => 
-    localStorage.getItem('toastTheme') || 'auto'
   );
   
   // Developer info
@@ -259,36 +251,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
         localStorage.setItem('dataRetention', value);
         toast.success(`📅 Data retention set to ${value} days`);
         break;
-      case 'toastPosition':
-        setToastPosition(value);
-        localStorage.setItem('toastPosition', value);
-        // Dispatch custom event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
-          detail: { position: value, theme: toastTheme } 
-        }));
-        // Small delay to ensure settings are applied before showing confirmation
-        setTimeout(() => {
-          toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
-            position: value,
-            theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
-          });
-        }, 100);
-        break;
-      case 'toastTheme':
-        setToastTheme(value);
-        localStorage.setItem('toastTheme', value);
-        // Dispatch custom event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
-          detail: { position: toastPosition, theme: value } 
-        }));
-        // Small delay to ensure settings are applied before showing confirmation
-        setTimeout(() => {
-          toast.success(`🎨 Toast theme changed to ${value}`, {
-            position: toastPosition,
-            theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
-          });
-        }, 100);
-        break;
     }
   };
 
@@ -307,13 +269,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
         notifications,
         autoRefresh,
         dataRetention,
-        toastPosition,
-        toastTheme,
         darkMode
       },
       cache: localStorage.getItem('jobTracker_jobs_cache'),
       timestamp: new Date().toISOString()
-    };    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -360,7 +322,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                 {[
                   { id: 'profile', name: 'Profile & Security', icon: FaUser },
                   { id: 'preferences', name: 'Preferences', icon: FaCog },
-                  { id: 'accessibility', name: 'Accessibility', icon: FaUniversalAccess },
                   ...(isAdmin ? [{ id: 'developer', name: 'Developer Tools', icon: FaCode }] : [])
                 ].map((tab) => (
                   <button
@@ -599,125 +560,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                   </div>
                 )}
 
-                {/* Accessibility Tab */}
-                {activeTab === 'accessibility' && (
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Accessibility</h2>
-                    
-                    <div className="space-y-6">
-                      {/* Toast Notification Settings */}
-                      <div className="space-y-4">
-                        <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
-                          <FaBell className="mr-2" />
-                          Notification Settings
-                        </h3>
-                        
-                        {/* Toast Position */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white">Toast Position</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Choose where notifications appear on your screen</p>
-                          </div>
-                          <select
-                            value={toastPosition}
-                            onChange={(e) => handleSettingChange('toastPosition', e.target.value)}
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option value="top-left">Top Left</option>
-                            <option value="top-center">Top Center</option>
-                            <option value="top-right">Top Right</option>
-                            <option value="bottom-left">Bottom Left</option>
-                            <option value="bottom-center">Bottom Center</option>
-                            <option value="bottom-right">Bottom Right</option>
-                          </select>
-                        </div>
-
-                        {/* Toast Theme */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white">Toast Theme</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Choose the color scheme for notifications</p>
-                          </div>
-                          <select
-                            value={toastTheme}
-                            onChange={(e) => handleSettingChange('toastTheme', e.target.value)}
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option value="auto">Auto (follows system theme)</option>
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                            <option value="colored">Colored</option>
-                          </select>
-                        </div>
-
-                        {/* Test Toast Button */}
-                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <button
-                            onClick={() => {
-                              // Apply settings immediately before showing test toast
-                              window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
-                                detail: { position: toastPosition, theme: toastTheme } 
-                              }));
-                              
-                              // Small delay to ensure settings are applied
-                              setTimeout(() => {
-                                toast.success("🎉 This is a test notification!", {
-                                  position: toastPosition,
-                                  theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
-                                });
-                              }, 100);
-                            }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-                          >
-                            <FaBell className="mr-2" />
-                            Test Notification
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Visual Settings */}
-                      <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
-                          <FaPalette className="mr-2" />
-                          Visual Accessibility
-                        </h3>
-                        
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <div className="flex items-start">
-                            <FaInfoCircle className="text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                            <div>
-                              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Additional Accessibility Features
-                              </h4>
-                              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                                These settings help customize the interface for better accessibility and user experience.
-                              </p>
-                              <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  High contrast dark/light mode support
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Keyboard navigation support
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Screen reader compatible
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Customizable notification positioning
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Developer Tools Tab - Admin Only */}
                 {activeTab === 'developer' && isAdmin && (
                   <div className="p-6">
@@ -886,84 +728,6 @@ function SettingsPage({ darkMode, toggleTheme }) {
                               <span className={`ml-2 font-mono ${navigator.cookieEnabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                 {navigator.cookieEnabled ? 'Yes' : 'No'}
                               </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">API Base URL:</span>
-                              <span className="ml-2 font-mono text-blue-600 dark:text-blue-400">{API_BASE_URL}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Logo Backend Information */}
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                            <FaExternalLinkAlt className="mr-2" />
-                            Logo Backend Services
-                          </h3>
-                          
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4 text-sm">
-                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium text-gray-900 dark:text-white">Clearbit Logo API</span>
-                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Primary</span>
-                                </div>
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <div>Endpoint: https://logo.clearbit.com/{'{company}'}</div>
-                                  <div>Format: High-quality PNG/SVG logos</div>
-                                  <div>Fallback: Company initials with generated colors</div>
-                                </div>
-                              </div>
-                              
-                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium text-gray-900 dark:text-white">Logo.dev API</span>
-                                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Secondary</span>
-                                </div>
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <div>Endpoint: https://img.logo.dev/{'{company}'}.com</div>
-                                  <div>Format: Optimized company logos</div>
-                                  <div>Usage: Fallback when Clearbit fails</div>
-                                </div>
-                              </div>
-
-                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium text-gray-900 dark:text-white">Favicon Service</span>
-                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 rounded">Tertiary</span>
-                                </div>
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <div>Endpoint: https://www.google.com/s2/favicons</div>
-                                  <div>Format: Favicon/small icons</div>
-                                  <div>Usage: Last resort fallback</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4 className="font-medium text-gray-900 dark:text-white">Logo Cache Status</h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Logos are cached locally for better performance
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => {
-                                    // Clear logo cache from localStorage
-                                    Object.keys(localStorage).forEach(key => {
-                                      if (key.startsWith('logo_cache_')) {
-                                        localStorage.removeItem(key);
-                                      }
-                                    });
-                                    toast.success('🗑️ Logo cache cleared successfully');
-                                  }}
-                                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                                >
-                                  <FaTrash className="inline mr-1" />
-                                  Clear Logo Cache
-                                </button>
-                              </div>
                             </div>
                           </div>
                         </div>

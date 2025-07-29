@@ -35,14 +35,6 @@ function App() {
     return prefersDark;
   });
 
-  // Toast settings state
-  const [toastPosition, setToastPosition] = useState(() => 
-    localStorage.getItem('toastPosition') || 'bottom-center'
-  );
-  const [toastTheme, setToastTheme] = useState(() => 
-    localStorage.getItem('toastTheme') || 'auto'
-  );
-
   // Listen for OS color scheme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -64,25 +56,6 @@ function App() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  // Listen for toast settings changes
-  useEffect(() => {
-    const handleToastSettingsChange = (event) => {
-      const { position, theme } = event.detail;
-      setToastPosition(position);
-      setToastTheme(theme);
-    };
-
-    window.addEventListener('toastSettingsChanged', handleToastSettingsChange);
-    return () => window.removeEventListener('toastSettingsChanged', handleToastSettingsChange);
-  }, []);
-
-  const getToastTheme = () => {
-    if (toastTheme === 'auto') {
-      return darkMode ? 'dark' : 'light';
-    }
-    return toastTheme;
-  };
 
   const toggleTheme = () => {
     const newDarkMode = !darkMode;
@@ -141,7 +114,7 @@ function App() {
         
         {/* Toast Container for global notifications */}
         <ToastContainer
-          position={toastPosition}
+          position="bottom-center"
           autoClose={5000}
           hideProgressBar={false}
           newestOnTop={false}
@@ -150,7 +123,7 @@ function App() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme={getToastTheme()}
+          theme={darkMode ? "dark" : "light"}
           className="custom-toast-container"
         />
       </div>
