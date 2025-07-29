@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 
-const ForgotPassword = ({ darkMode, toggleTheme }) => {
+function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +48,7 @@ const ForgotPassword = ({ darkMode, toggleTheme }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       {/* Main Form Container */}
       <div className="mt-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl w-full max-w-md border border-white/20 dark:border-gray-700/30 animate-slideInUp">

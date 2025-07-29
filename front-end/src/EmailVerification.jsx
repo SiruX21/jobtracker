@@ -6,7 +6,7 @@ import { API_BASE_URL } from './config';
 import Header from './Header';
 import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 
-const EmailVerification = ({ darkMode, toggleTheme }) => {
+function EmailVerification({ darkMode, toggleTheme, isMobile }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
@@ -59,7 +59,7 @@ const EmailVerification = ({ darkMode, toggleTheme }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       {/* Main Content Container */}
       <div className="mt-8 w-full max-w-md transform transition-all duration-500 ease-out">

@@ -43,6 +43,23 @@ function App() {
     localStorage.getItem('toastTheme') || 'auto'
   );
 
+  // Mobile detection state
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice && isSmallScreen);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Listen for OS color scheme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -103,15 +120,15 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<HomePage darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<HomePage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/auth"
-            element={<IntroPage darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<IntroPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/tracker"
-            element={<TrackerPage darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<TrackerPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/track"
@@ -119,23 +136,23 @@ function App() {
           />
           <Route
             path="/settings"
-            element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/admin"
-            element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/verify-email"
-            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/forgot-password"
-            element={<ForgotPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<ForgotPassword darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/reset-password"
-            element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
+            element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
         </Routes>
         

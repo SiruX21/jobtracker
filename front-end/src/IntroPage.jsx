@@ -6,7 +6,7 @@ import Cookies from "js-cookie"; // For managing cookies
 import config from "./config"; // Import the global config
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for password visibility toggle
 
-function IntroPage({ darkMode, toggleTheme }) {
+function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: "", password: "", confirmPassword: "" });
@@ -125,7 +125,7 @@ function IntroPage({ darkMode, toggleTheme }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       {/* Main Form Container with Slide-in Animation */}
       <div className="mt-8 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out hover:shadow-3xl hover:scale-105 animate-slideInUp">

@@ -9,7 +9,7 @@ import {
   FaClipboard, FaTrophy, FaArrowUp, FaArrowDown, FaPlay
 } from 'react-icons/fa';
 
-function HomePage({ darkMode, toggleTheme }) {
+function HomePage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   const [rainIcons, setRainIcons] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -58,7 +58,7 @@ function HomePage({ darkMode, toggleTheme }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 dark:from-blue-900 dark:via-slate-900 dark:to-blue-950 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out relative overflow-hidden">
         
@@ -94,28 +94,28 @@ function HomePage({ darkMode, toggleTheme }) {
         </div>
 
         {/* Hero Section */}
-        <div className="max-w-4xl mx-auto text-center animate-slideInUp relative z-10">
+        <div className={`max-w-4xl mx-auto text-center animate-slideInUp relative z-10 ${isMobile ? 'px-4' : ''}`}>
           {/* Logo/Icon */}
           <div className="mb-8">
-            <div className="text-8xl mb-4"><FaClipboard className="mx-auto text-blue-200" /></div>
-            <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-100 bg-clip-text text-transparent">
+            <div className={`mb-4 ${isMobile ? 'text-6xl' : 'text-8xl'}`}><FaClipboard className="mx-auto text-blue-200" /></div>
+            <h1 className={`font-bold mb-4 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-100 bg-clip-text text-transparent ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
               JobTracker
             </h1>
           </div>
 
           {/* Main Description */}
           <div className="mb-12 animate-fadeIn delay-300">
-            <h2 className="text-3xl font-bold text-blue-100 dark:text-blue-100 mb-6">
+            <h2 className={`font-bold text-blue-100 dark:text-blue-100 mb-6 ${isMobile ? 'text-xl' : 'text-3xl'}`}>
               Take Control of Your Job Search Journey
             </h2>
-            <p className="text-xl text-blue-200 dark:text-blue-200 leading-relaxed mb-8 max-w-3xl mx-auto">
+            <p className={`text-blue-200 dark:text-blue-200 leading-relaxed mb-8 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-xl'}`}>
               Stay organized, track your applications, and never miss an opportunity. 
               JobTracker helps you manage your job applications with ease and style.
             </p>
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-12 animate-slideInUp delay-500">
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'} gap-8 mb-12 animate-slideInUp delay-500`}>
             <div className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-400/20 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <div className="flex items-center justify-center text-4xl mb-4"><FaCrosshairs className="text-blue-300" /></div>
               <h3 className="text-xl font-bold text-blue-100 dark:text-blue-100 mb-2">Track Applications</h3>
@@ -140,11 +140,11 @@ function HomePage({ darkMode, toggleTheme }) {
           </div>
 
           {/* Call to Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-slideInUp delay-700">
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} gap-6 justify-center items-center animate-slideInUp delay-700`}>
             {isAuthenticated ? (
               <button
                 onClick={() => navigate('/tracker')}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300 min-w-48 flex items-center justify-center"
+                className={`bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300 flex items-center justify-center ${isMobile ? 'text-base w-full' : 'text-lg min-w-48'}`}
               >
                 <FaPlay className="mr-2" />
                 Launch Application
@@ -153,13 +153,13 @@ function HomePage({ darkMode, toggleTheme }) {
               <>
                 <button
                   onClick={() => navigate('/auth?mode=signup')}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 min-w-48"
+                  className={`bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-8 py-4 rounded-2xl font-bold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 ${isMobile ? 'text-base w-full' : 'text-lg min-w-48'}`}
                 >
                   Get Started Free
                 </button>
                 <button
                   onClick={() => navigate('/auth?mode=login')}
-                  className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border-2 border-blue-400/30 text-blue-100 dark:text-blue-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700/40 dark:hover:bg-blue-800/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 min-w-48"
+                  className={`bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border-2 border-blue-400/30 text-blue-100 dark:text-blue-100 px-8 py-4 rounded-2xl font-bold hover:bg-blue-700/40 dark:hover:bg-blue-800/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 ${isMobile ? 'text-base w-full' : 'text-lg min-w-48'}`}
                 >
                   Sign In
                 </button>

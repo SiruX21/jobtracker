@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fa';
 
 // Component to render company logos with fallback
-function AdminPanel({ darkMode, toggleTheme }) {
+function AdminPanel({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
@@ -551,7 +551,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

@@ -184,7 +184,7 @@ const CompanyOption = ({ data, innerRef, innerProps, isFocused, isSelected }) =>
   );
 };
 
-function TrackerPage({ darkMode, toggleTheme }) {
+function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
 
   // State variables
@@ -1106,18 +1106,18 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
         
         {/* Main Container */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
           
           {/* Header Section */}
           <div className="text-center mb-8 animate-fadeIn">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className={`font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-4xl'}`}>
               Job Application Tracker
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'text-sm' : ''}`}>
               Manage and track your job applications in one place
             </p>
           </div>
@@ -1263,16 +1263,16 @@ function TrackerPage({ darkMode, toggleTheme }) {
           <div className="text-center mb-8">
             <button
               onClick={openAddModal}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center mx-auto"
+              className={`bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center mx-auto ${isMobile ? 'text-base px-6 py-3' : 'text-lg'}`}
             >
-              <FaPlus className="mr-3 text-xl" />
+              <FaPlus className={`mr-3 ${isMobile ? 'text-lg' : 'text-xl'}`} />
               Add New Application
             </button>
           </div>
 
           {/* Search and Filters */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className={`flex ${isMobile ? 'flex-col' : 'flex-col lg:flex-row lg:items-center lg:justify-between'} gap-4`}>
               {/* Search */}
               <div className="flex-1 max-w-md">
                 <div className="relative">
@@ -1483,11 +1483,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
-                      <div className="flex space-x-2">
+                    <div className={`flex ${isMobile ? 'flex-col space-y-2' : 'justify-between items-center'} pt-4 border-t border-gray-200 dark:border-gray-600`}>
+                      <div className={`flex ${isMobile ? 'w-full' : ''} space-x-2`}>
                         <button
                           onClick={() => editJob(jobs.findIndex(j => j.id === job.id))}
-                          className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                          className={`flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors ${isMobile ? 'flex-1 justify-center' : ''}`}
                         >
                           <FaEdit className="mr-1 text-xs" />
                           Edit
@@ -1495,7 +1495,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
                         
                         <button
                           onClick={() => deleteJob(jobs.findIndex(j => j.id === job.id))}
-                          className="flex items-center px-3 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                          className={`flex items-center px-3 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors ${isMobile ? 'flex-1 justify-center' : ''}`}
                         >
                           <FaTrash className="mr-1 text-xs" />
                           Delete
@@ -1507,7 +1507,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
                           href={job.job_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                          className={`flex items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaExternalLinkAlt className="mr-1 text-xs" />
                           View Job

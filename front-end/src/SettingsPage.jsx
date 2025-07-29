@@ -9,15 +9,17 @@ import {
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
-  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess
+  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess,
+  FaBars
 } from 'react-icons/fa';
 
-function SettingsPage({ darkMode, toggleTheme }) {
+function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   
   // Profile settings
   const [currentPassword, setCurrentPassword] = useState('');
@@ -343,20 +345,33 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className={`max-w-6xl mx-auto px-4 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your account and application preferences</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className={`font-bold text-gray-900 dark:text-white mb-2 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Settings</h1>
+                <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'text-sm' : ''}`}>Manage your account and application preferences</p>
+              </div>
+              {/* Mobile menu button */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+                  className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                >
+                  <FaBars className="text-gray-600 dark:text-gray-400" />
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-8">
+          <div className={`${isMobile ? 'block' : 'grid lg:grid-cols-4 gap-8'}`}>
             {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <nav className="space-y-2">
+            <div className={`lg:col-span-1 ${isMobile ? (showMobileSidebar ? 'block mb-4' : 'hidden') : ''}`}>
+              <nav className={`space-y-2 ${isMobile ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4' : ''}`}>
                 {[
                   { id: 'profile', name: 'Profile & Security', icon: FaUser },
                   { id: 'preferences', name: 'Preferences', icon: FaCog },
@@ -365,12 +380,15 @@ function SettingsPage({ darkMode, toggleTheme }) {
                 ].map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (isMobile) setShowMobileSidebar(false);
+                    }}
                     className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition ${
                       activeTab === tab.id
                         ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
+                    } ${isMobile ? 'text-sm' : ''}`}
                   >
                     <tab.icon className="mr-3" />
                     {tab.name}
@@ -380,13 +398,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">
+            <div className={`lg:col-span-3 ${isMobile ? 'w-full' : ''}`}>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 
                 {/* Profile & Security Tab */}
                 {activeTab === 'profile' && (
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Profile & Security</h2>
+                  <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <h2 className={`font-semibold text-gray-900 dark:text-white mb-6 ${isMobile ? 'text-lg' : 'text-xl'}`}>Profile & Security</h2>
                     
                     {/* User Info */}
                     {user && (
@@ -445,7 +463,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <button
                           type="button"
                           onClick={() => setShowPasswords(!showPasswords)}
@@ -458,7 +476,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                          className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaSave className="mr-2" />
                           {loading ? 'Changing...' : 'Change Password'}
@@ -470,19 +488,19 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
                 {/* Preferences Tab */}
                 {activeTab === 'preferences' && (
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Preferences</h2>
+                  <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <h2 className={`font-semibold text-gray-900 dark:text-white mb-6 ${isMobile ? 'text-lg' : 'text-xl'}`}>Preferences</h2>
                     
                     <div className="space-y-6">
                       {/* Theme */}
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
                           <h3 className="font-medium text-gray-900 dark:text-white">Theme</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
                         </div>
                         <button
                           onClick={toggleTheme}
-                          className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                          className={`flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaPalette className="mr-2" />
                           {darkMode ? 'Dark' : 'Light'} Mode
@@ -490,7 +508,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       </div>
 
                       {/* Notifications */}
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
                           <h3 className="font-medium text-gray-900 dark:text-white">Notifications</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Enable browser notifications</p>
@@ -507,7 +525,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       </div>
 
                       {/* Auto Refresh */}
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
                           <h3 className="font-medium text-gray-900 dark:text-white">Auto Refresh</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Automatically refresh job data</p>
@@ -524,7 +542,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       </div>
 
                       {/* Data Retention */}
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
                           <h3 className="font-medium text-gray-900 dark:text-white">Data Retention</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">How long to keep cached data</p>
@@ -532,7 +550,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         <select
                           value={dataRetention}
                           onChange={(e) => handleSettingChange('dataRetention', e.target.value)}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${isMobile ? 'w-full' : ''}`}
                         >
                           <option value="7">7 days</option>
                           <option value="30">30 days</option>
@@ -543,26 +561,26 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
                       {/* Admin Panel - Admin Only */}
                       {isAdmin ? (
-                        <div className="flex items-center justify-between">
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                           <div>
                             <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
                           </div>
                           <button
                             onClick={() => navigate('/admin')}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                            className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
                           >
                             <FaCode className="mr-2" />
                             Open Admin Panel
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between opacity-50">
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'} opacity-50`}>
                           <div>
                             <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Admin access required</p>
                           </div>
-                          <div className="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed">
+                          <div className={`px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed ${isMobile ? 'w-full text-center' : ''}`}>
                             Admin Only
                           </div>
                         </div>
@@ -572,7 +590,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                           onClick={exportData}
-                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                          className={`flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${isMobile ? 'w-full justify-center' : ''}`}
                         >
                           <FaDownload className="mr-2" />
                           Export Data
@@ -588,7 +606,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                           </p>
                           <button
                             onClick={() => setShowDeleteModal(true)}
-                            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ${isMobile ? 'w-full justify-center' : ''}`}
                           >
                             <FaTrash className="mr-2" />
                             Delete Account
@@ -601,8 +619,8 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
                 {/* Accessibility Tab */}
                 {activeTab === 'accessibility' && (
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Accessibility</h2>
+                  <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <h2 className={`font-semibold text-gray-900 dark:text-white mb-6 ${isMobile ? 'text-lg' : 'text-xl'}`}>Accessibility</h2>
                     
                     <div className="space-y-6">
                       {/* Toast Notification Settings */}
@@ -613,7 +631,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </h3>
                         
                         {/* Toast Position */}
-                        <div className="flex items-center justify-between">
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                           <div>
                             <h4 className="font-medium text-gray-900 dark:text-white">Toast Position</h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Choose where notifications appear on your screen</p>
@@ -621,7 +639,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                           <select
                             value={toastPosition}
                             onChange={(e) => handleSettingChange('toastPosition', e.target.value)}
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isMobile ? 'w-full' : ''}`}
                           >
                             <option value="top-left">Top Left</option>
                             <option value="top-center">Top Center</option>
@@ -633,7 +651,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                         </div>
 
                         {/* Toast Theme */}
-                        <div className="flex items-center justify-between">
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                           <div>
                             <h4 className="font-medium text-gray-900 dark:text-white">Toast Theme</h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Choose the color scheme for notifications</p>
@@ -641,7 +659,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                           <select
                             value={toastTheme}
                             onChange={(e) => handleSettingChange('toastTheme', e.target.value)}
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isMobile ? 'w-full' : ''}`}
                           >
                             <option value="auto">Auto (follows system theme)</option>
                             <option value="light">Light</option>
@@ -667,7 +685,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                                 });
                               }, 100);
                             }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                            className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
                           >
                             <FaBell className="mr-2" />
                             Test Notification
@@ -720,12 +738,12 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
                 {/* Developer Tools Tab - Admin Only */}
                 {activeTab === 'developer' && isAdmin && (
-                  <div className="p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Developer Tools</h2>
+                  <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <h2 className={`font-semibold text-gray-900 dark:text-white mb-6 ${isMobile ? 'text-lg' : 'text-xl'}`}>Developer Tools</h2>
                     
                     <div className="space-y-6">
                       {/* Developer Mode Toggle */}
-                      <div className="flex items-center justify-between">
+                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
                           <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Enable advanced developer tools and debugging features</p>
@@ -751,22 +769,22 @@ function SettingsPage({ darkMode, toggleTheme }) {
                       <div className="space-y-6">
                         {/* Cache Information */}
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'} mb-4`}>
                             <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
                               <FaDatabase className="mr-2" />
                               Cache Information
                             </h3>
-                            <div className="flex space-x-2">
+                            <div className={`flex ${isMobile ? 'w-full' : ''} space-x-2`}>
                               <button
                                 onClick={loadDeveloperInfo}
-                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                                className={`px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center ${isMobile ? 'flex-1 justify-center' : ''}`}
                               >
                                 <FaSync className="inline mr-1" />
                                 Refresh
                               </button>
                               <button
                                 onClick={clearCache}
-                                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                className={`px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center ${isMobile ? 'flex-1 justify-center' : ''}`}
                               >
                                 <FaTrash className="inline mr-1" />
                                 Clear
@@ -858,7 +876,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             System Information
                           </h3>
                           
-                          <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4 text-sm`}>
                             <div>
                               <span className="text-gray-600 dark:text-gray-400">User Agent:</span>
                               <div className="font-mono text-xs break-all">{navigator.userAgent}</div>
@@ -941,7 +959,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                             </div>
 
                             <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                              <div className="flex items-center justify-between">
+                              <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                                 <div>
                                   <h4 className="font-medium text-gray-900 dark:text-white">Logo Cache Status</h4>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -958,7 +976,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
                                     });
                                     toast.success('🗑️ Logo cache cleared successfully');
                                   }}
-                                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                  className={`px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
                                 >
                                   <FaTrash className="inline mr-1" />
                                   Clear Logo Cache
@@ -980,15 +998,15 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+            <h3 className={`font-bold text-red-600 dark:text-red-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               Confirm Account Deletion
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
+            <p className={`text-gray-700 dark:text-gray-300 mb-4 ${isMobile ? 'text-sm' : ''}`}>
               This action cannot be undone. This will permanently delete your account and all your data.
             </p>
-            <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">
+            <p className={`text-gray-700 dark:text-gray-300 mb-4 font-medium ${isMobile ? 'text-sm' : ''}`}>
               Please enter your password to confirm:
             </p>
             <div className="mb-4">
@@ -1005,13 +1023,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
                 }}
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-end space-x-3'}`}>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDeletePassword('');
                 }}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
+                className={`px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 ${isMobile ? 'w-full' : ''}`}
                 disabled={deleteLoading}
               >
                 Cancel
@@ -1019,7 +1037,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading || !deletePassword.trim()}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
               >
                 {deleteLoading ? (
                   <>
