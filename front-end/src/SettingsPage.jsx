@@ -483,6 +483,23 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         </button>
                       </div>
                     </form>
+
+                    {/* Delete Account - Danger Zone */}
+                    <div className="mt-8 pt-4 border-t border-red-200 dark:border-red-800">
+                      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                        <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
+                        <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                          Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+                        </p>
+                        <button
+                          onClick={() => setShowDeleteModal(true)}
+                          className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ${isMobile ? 'w-full justify-center' : ''}`}
+                        >
+                          <FaTrash className="mr-2" />
+                          Delete Account
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -559,33 +576,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                         </select>
                       </div>
 
-                      {/* Admin Panel - Admin Only */}
-                      {isAdmin ? (
-                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
-                          <div>
-                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
-                          </div>
-                          <button
-                            onClick={() => navigate('/admin')}
-                            className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
-                          >
-                            <FaCode className="mr-2" />
-                            Open Admin Panel
-                          </button>
-                        </div>
-                      ) : (
-                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'} opacity-50`}>
-                          <div>
-                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Admin access required</p>
-                          </div>
-                          <div className={`px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed ${isMobile ? 'w-full text-center' : ''}`}>
-                            Admin Only
-                          </div>
-                        </div>
-                      )}
-
                       {/* Export Data */}
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
@@ -595,23 +585,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           <FaDownload className="mr-2" />
                           Export Data
                         </button>
-                      </div>
-
-                      {/* Delete Account - Danger Zone */}
-                      <div className="pt-4 border-t border-red-200 dark:border-red-800">
-                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                          <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
-                          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-                            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
-                          </p>
-                          <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ${isMobile ? 'w-full justify-center' : ''}`}
-                          >
-                            <FaTrash className="mr-2" />
-                            Delete Account
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -758,6 +731,33 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                           <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                         </label>
                       </div>
+
+                      {/* Admin Panel - Admin Only */}
+                      {isAdmin ? (
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center ${isMobile ? 'w-full justify-center' : ''}`}
+                          >
+                            <FaCode className="mr-2" />
+                            Open Admin Panel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'} opacity-50`}>
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Admin access required</p>
+                          </div>
+                          <div className={`px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed ${isMobile ? 'w-full text-center' : ''}`}>
+                            Admin Only
+                          </div>
+                        </div>
+                      )}
 
                     {!developerMode ? (
                       <div className="text-center py-8">
