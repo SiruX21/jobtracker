@@ -10,7 +10,7 @@ function StatsConfiguration({
   getStatColorClass 
 }) {
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-8 animate-fadeIn">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
         <button

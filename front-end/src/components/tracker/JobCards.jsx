@@ -14,7 +14,7 @@ function JobCards({
   setCompanyFilter 
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
       {filteredJobs.length === 0 ? (
         <div className="col-span-full text-center py-12">
           <div className="text-6xl mb-4">📋</div>
@@ -39,8 +39,8 @@ function JobCards({
         filteredJobs.map((job, index) => (
           <div
             key={job.id || index}
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 overflow-hidden animate-fade-in"
-            style={{ animationDelay: `${index * 50}ms` }}
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 overflow-hidden animate-fadeIn"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             {/* Company Logo Header */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 p-4 flex items-center justify-between">
