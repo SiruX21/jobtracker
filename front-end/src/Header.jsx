@@ -4,6 +4,7 @@ import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, F
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
+import LoadingScreen from "./components/shared/LoadingScreen";
 
 function Header({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
   const authToken = Cookies.get("authToken");
   const [isAdmin, setIsAdmin] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   useEffect(() => {
     if (authToken) {
@@ -36,9 +38,14 @@ function Header({ darkMode, toggleTheme, isMobile }) {
     }
   };
 
-  const handleLogout = () => {
-    Cookies.remove("authToken");
+  const handleLogout = async () => {
+    setLogoutLoading(true);
     setShowMobileMenu(false);
+    
+    // Add a small delay to show the loading screen
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    Cookies.remove("authToken");
     navigate("/");
   };
 
@@ -49,6 +56,10 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
   const isHomePage = location.pathname === "/";
   const isAuthPage = location.pathname === "/auth";
+
+  if (logoutLoading) {
+    return <LoadingScreen type="logout" />;
+  }
 
   return (
     <>
