@@ -7,6 +7,8 @@ function StatsCards({
   handleDashboardCardClick, 
   getStatColorClass 
 }) {
+  console.log('StatsCards render - dashboardFilter:', dashboardFilter);
+  
   return (
     <div className={`grid gap-4 ${selectedStats.length === 1 ? 'grid-cols-1' : selectedStats.length === 2 ? 'grid-cols-1 md:grid-cols-2' : selectedStats.length === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
       {selectedStats.map(statId => {
@@ -16,6 +18,8 @@ function StatsCards({
         const IconComponent = stat.icon;
         const value = stat.getValue();
         const isActive = dashboardFilter === statId;
+        
+        console.log(`Card ${statId}: isActive = ${isActive} (dashboardFilter: ${dashboardFilter}, statId: ${statId})`);
         
         return (
           <button
