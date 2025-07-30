@@ -4,6 +4,7 @@ import Header from "./Header";
 import axios from "axios"; // For API requests
 import Cookies from "js-cookie"; // For managing cookies
 import config from "./config"; // Import the global config
+import PasswordStrengthIndicator from "./components/PasswordStrengthIndicator";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for password visibility toggle
 
 function IntroPage({ darkMode, toggleTheme, isMobile }) {
@@ -16,6 +17,7 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const [resendSuccess, setResendSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState(null);
   const navigate = useNavigate();
 
   // Check URL params for mode
@@ -88,8 +90,13 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
       return;
     }
 
-    // For signup, validate confirm password
+    // For signup, validate password using backend validation
     if (!isLogin) {
+      if (!passwordValidation || !passwordValidation.valid) {
+        setError("Please ensure your password meets all security requirements.");
+        return;
+      }
+      
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match.");
         return;
@@ -227,6 +234,15 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
                 {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
               </button>
             </div>
+            
+            {/* Password Strength Indicator - Only show during signup */}
+            {!isLogin && (
+              <PasswordStrengthIndicator 
+                password={formData.password}
+                onValidationChange={setPasswordValidation}
+                showRequirements={true}
+              />
+            )}
           </div>
 
           {/* Confirm Password Field for Sign Up */}

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
+import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 import { 
   FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
@@ -69,18 +70,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   // UI state
   const [loading, setLoading] = useState(false);
 
-  // Password strength validation
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    feedback: '',
-    requirements: {
-      length: false,
-      uppercase: false,
-      lowercase: false,
-      number: false,
-      special: false
-    }
-  });
+  // Password validation state
+  const [passwordValidation, setPasswordValidation] = useState(null);
 
   // Progressive disclosure states
   const [expandedSections, setExpandedSections] = useState({
@@ -99,31 +90,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       ...prev,
       [section]: !prev[section]
     }));
-  };
-
-  const validatePasswordStrength = (password) => {
-    const requirements = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /\d/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    };
-
-    const score = Object.values(requirements).filter(Boolean).length;
-    let feedback = '';
-
-    if (score <= 2) {
-      feedback = 'Weak password';
-    } else if (score <= 3) {
-      feedback = 'Fair password';
-    } else if (score <= 4) {
-      feedback = 'Good password';
-    } else {
-      feedback = 'Strong password';
-    }
-
-    setPasswordStrength({ score, feedback, requirements });
   };
 
   // Check authentication and load user data
@@ -262,13 +228,13 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
-    if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match');
+    if (!passwordValidation || !passwordValidation.valid) {
+      toast.error('Please ensure your password meets all security requirements.');
       return;
     }
     
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
       return;
     }
     
@@ -1337,47 +1303,18 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                   value={newPassword}
                   onChange={(e) => {
                     setNewPassword(e.target.value);
-                    validatePasswordStrength(e.target.value);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-blue-500"
                   required
                   minLength={6}
                 />
-                {newPassword && (
-                  <div className="mt-2">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            passwordStrength.score <= 2 ? 'bg-red-500' :
-                            passwordStrength.score <= 3 ? 'bg-yellow-500' :
-                            passwordStrength.score <= 4 ? 'bg-blue-500' : 'bg-green-500'
-                          }`}
-                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className={`text-xs font-medium ${
-                        passwordStrength.score <= 2 ? 'text-red-600 dark:text-red-400' :
-                        passwordStrength.score <= 3 ? 'text-yellow-600 dark:text-yellow-400' :
-                        passwordStrength.score <= 4 ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
-                      }`}>
-                        {passwordStrength.feedback}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {Object.entries(passwordStrength.requirements).map(([req, met]) => (
-                        <div key={req} className={`flex items-center ${met ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                          <span className="mr-1">{met ? '✓' : '○'}</span>
-                          {req === 'length' && '8+ characters'}
-                          {req === 'uppercase' && 'Uppercase'}
-                          {req === 'lowercase' && 'Lowercase'}
-                          {req === 'number' && 'Number'}
-                          {req === 'special' && 'Special char'}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                
+                {/* Password Strength Indicator */}
+                <PasswordStrengthIndicator 
+                  password={newPassword}
+                  onValidationChange={setPasswordValidation}
+                  showRequirements={true}
+                />
               </div>
 
               <div>

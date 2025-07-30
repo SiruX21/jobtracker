@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
+import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 import { FaEye, FaEyeSlash, FaLock, FaSpinner } from 'react-icons/fa';
 
 function ResetPassword({ darkMode, toggleTheme, isMobile }) {
@@ -17,6 +18,9 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [token, setToken] = useState('');
+  const [passwordValidation, setPasswordValidation] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
@@ -35,17 +39,16 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate password
-    if (!formData.password) {
-      toast.error('Please enter a new password.');
+    // Validate password using backend validation
+    if (!passwordValidation || !passwordValidation.valid) {
+      toast.error('Please ensure your password meets all security requirements.');
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters long.');
+    // Validate confirm password
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match.');
       return;
-    }
-
     // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match.');
@@ -156,6 +159,13 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
                   {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator */}
+              <PasswordStrengthIndicator 
+                password={formData.password}
+                onValidationChange={setPasswordValidation}
+                showRequirements={true}
+              />
             </div>
 
             {/* Confirm Password Field */}
@@ -196,7 +206,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || !token}
+              disabled={isLoading || !token || !passwordValidation?.valid}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <span className="font-semibold tracking-wide">

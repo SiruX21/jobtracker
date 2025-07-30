@@ -5,6 +5,7 @@ import secrets
 import mariadb
 from app import get_db
 from app.services.email_service import send_verification_email, send_password_reset_email
+from app.utils.password_validator import PasswordValidator
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -30,6 +31,15 @@ def generate_verification_token():
 def register_user(username, email, password):
     """Register a new user with email verification"""
     conn, cursor = get_db()
+    
+    # Validate password strength
+    is_valid, validation_details = PasswordValidator.validate_password(password)
+    if not is_valid:
+        return {
+            "error": "Password does not meet security requirements", 
+            "code": 400,
+            "validation_details": validation_details
+        }
     
     # Check if user already exists
     cursor.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, username))
@@ -210,6 +220,15 @@ def request_password_reset(email):
 def reset_password(token, new_password):
     """Reset password using a valid reset token"""
     conn, cursor = get_db()
+    
+    # Validate password strength
+    is_valid, validation_details = PasswordValidator.validate_password(new_password)
+    if not is_valid:
+        return {
+            "error": "Password does not meet security requirements", 
+            "code": 400,
+            "validation_details": validation_details
+        }
     
     try:
         # Find user with valid reset token

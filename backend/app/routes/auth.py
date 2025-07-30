@@ -5,6 +5,7 @@ from functools import wraps
 from app import get_db
 from app.config import Config
 from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email
+from app.utils.password_validator import PasswordValidator
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -628,3 +629,35 @@ def verify_new_email_route():
         </body>
     </html>
     """
+
+@auth_bp.route('/validate-password', methods=['POST', 'OPTIONS'])
+def validate_password_endpoint():
+    """Validate password strength"""
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    try:
+        data = request.get_json()
+        password = data.get('password', '')
+        
+        is_valid, validation_details = PasswordValidator.validate_password(password)
+        
+        response = jsonify({
+            "valid": is_valid,
+            "details": validation_details
+        })
+        
+        # Add CORS headers
+        frontend_url = Config.get_frontend_url()
+        response.headers.add('Access-Control-Allow-Origin', frontend_url)
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error validating password: {e}")
+        response = jsonify({"error": "Internal server error"})
+        frontend_url = Config.get_frontend_url()
+        response.headers.add('Access-Control-Allow-Origin', frontend_url)
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 500
