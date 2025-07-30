@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import Select from 'react-select';
@@ -998,7 +998,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
       
       // Show success toast notification
-      toast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`, {
+      showToast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -1011,7 +1011,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       console.error("Error deleting job:", error);
       
       // Show error toast notification
-      toast.error("Failed to delete job application. Please try again.", {
+      showToast.error("Failed to delete job application. Please try again.", {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,

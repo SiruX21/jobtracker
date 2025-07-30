@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 
@@ -21,12 +21,12 @@ function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
 
     // Validate email
     if (!email) {
-      toast.error('Please enter your email address.');
+      showToast.error('Please enter your email address.');
       return;
     }
 
     if (!isValidEmail(email)) {
-      toast.error('Please enter a valid email address.');
+      showToast.error('Please enter a valid email address.');
       return;
     }
 
@@ -37,10 +37,10 @@ function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
         email: email
       });
 
-      toast.success(response.data.message);
+      showToast.success(response.data.message);
       setEmail(''); // Clear the form
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to send reset email. Please try again.');
+      showToast.error(err.response?.data?.error || 'Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }

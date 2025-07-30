@@ -9,7 +9,7 @@ import {
   FaTrash 
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { showToast } from '../../utils/toast';
 
 function DeveloperSection({ 
   isAdmin,
@@ -21,6 +21,7 @@ function DeveloperSection({
   clearCache, 
   formatBytes, 
   formatDate,
+  showToast,
   isMobile 
 }) {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ function DeveloperSection({
         localStorage.removeItem(key);
       }
     });
-    toast.success('🗑️ Logo cache cleared successfully');
+    showToast('success', '🗑️ Logo cache cleared successfully');
   };
 
   return (

@@ -9,6 +9,7 @@ function PreferencesSection({
   dataRetention, 
   handleSettingChange, 
   exportData,
+  showToast,
   isMobile 
 }) {
   return (
@@ -109,6 +110,7 @@ function PreferencesSection({
                 handleSettingChange('notifications', true);
                 handleSettingChange('autoRefresh', true);
                 handleSettingChange('dataRetention', '30');
+                showToast('success', '🔄 Preferences reset to defaults');
               }}
               className={`flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
             >

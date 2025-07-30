@@ -42,6 +42,11 @@ function App() {
   const [toastTheme, setToastTheme] = useState(() => 
     localStorage.getItem('toastTheme') || 'auto'
   );
+  
+  // Notifications enabled state
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => 
+    localStorage.getItem('notifications') !== 'false'
+  );
 
   // Mobile detection state
   const [isMobile, setIsMobile] = useState(false);
@@ -92,6 +97,28 @@ function App() {
 
     window.addEventListener('toastSettingsChanged', handleToastSettingsChange);
     return () => window.removeEventListener('toastSettingsChanged', handleToastSettingsChange);
+  }, []);
+
+  // Listen for notification setting changes
+  useEffect(() => {
+    const handleNotificationSettingsChange = () => {
+      const notificationsEnabled = localStorage.getItem('notifications') !== 'false';
+      setNotificationsEnabled(notificationsEnabled);
+    };
+
+    // Check on mount and when localStorage changes
+    handleNotificationSettingsChange();
+    
+    // Listen for storage events (when localStorage is changed in other tabs)
+    window.addEventListener('storage', handleNotificationSettingsChange);
+    
+    // Listen for custom events (when localStorage is changed in same tab)
+    window.addEventListener('notificationSettingsChanged', handleNotificationSettingsChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleNotificationSettingsChange);
+      window.removeEventListener('notificationSettingsChanged', handleNotificationSettingsChange);
+    };
   }, []);
 
   const getToastTheme = () => {
@@ -156,20 +183,22 @@ function App() {
           />
         </Routes>
         
-        {/* Toast Container for global notifications */}
-        <ToastContainer
-          position={toastPosition}
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme={getToastTheme()}
-          className="custom-toast-container"
-        />
+        {/* Toast Container for global notifications - only render if notifications are enabled */}
+        {notificationsEnabled && (
+          <ToastContainer
+            position={toastPosition}
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme={getToastTheme()}
+            className="custom-toast-container"
+          />
+        )}
       </div>
     </Router>
   );

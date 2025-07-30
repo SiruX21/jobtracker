@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
@@ -17,7 +17,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
     
     if (!token) {
       setStatus('error');
-      toast.error('Invalid verification link. No token provided.');
+      showToast.error('Invalid verification link. No token provided.');
       return;
     }
 
@@ -37,7 +37,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
         
         if (response.status === 200) {
           setStatus('success');
-          toast.success('✅ Email verified successfully! Redirecting to login...');
+          showToast.success('✅ Email verified successfully! Redirecting to login...');
           
           // Redirect to login page after 3 seconds
           setTimeout(() => {
@@ -47,9 +47,9 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
       } catch (error) {
         setStatus('error');
         if (error.response?.data?.error) {
-          toast.error(error.response.data.error);
+          showToast.error(error.response.data.error);
         } else {
-          toast.error('Failed to verify email. Please try again or contact support.');
+          showToast.error('Failed to verify email. Please try again or contact support.');
         }
       }
     };

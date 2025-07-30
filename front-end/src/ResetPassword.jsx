@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
@@ -41,18 +41,18 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
 
     // Validate password using backend validation
     if (!passwordValidation || !passwordValidation.valid) {
-      toast.error('Please ensure your password meets all security requirements.');
+      showToast.error('Please ensure your password meets all security requirements.');
       return;
     }
 
     // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match.');
+      showToast.error('Passwords do not match.');
       return;
     }
 
     if (!token) {
-      toast.error('Invalid reset token. Please request a new password reset.');
+      showToast.error('Invalid reset token. Please request a new password reset.');
       return;
     }
 
@@ -64,7 +64,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
         password: formData.password
       });
 
-      toast.success('✅ Password reset successfully! Redirecting to login...');
+      showToast.success('✅ Password reset successfully! Redirecting to login...');
       setFormData({ password: '', confirmPassword: '' });
 
       // Redirect to login after 3 seconds
@@ -72,7 +72,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
         navigate('/auth');
       }, 3000);
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to reset password. Please try again.');
+      showToast.error(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
