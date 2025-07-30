@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fa';
 
 // Component to render company logos with fallback
-function AdminPanel({ darkMode, toggleTheme, isMobile }) {
+function AdminPanel({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
@@ -361,7 +361,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       loadJobs();
       
       // Show success toast notification
-      showToast.success(`Job application for ${jobToDelete?.company_name || 'Unknown Company'} - ${jobToDelete?.position_title || 'Unknown Position'} deleted successfully!`, {
+      toast.success(`Job application for ${jobToDelete?.company_name || 'Unknown Company'} - ${jobToDelete?.position_title || 'Unknown Position'} deleted successfully!`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -374,7 +374,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       console.error('Error deleting job:', error);
       
       // Show error toast notification
-      showToast.error('Failed to delete job application. Please try again.', {
+      toast.error('Failed to delete job application. Please try again.', {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,
@@ -414,7 +414,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       loadSystemInfo();
-      showToast.success('🗑️ System cache cleared successfully');
+      toast.success('🗑️ System cache cleared successfully');
     } catch (error) {
       setError('Failed to clear cache');
     }
@@ -551,7 +551,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

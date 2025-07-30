@@ -42,28 +42,6 @@ function App() {
   const [toastTheme, setToastTheme] = useState(() => 
     localStorage.getItem('toastTheme') || 'auto'
   );
-  
-  // Notifications enabled state
-  const [notificationsEnabled, setNotificationsEnabled] = useState(() => 
-    localStorage.getItem('notifications') !== 'false'
-  );
-
-  // Mobile detection state
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-      const isSmallScreen = window.innerWidth <= 768;
-      setIsMobile(isMobileDevice && isSmallScreen);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Listen for OS color scheme changes
   useEffect(() => {
@@ -99,28 +77,6 @@ function App() {
     return () => window.removeEventListener('toastSettingsChanged', handleToastSettingsChange);
   }, []);
 
-  // Listen for notification setting changes
-  useEffect(() => {
-    const handleNotificationSettingsChange = () => {
-      const notificationsEnabled = localStorage.getItem('notifications') !== 'false';
-      setNotificationsEnabled(notificationsEnabled);
-    };
-
-    // Check on mount and when localStorage changes
-    handleNotificationSettingsChange();
-    
-    // Listen for storage events (when localStorage is changed in other tabs)
-    window.addEventListener('storage', handleNotificationSettingsChange);
-    
-    // Listen for custom events (when localStorage is changed in same tab)
-    window.addEventListener('notificationSettingsChanged', handleNotificationSettingsChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleNotificationSettingsChange);
-      window.removeEventListener('notificationSettingsChanged', handleNotificationSettingsChange);
-    };
-  }, []);
-
   const getToastTheme = () => {
     if (toastTheme === 'auto') {
       return darkMode ? 'dark' : 'light';
@@ -147,15 +103,15 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<HomePage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<HomePage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/auth"
-            element={<IntroPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<IntroPage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/tracker"
-            element={<TrackerPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<TrackerPage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/track"
@@ -163,42 +119,40 @@ function App() {
           />
           <Route
             path="/settings"
-            element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<SettingsPage darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/admin"
-            element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/verify-email"
-            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/forgot-password"
-            element={<ForgotPassword darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<ForgotPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
           <Route
             path="/reset-password"
-            element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+            element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} />}
           />
         </Routes>
         
-        {/* Toast Container for global notifications - only render if notifications are enabled */}
-        {notificationsEnabled && (
-          <ToastContainer
-            position={toastPosition}
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme={getToastTheme()}
-            className="custom-toast-container"
-          />
-        )}
+        {/* Toast Container for global notifications */}
+        <ToastContainer
+          position={toastPosition}
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme={getToastTheme()}
+          className="custom-toast-container"
+        />
       </div>
     </Router>
   );

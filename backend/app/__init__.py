@@ -139,14 +139,6 @@ def create_tables():
             verification_token VARCHAR(255),
             verification_token_expires TIMESTAMP NULL,
             role ENUM('user', 'admin') DEFAULT 'user',
-            reset_token VARCHAR(255),
-            reset_token_expires TIMESTAMP NULL,
-            last_verification_sent TIMESTAMP NULL,
-            email_change_token VARCHAR(255),
-            email_change_token_expires TIMESTAMP NULL,
-            new_email VARCHAR(255),
-            new_email_token VARCHAR(255),
-            new_email_token_expires TIMESTAMP NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
@@ -160,25 +152,6 @@ def create_tables():
         except mariadb.Error:
             # Column already exists
             pass
-        
-        # Add email change columns if they don't exist (for existing databases)
-        email_change_columns = [
-            "reset_token VARCHAR(255)",
-            "reset_token_expires TIMESTAMP NULL",
-            "last_verification_sent TIMESTAMP NULL",
-            "email_change_token VARCHAR(255)",
-            "email_change_token_expires TIMESTAMP NULL",
-            "new_email VARCHAR(255)",
-            "new_email_token VARCHAR(255)",
-            "new_email_token_expires TIMESTAMP NULL"
-        ]
-        
-        for column_def in email_change_columns:
-            try:
-                cursor.execute(f"ALTER TABLE users ADD COLUMN {column_def}")
-            except mariadb.Error:
-                # Column already exists
-                pass
             
         print("Users table checked/created successfully.")
 

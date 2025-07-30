@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import Select from 'react-select';
@@ -10,6 +10,18 @@ import CreatableSelect from 'react-select/creatable';
 import { FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaExternalLinkAlt, FaBuilding, FaCalendar, FaMapMarkerAlt, FaSortAmountDown, FaSortAmountUp, FaCog, FaCheckCircle, FaTimes, FaClock, FaThumbsUp, FaSpinner, FaSync, FaDatabase } from 'react-icons/fa';
 import companySuggestions, { getCompanyLogoSync, getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
+
+// Import tracker components
+import TrackerHeader from './components/tracker/TrackerHeader';
+import CacheStatusBar from './components/tracker/CacheStatusBar';
+import StatsConfiguration from './components/tracker/StatsConfiguration';
+import StatsCards from './components/tracker/StatsCards';
+import AddApplicationButton from './components/tracker/AddApplicationButton';
+import SearchAndFilters from './components/tracker/SearchAndFilters';
+import JobCards from './components/tracker/JobCards';
+import AddJobModal from './components/tracker/AddJobModal';
+import EditJobModal from './components/tracker/EditJobModal';
+import LoadingOverlay from './components/tracker/LoadingOverlay';
 
 // Utility function to get current date in YYYY-MM-DD format
 const getCurrentDate = () => {
@@ -184,7 +196,7 @@ const CompanyOption = ({ data, innerRef, innerProps, isFocused, isSelected }) =>
   );
 };
 
-function TrackerPage({ darkMode, toggleTheme, isMobile }) {
+function TrackerPage({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
 
   // State variables
@@ -998,7 +1010,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
       
       // Show success toast notification
-      showToast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`, {
+      toast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -1011,7 +1023,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       console.error("Error deleting job:", error);
       
       // Show error toast notification
-      showToast.error("Failed to delete job application. Please try again.", {
+      toast.error("Failed to delete job application. Please try again.", {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,
@@ -1106,1024 +1118,122 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
         
         {/* Main Container */}
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
           {/* Header Section */}
-          <div className="text-center mb-8 animate-fadeIn">
-            <h1 className={`font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-4xl'}`}>
-              Job Application Tracker
-            </h1>
-            <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'text-sm' : ''}`}>
-              Manage and track your job applications in one place
-            </p>
-          </div>
+          <TrackerHeader />
 
           {/* Cache Status Bar - Developer Mode Only */}
-          {developerMode && (
-            <div className="mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <FaDatabase className={`text-sm ${cacheStatus.isFromCache ? 'text-green-500' : 'text-blue-500'}`} />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    {cacheStatus.isFromCache ? 'Data from cache' : 'Fresh data'}
-                  </span>
-                </div>
-                
-                {cacheStatus.isFromCache && cacheStatus.age && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {Math.floor(cacheStatus.age / 1000)}s old
-                  </span>
-                )}
-                
-                {cacheStatus.isRefreshing && (
-                  <div className="flex items-center space-x-1">
-                    <FaSpinner className="text-sm text-blue-500 animate-spin" />
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Refreshing...</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={refreshJobs}
-                  disabled={cacheStatus.isRefreshing}
-                  className="flex items-center px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition disabled:opacity-50"
-                >
-                  <FaSync className={`mr-1 ${cacheStatus.isRefreshing ? 'animate-spin' : ''}`} />
-                  Refresh
-                </button>
-                
-                <button
-                  onClick={clearCache}
-                  className="flex items-center px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                >
-                  <FaTimes className="mr-1" />
-                  Clear Cache
-                </button>
-              </div>
-            </div>
-          )}
+          <CacheStatusBar 
+            developerMode={developerMode}
+            cacheStatus={cacheStatus}
+            refreshJobs={refreshJobs}
+            clearCache={clearCache}
+          />
 
-          {/* Stats Cards */}
-          <div className="relative mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
-              <button
-                onClick={() => setShowStatsConfig(!showStatsConfig)}
-                className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-              >
-                <FaCog className="mr-2" />
-                Customize Stats
-              </button>
-            </div>
+          {/* Stats Configuration and Cards */}
+          <StatsConfiguration 
+            showStatsConfig={showStatsConfig}
+            setShowStatsConfig={setShowStatsConfig}
+            availableStats={availableStats}
+            selectedStats={selectedStats}
+            setSelectedStats={setSelectedStats}
+            getStatColorClass={getStatColorClass}
+          />
 
-            {/* Stats Configuration Panel */}
-            {showStatsConfig && (
-              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Select Stats to Display (max 4):</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                  {availableStats.map(stat => {
-                    const IconComponent = stat.icon;
-                    const isSelected = selectedStats.includes(stat.id);
-                    return (
-                      <button
-                        key={stat.id}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedStats(prev => prev.filter(id => id !== stat.id));
-                          } else if (selectedStats.length < 4) {
-                            setSelectedStats(prev => [...prev, stat.id]);
-                          }
-                        }}
-                        disabled={!isSelected && selectedStats.length >= 4}
-                        className={`flex items-center p-3 rounded-lg text-sm transition ${
-                          isSelected 
-                            ? `${getStatColorClass(stat.color)} text-white` 
-                            : selectedStats.length >= 4 
-                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                              : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        <IconComponent className="mr-2" />
-                        {stat.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Select up to 4 statistics to display on your dashboard
-                </p>
-              </div>
-            )}
-
-            <div className={`grid gap-4 ${selectedStats.length === 1 ? 'grid-cols-1' : selectedStats.length === 2 ? 'grid-cols-1 md:grid-cols-2' : selectedStats.length === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
-              {selectedStats.map(statId => {
-                const stat = availableStats.find(s => s.id === statId);
-                if (!stat) return null;
-                
-                const IconComponent = stat.icon;
-                const value = stat.getValue();
-                const isActive = dashboardFilter === statId || (statId === 'total' && !dashboardFilter);
-                
-                return (
-                  <button
-                    key={statId}
-                    onClick={() => handleDashboardCardClick(statId)}
-                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer ${
-                      isActive ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
-                    }`}
-                    style={{ focusRingColor: stat.color.replace('-500', '-500') }}
-                  >
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className={`w-10 h-10 ${getStatColorClass(stat.color)} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
-                          <IconComponent className="text-white text-lg" />
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                          {stat.label}
-                        </p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {value}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <StatsCards 
+            selectedStats={selectedStats}
+            availableStats={availableStats}
+            dashboardFilter={dashboardFilter}
+            handleDashboardCardClick={handleDashboardCardClick}
+            getStatColorClass={getStatColorClass}
+          />
 
           {/* Add Application Button */}
-          <div className="text-center mb-8">
-            <button
-              onClick={openAddModal}
-              className={`bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center mx-auto ${isMobile ? 'text-base px-6 py-3' : 'text-lg'}`}
-            >
-              <FaPlus className={`mr-3 ${isMobile ? 'text-lg' : 'text-xl'}`} />
-              Add New Application
-            </button>
-          </div>
+          <AddApplicationButton openAddModal={openAddModal} />
 
           {/* Search and Filters */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
-            <div className={`flex ${isMobile ? 'flex-col' : 'flex-col lg:flex-row lg:items-center lg:justify-between'} gap-4`}>
-              {/* Search */}
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search companies, positions, locations..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  />
-                </div>
-              </div>
-
-              {/* Controls Row */}
-              <div className="flex items-center gap-3">
-                {/* Sort Dropdown */}
-                <div className="flex items-center">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
-                    Sort by:
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                  >
-                    <option value="date_desc">📅 Newest First</option>
-                    <option value="date_asc">📅 Oldest First</option>
-                    <option value="company_asc">🏢 Company A-Z</option>
-                    <option value="company_desc">🏢 Company Z-A</option>
-                    <option value="status">🎯 Status Priority</option>
-                    <option value="title_asc">💼 Job Title A-Z</option>
-                  </select>
-                </div>
-
-                {/* Filter Toggle */}
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <FaFilter className="mr-2" />
-                  Filters
-                  {(statusFilter !== "all" || dateFilter !== "all" || companyFilter) && (
-                    <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                      {[statusFilter !== "all" ? 1 : 0, dateFilter !== "all" ? 1 : 0, companyFilter ? 1 : 0].reduce((a, b) => a + b, 0)}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Options */}
-            {showFilters && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                  >
-                    <option value="all">All Statuses</option>
-                    {jobStatuses.map(status => (
-                      <option key={status.status_name} value={status.status_name.toLowerCase()}>
-                        {status.status_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Date Range
-                  </label>
-                  <select
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                  >
-                    <option value="all">All Time</option>
-                    <option value="week">Past Week</option>
-                    <option value="month">Past Month</option>
-                    <option value="3months">Past 3 Months</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Company
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Filter by company..."
-                    value={companyFilter}
-                    onChange={(e) => setCompanyFilter(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Results Count and Sort Info */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p className="text-gray-600 dark:text-gray-400">
-              Showing {filteredJobs.length} of {jobs.length} applications
-              {searchTerm && ` for "${searchTerm}"`}
-            </p>
-            
-            {filteredJobs.length > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Sorted by: <span className="font-medium">
-                  {sortBy === "date_desc" && "📅 Newest First"}
-                  {sortBy === "date_asc" && "📅 Oldest First"}
-                  {sortBy === "company_asc" && "🏢 Company A-Z"}
-                  {sortBy === "company_desc" && "🏢 Company Z-A"}
-                  {sortBy === "status" && "🎯 Status Priority"}
-                  {sortBy === "title_asc" && "💼 Job Title A-Z"}
-                </span>
-              </p>
-            )}
-          </div>
+          <SearchAndFilters 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            companyFilter={companyFilter}
+            setCompanyFilter={setCompanyFilter}
+            jobStatuses={jobStatuses}
+            filteredJobs={filteredJobs}
+            jobs={jobs}
+          />
 
           {/* Job Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <div className="text-6xl mb-4">📋</div>
-                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
-                  {jobs.length === 0 ? "No job applications yet. Add one above!" : "No applications match your search criteria."}
-                </p>
-                {jobs.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setStatusFilter("all");
-                      setDateFilter("all");
-                      setCompanyFilter("");
-                    }}
-                    className="mt-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    Clear all filters
-                  </button>
-                )}
-              </div>
-            ) : (
-              filteredJobs.map((job, index) => (
-                <div
-                  key={job.id || index}
-                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 overflow-hidden"
-                >
-                  {/* Company Logo Header */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 p-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
-                        <img 
-                          src={getCompanyLogoSync(job.company_name)} 
-                          alt={job.company_name}
-                          className="w-10 h-10 object-contain"
-                          onError={(e) => {
-                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=40&bold=true`;
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">
-                          {job.company_name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {job.job_title}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-                      style={{
-                        backgroundColor: statusColorMap[job.status] || '#6b7280'
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </div>
-
-                  {/* Job Details */}
-                  <div className="p-4">
-                    {job.location && (
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
-                        <FaMapMarkerAlt className="mr-2 text-blue-500" />
-                        {job.location}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-4">
-                      <FaCalendar className="mr-2 text-green-500" />
-                      Applied on {new Date(job.application_date).toLocaleDateString()}
-                    </div>
-
-                    {job.notes && (
-                      <div className="mb-4">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                          {job.notes.length > 100 ? `${job.notes.substring(0, 100)}...` : job.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className={`flex ${isMobile ? 'flex-col space-y-2' : 'justify-between items-center'} pt-4 border-t border-gray-200 dark:border-gray-600`}>
-                      <div className={`flex ${isMobile ? 'w-full' : ''} space-x-2`}>
-                        <button
-                          onClick={() => editJob(jobs.findIndex(j => j.id === job.id))}
-                          className={`flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors ${isMobile ? 'flex-1 justify-center' : ''}`}
-                        >
-                          <FaEdit className="mr-1 text-xs" />
-                          Edit
-                        </button>
-                        
-                        <button
-                          onClick={() => deleteJob(jobs.findIndex(j => j.id === job.id))}
-                          className={`flex items-center px-3 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors ${isMobile ? 'flex-1 justify-center' : ''}`}
-                        >
-                          <FaTrash className="mr-1 text-xs" />
-                          Delete
-                        </button>
-                      </div>
-
-                      {job.job_url && (
-                        <a
-                          href={job.job_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors ${isMobile ? 'w-full justify-center' : ''}`}
-                        >
-                          <FaExternalLinkAlt className="mr-1 text-xs" />
-                          View Job
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <JobCards 
+            filteredJobs={filteredJobs}
+            jobs={jobs}
+            statusColorMap={statusColorMap}
+            editJob={editJob}
+            deleteJob={deleteJob}
+            setSearchTerm={setSearchTerm}
+            setStatusFilter={setStatusFilter}
+            setDateFilter={setDateFilter}
+            setCompanyFilter={setCompanyFilter}
+          />
         </div>
 
         {/* Add Application Modal */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Application</h2>
-                    <div className="flex items-center mt-2">
-                      {[1, 2, 3].map((step) => (
-                        <div key={step} className="flex items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                            currentStep >= step ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
-                          }`}>
-                            {step}
-                          </div>
-                          {step < 3 && <div className={`w-8 h-1 ${currentStep > step ? 'bg-blue-500' : 'bg-gray-200'}`}></div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button onClick={closeAddModal} className="text-gray-400 hover:text-gray-600">
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-
-                {/* Step 1: Company & Position */}
-                {currentStep === 1 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company & Position Details</h3>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Company Name
-                      </label>
-                      <Select
-                        options={getCompanyOptions()}
-                        value={getCompanyOptions().find(option => option.value === newJob.company_name)}
-                        onChange={(selectedOption) => {
-                          const companyName = selectedOption?.isNew 
-                            ? selectedOption.value 
-                            : selectedOption?.value || '';
-                          setNewJob({ ...newJob, company_name: companyName });
-                          setCompanySearchTerm("");
-                        }}
-                        onInputChange={(inputValue) => {
-                          setCompanySearchTerm(inputValue);
-                          if (inputValue) {
-                            setNewJob({ ...newJob, company_name: inputValue });
-                          }
-                        }}
-                        placeholder={searchLoading ? "Searching companies..." : "Start typing company name..."}
-                        isClearable
-                        isSearchable
-                        isLoading={searchLoading}
-                        components={{
-                          Option: CompanyOption,
-                          LoadingMessage: () => (
-                            <div className="flex items-center justify-center p-4 text-gray-500">
-                              <FaSpinner className="animate-spin mr-2" />
-                              Searching companies...
-                            </div>
-                          ),
-                          NoOptionsMessage: ({ inputValue }) => (
-                            <div className="p-4 text-center text-gray-500">
-                              {inputValue ? `No companies found for "${inputValue}"` : "Start typing to search companies"}
-                            </div>
-                          )
-                        }}
-                        styles={{
-                          ...customSelectStyles,
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999, padding: 0 }),
-                          menuList: (base) => ({ ...base, padding: 0 })
-                        }}
-                        menuPortalTarget={document.body}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        formatOptionLabel={(option) => (
-                          <div className="flex items-center">
-                            <img 
-                              src={option.logo} 
-                              alt={option.label}
-                              className="w-6 h-6 rounded mr-3"
-                              onError={(e) => {
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(option.label)}&background=3b82f6&color=ffffff&size=24&bold=true`;
-                              }}
-                            />
-                            <span>{option.label}</span>
-                            {option.isNew && (
-                              <span className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                New
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Job Title
-                      </label>
-                      <Select
-                        options={getJobTitleOptions()}
-                        value={getJobTitleOptions().find(option => option.value === newJob.job_title)}
-                        onChange={(selectedOption) => {
-                          setNewJob({ ...newJob, job_title: selectedOption?.value || '' });
-                          setJobTitleSearchTerm("");
-                        }}
-                        onInputChange={(inputValue) => {
-                          setJobTitleSearchTerm(inputValue);
-                        }}
-                        placeholder="Select or type job title..."
-                        isClearable
-                        isSearchable
-                        styles={{
-                          ...customSelectStyles,
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 })
-                        }}
-                        menuPortalTarget={document.body}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        formatOptionLabel={(option) => (
-                          <div className="flex items-center">
-                            <span>{option.label}</span>
-                            {option.isNew && (
-                              <span className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                New
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <button
-                        onClick={nextStep}
-                        disabled={!newJob.company_name || !newJob.job_title}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Application Details */}
-                {currentStep === 2 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Application Details</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Status
-                        </label>
-                        <CreatableSelect
-                          value={getStatusOptions().find(option => option.value === newJob.status)}
-                          onChange={async (selectedOption, actionMeta) => {
-                            if (!selectedOption) {
-                              // Handle clear action
-                              setNewJob({ ...newJob, status: '' });
-                              return;
-                            }
-                            
-                            if (actionMeta.action === 'create-option') {
-                              try {
-                                const newStatus = await createStatus(selectedOption.value);
-                                setNewJob({ ...newJob, status: newStatus.status_name });
-                              } catch (error) {
-                                console.error("Failed to create status:", error);
-                                // Check if it's a conflict error (status already exists)
-                                if (error.response?.status === 409) {
-                                  // Status already exists, just set it
-                                  setNewJob({ ...newJob, status: selectedOption.value });
-                                  // Refresh statuses to get the existing one
-                                  await fetchJobStatuses();
-                                } else {
-                                  // Still set the status even if creation fails for other reasons
-                                  setNewJob({ ...newJob, status: selectedOption.value });
-                                }
-                              }
-                            } else {
-                              setNewJob({ ...newJob, status: selectedOption.value });
-                            }
-                          }}
-                          options={getStatusOptions()}
-                          placeholder="Select or create a status..."
-                          isClearable
-                          isSearchable
-                          formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
-                          styles={{
-                            ...customSelectStyles,
-                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                            menu: (base) => ({ ...base, zIndex: 9999 }),
-                            option: (base, state) => ({
-                              ...base,
-                              backgroundColor: state.isFocused 
-                                ? (state.data.color ? `${state.data.color}20` : base.backgroundColor)
-                                : base.backgroundColor,
-                              borderLeft: state.data.color ? `4px solid ${state.data.color}` : 'none',
-                              paddingLeft: state.data.color ? '12px' : base.paddingLeft
-                            })
-                          }}
-                          menuPortalTarget={document.body}
-                          className="react-select-container"
-                          classNamePrefix="react-select"
-                          formatOptionLabel={(option) => (
-                            <div className="flex items-center">
-                              {option.color && (
-                                <div 
-                                  className="w-3 h-3 rounded-full mr-2 border border-gray-300"
-                                  style={{ backgroundColor: option.color }}
-                                ></div>
-                              )}
-                              <span>{option.label}</span>
-                            </div>
-                          )}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Application Date
-                        </label>
-                        <input
-                          type="date"
-                          value={newJob.application_date}
-                          onChange={(e) => setNewJob({ ...newJob, application_date: e.target.value })}
-                          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Location <span className="text-gray-500 font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={newJob.location}
-                        onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-                        placeholder="e.g., San Francisco, CA (Remote)"
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Job URL <span className="text-gray-500 font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={newJob.job_url}
-                        onChange={(e) => setNewJob({ ...newJob, job_url: e.target.value })}
-                        placeholder="https://..."
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                      />
-                    </div>
-
-                    <div className="flex justify-between pt-4">
-                      <button
-                        onClick={prevStep}
-                        className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={nextStep}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Notes & Review */}
-                {currentStep === 3 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notes & Review</h3>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Notes <span className="text-gray-500 font-normal">(Optional)</span>
-                      </label>
-                      <textarea
-                        value={newJob.notes}
-                        onChange={(e) => setNewJob({ ...newJob, notes: e.target.value })}
-                        placeholder="Any additional notes about this application..."
-                        rows={4}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                      />
-                    </div>
-
-                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Review Application</h4>
-                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                        <p><strong>Company:</strong> {newJob.company_name}</p>
-                        <p><strong>Position:</strong> {newJob.job_title}</p>
-                        <p><strong>Status:</strong> {newJob.status}</p>
-                        <p><strong>Date:</strong> {newJob.application_date}</p>
-                        {newJob.location && <p><strong>Location:</strong> {newJob.location}</p>}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between pt-4">
-                      <button
-                        onClick={prevStep}
-                        className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={addOrUpdateJob}
-                        disabled={loading}
-                        className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center transition-all duration-200"
-                      >
-                        {loading ? (
-                          <>
-                            <FaSpinner className="mr-2 animate-spin" />
-                            Adding...
-                          </>
-                        ) : (
-                          <>
-                            <FaPlus className="mr-2" />
-                            Add Application
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <AddJobModal 
+          isAddModalOpen={isAddModalOpen}
+          closeAddModal={closeAddModal}
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+          newJob={newJob}
+          setNewJob={setNewJob}
+          nextStep={nextStep}
+          prevStep={prevStep}
+          getCompanyOptions={getCompanyOptions}
+          getJobTitleOptions={getJobTitleOptions}
+          getStatusOptions={getStatusOptions}
+          customSelectStyles={customSelectStyles}
+          CompanyOption={CompanyOption}
+          searchLoading={searchLoading}
+          setCompanySearchTerm={setCompanySearchTerm}
+          setJobTitleSearchTerm={setJobTitleSearchTerm}
+          jobTitleSearchTerm={jobTitleSearchTerm}
+          createStatus={createStatus}
+          fetchJobStatuses={fetchJobStatuses}
+          addOrUpdateJob={addOrUpdateJob}
+          loading={loading}
+        />
 
         {/* Edit Application Modal */}
-        {isEditModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</h2>
-                  <button onClick={closeEditModal} className="text-gray-400 hover:text-gray-600">
-                    <FaTimes size={24} />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Company Name
-                      </label>
-                      <Select
-                        options={getCompanyOptions()}
-                        value={getCompanyOptions().find(option => option.value === newJob.company_name)}
-                        onChange={(selectedOption) => {
-                          const companyName = selectedOption?.isNew 
-                            ? selectedOption.value 
-                            : selectedOption?.value || '';
-                          setNewJob({ ...newJob, company_name: companyName });
-                        }}
-                        styles={{
-                          ...customSelectStyles,
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 })
-                        }}
-                        menuPortalTarget={document.body}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        formatOptionLabel={(option) => (
-                          <div className="flex items-center">
-                            <img 
-                              src={option.logo} 
-                              alt={option.label}
-                              className="w-6 h-6 rounded mr-3"
-                              onError={(e) => {
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(option.label)}&background=3b82f6&color=ffffff&size=24&bold=true`;
-                              }}
-                            />
-                            <span>{option.label}</span>
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Job Title
-                      </label>
-                      <Select
-                        options={getJobTitleOptions()}
-                        value={getJobTitleOptions().find(option => option.value === newJob.job_title)}
-                        onChange={(selectedOption) => {
-                          setNewJob({ ...newJob, job_title: selectedOption?.value || '' });
-                          setJobTitleSearchTerm("");
-                        }}
-                        onInputChange={(inputValue) => {
-                          setJobTitleSearchTerm(inputValue);
-                        }}
-                        placeholder="Select or type job title..."
-                        isClearable
-                        isSearchable
-                        styles={{
-                          ...customSelectStyles,
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 })
-                        }}
-                        menuPortalTarget={document.body}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        formatOptionLabel={(option) => (
-                          <div className="flex items-center">
-                            <span>{option.label}</span>
-                            {option.isNew && (
-                              <span className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                New
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Status
-                      </label>
-                      <CreatableSelect
-                        value={getStatusOptions().find(option => option.value === newJob.status)}
-                        onChange={async (selectedOption, actionMeta) => {
-                          if (!selectedOption) {
-                            // Handle clear action
-                            setNewJob({ ...newJob, status: '' });
-                            return;
-                          }
-                          
-                          if (actionMeta.action === 'create-option') {
-                            try {
-                              const newStatus = await createStatus(selectedOption.value);
-                              setNewJob({ ...newJob, status: newStatus.status_name });
-                            } catch (error) {
-                              console.error("Failed to create status:", error);
-                              // Check if it's a conflict error (status already exists)
-                              if (error.response?.status === 409) {
-                                // Status already exists, just set it
-                                setNewJob({ ...newJob, status: selectedOption.value });
-                                // Refresh statuses to get the existing one
-                                await fetchJobStatuses();
-                              } else {
-                                // Still set the status even if creation fails for other reasons
-                                setNewJob({ ...newJob, status: selectedOption.value });
-                              }
-                            }
-                          } else {
-                            setNewJob({ ...newJob, status: selectedOption.value });
-                          }
-                        }}
-                        options={getStatusOptions()}
-                        placeholder="Select or create a status..."
-                        isClearable
-                        isSearchable
-                        formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
-                        styles={{
-                          ...customSelectStyles,
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          menu: (base) => ({ ...base, zIndex: 9999 }),
-                          option: (base, state) => ({
-                            ...base,
-                            backgroundColor: state.isFocused 
-                              ? (state.data.color ? `${state.data.color}20` : base.backgroundColor)
-                              : base.backgroundColor,
-                            borderLeft: state.data.color ? `4px solid ${state.data.color}` : 'none',
-                            paddingLeft: state.data.color ? '12px' : base.paddingLeft
-                          })
-                        }}
-                        menuPortalTarget={document.body}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        formatOptionLabel={(option) => (
-                          <div className="flex items-center">
-                            {option.color && (
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2 border border-gray-300"
-                                style={{ backgroundColor: option.color }}
-                              ></div>
-                            )}
-                            <span>{option.label}</span>
-                          </div>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Application Date
-                      </label>
-                      <input
-                        type="date"
-                        value={newJob.application_date}
-                        onChange={(e) => setNewJob({ ...newJob, application_date: e.target.value })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Location <span className="text-gray-500 font-normal">(Optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newJob.location}
-                      onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
-                      placeholder="e.g., San Francisco, CA (Remote)"
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Job URL <span className="text-gray-500 font-normal">(Optional)</span>
-                    </label>
-                    <input
-                      type="url"
-                      value={newJob.job_url}
-                      onChange={(e) => setNewJob({ ...newJob, job_url: e.target.value })}
-                      placeholder="https://..."
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Notes <span className="text-gray-500 font-normal">(Optional)</span>
-                    </label>
-                    <textarea
-                      value={newJob.notes}
-                      onChange={(e) => setNewJob({ ...newJob, notes: e.target.value })}
-                      placeholder="Any additional notes about this application..."
-                      rows={3}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      onClick={closeEditModal}
-                      className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={addOrUpdateJob}
-                      disabled={loading || !newJob.company_name || !newJob.job_title}
-                      className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
-                    >
-                      {loading ? (
-                        <>
-                          <FaSpinner className="mr-2 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <FaEdit className="mr-2" />
-                          Update Application
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditJobModal 
+          isEditModalOpen={isEditModalOpen}
+          closeEditModal={closeEditModal}
+          newJob={newJob}
+          setNewJob={setNewJob}
+          getCompanyOptions={getCompanyOptions}
+          getJobTitleOptions={getJobTitleOptions}
+          getStatusOptions={getStatusOptions}
+          customSelectStyles={customSelectStyles}
+          setJobTitleSearchTerm={setJobTitleSearchTerm}
+          jobTitleSearchTerm={jobTitleSearchTerm}
+          createStatus={createStatus}
+          fetchJobStatuses={fetchJobStatuses}
+          addOrUpdateJob={addOrUpdateJob}
+          loading={loading}
+        />
 
         {/* Loading Overlay */}
-        {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center space-y-4">
-              <FaSpinner className="text-4xl text-blue-500 animate-spin" />
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {editingJob ? "Updating Application..." : "Adding Application..."}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Please wait while we save your job application
-                </p>
-              </div>
-              <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
-              </div>
-            </div>
-          </div>
-        )}
+        <LoadingOverlay loading={loading} editingJob={editingJob} />
       </div>
     </div>
   );

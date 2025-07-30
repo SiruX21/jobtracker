@@ -2,30 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import { showToast, showCriticalToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
-import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
+import { 
+  FaCog, FaUser, FaLock, FaCode, FaDatabase, FaTrash, FaSave, 
+  FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
+  FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
+  FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess
+} from 'react-icons/fa';
 
-// Import refactored components
-import ProfileSection from './components/settings/ProfileSection';
-import PreferencesSection from './components/settings/PreferencesSection';
-import AccessibilitySection from './components/settings/AccessibilitySection';
-import DeveloperSection from './components/settings/DeveloperSection';
-import SettingsModals from './components/settings/SettingsModals';
-import SettingsHeader from './components/settings/SettingsHeader';
-import SettingsSidebar from './components/settings/SettingsSidebar';
-import LoadingScreen from './components/settings/LoadingScreen';
-
-function SettingsPage({ darkMode, toggleTheme, isMobile }) {
+function SettingsPage({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
-  
-  // State management
   const [activeTab, setActiveTab] = useState('profile');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   
   // Profile settings
   const [currentPassword, setCurrentPassword] = useState('');
@@ -37,14 +29,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
-  
-  // Email change
-  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
-  const [emailChangePassword, setEmailChangePassword] = useState('');
-  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
-  
-  // Password change modal
-  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
@@ -75,83 +59,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   // UI state
   const [loading, setLoading] = useState(false);
 
-  // Password validation state
-  const [passwordValidation, setPasswordValidation] = useState(null);
-
-  // Progressive disclosure states
-  const [expandedSections, setExpandedSections] = useState({
-    accountInfo: true,
-    dangerZone: false,
-    notificationSettings: true,
-    visualSettings: false,
-    cacheInfo: false,
-    storageInfo: false,
-    systemInfo: false,
-    logoServices: false
-  });
-
-  // Utility functions
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  // Conditional toast helper - only show if notifications are enabled
-  const localShowToast = (type, message, options = {}) => {
-    if (notifications) {
-      if (type === 'success') {
-        showToast.success(message, options);
-      } else if (type === 'error') {
-        showToast.error(message, options);
-      } else if (type === 'info') {
-        showToast.info(message, options);
-      } else if (type === 'warning') {
-        showToast.warning(message, options);
-      }
-    }
-  };
-
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const exportData = () => {
-    const data = {
-      settings: {
-        developerMode,
-        notifications,
-        autoRefresh,
-        dataRetention,
-        toastPosition,
-        toastTheme,
-        darkMode
-      },
-      cache: localStorage.getItem('jobTracker_jobs_cache'),
-      timestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `jobtracker-data-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    localShowToast('success', '📁 Data exported successfully');
-  };
-
   // Check authentication and load user data
   useEffect(() => {
     const authToken = Cookies.get("authToken");
@@ -169,31 +76,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     }
   }, [navigate, developerMode, isAdmin]);
 
-  // Handle escape key for modals
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        if (showDeleteModal) {
-          setShowDeleteModal(false);
-          setDeletePassword('');
-        }
-        if (showEmailChangeModal) {
-          setShowEmailChangeModal(false);
-          setEmailChangePassword('');
-        }
-        if (showPasswordChangeModal) {
-          setShowPasswordChangeModal(false);
-          setCurrentPassword('');
-          setNewPassword('');
-          setConfirmPassword('');
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [showDeleteModal, showEmailChangeModal, showPasswordChangeModal]);
-
   const loadUserProfile = async () => {
     try {
       const authToken = Cookies.get("authToken");
@@ -208,7 +90,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     } catch (error) {
       console.error('Error loading user profile:', error);
       console.error('Error response:', error.response); // Debug log
-      localShowToast('error', 'Failed to load user profile');
+      toast.error('Failed to load user profile');
     }
   };
 
@@ -288,13 +170,13 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
-    if (!passwordValidation || !passwordValidation.valid) {
-      localShowToast('error', 'Please ensure your password meets all security requirements.');
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
       return;
     }
     
-    if (newPassword !== confirmPassword) {
-      localShowToast('error', 'New passwords do not match');
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
       return;
     }
     
@@ -311,10 +193,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setShowPasswordChangeModal(false);
-      localShowToast('success', 'Password changed successfully');
+      toast.success('Password changed successfully');
     } catch (error) {
-      localShowToast('error', error.response?.data?.message || 'Failed to change password');
+      toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -322,7 +203,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword.trim()) {
-      localShowToast('error', '❌ Please enter your password to confirm deletion');
+      toast.error('❌ Please enter your password to confirm deletion');
       return;
     }
 
@@ -335,8 +216,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         data: { password: deletePassword }
       });
 
-      // Always show success for account deletion regardless of notification setting
-      showCriticalToast.success('🗑️ Account deleted successfully');
+      toast.success('🗑️ Account deleted successfully');
       // Clear all storage and redirect to login
       Cookies.remove('authToken');
       localStorage.clear();
@@ -344,38 +224,11 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         window.location.href = '/';
       }, 2000);
     } catch (error) {
-      showToast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
+      toast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
       setDeletePassword('');
     } finally {
       setDeleteLoading(false);
       setShowDeleteModal(false);
-    }
-  };
-
-  const handleEmailChange = async () => {
-    if (!emailChangePassword.trim()) {
-      localShowToast('error', '❌ Please enter your current password to confirm email change');
-      return;
-    }
-
-    setEmailChangeLoading(true);
-    
-    try {
-      const authToken = Cookies.get("authToken");
-      const response = await axios.post(`${API_BASE_URL}/api/auth/initiate-email-change`, {
-        current_password: emailChangePassword
-      }, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-
-      localShowToast('success', '📧 Confirmation email sent to your current email address. Please check your inbox.');
-      setEmailChangePassword('');
-      setShowEmailChangeModal(false);
-    } catch (error) {
-      localShowToast('error', `❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
-      setEmailChangePassword('');
-    } finally {
-      setEmailChangeLoading(false);
     }
   };
 
@@ -386,32 +239,25 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         localStorage.setItem('developerMode', value.toString());
         if (value) {
           loadDeveloperInfo();
-          localShowToast('success', '🔧 Developer mode enabled - Advanced tools are now available');
+          toast.success('🔧 Developer mode enabled - Advanced tools are now available');
         } else {
-          localShowToast('info', '🔧 Developer mode disabled');
+          toast.info('🔧 Developer mode disabled');
         }
         break;
       case 'notifications':
         setNotifications(value);
         localStorage.setItem('notifications', value.toString());
-        // Dispatch event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('notificationSettingsChanged'));
-        // Always show this toast regardless of setting since it's about the setting itself
-        if (value) {
-          showToast.success(`🔔 Notifications enabled`);
-        } else {
-          showToast.info(`🔔 Notifications disabled`);
-        }
+        toast.success(`🔔 Notifications ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'autoRefresh':
         setAutoRefresh(value);
         localStorage.setItem('autoRefresh', value.toString());
-        localShowToast('success', `🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
+        toast.success(`🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'dataRetention':
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
-        localShowToast('success', `📅 Data retention set to ${value} days`);
+        toast.success(`📅 Data retention set to ${value} days`);
         break;
       case 'toastPosition':
         setToastPosition(value);
@@ -422,7 +268,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          localShowToast('success', `📍 Toast position changed to ${value.replace('-', ' ')}`, {
+          toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
             position: value,
             theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
           });
@@ -437,7 +283,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          localShowToast('success', `🎨 Toast theme changed to ${value}`, {
+          toast.success(`🎨 Toast theme changed to ${value}`, {
             position: toastPosition,
             theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
           });
@@ -451,105 +297,680 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     localStorage.removeItem('jobTracker_cache_expiry');
     localStorage.removeItem('jobTracker_cache_version');
     loadDeveloperInfo();
-    localShowToast('success', '🗑️ Cache cleared successfully');
+    toast.success('🗑️ Cache cleared successfully');
+  };
+
+  const exportData = () => {
+    const data = {
+      settings: {
+        developerMode,
+        notifications,
+        autoRefresh,
+        dataRetention,
+        toastPosition,
+        toastTheme,
+        darkMode
+      },
+      cache: localStorage.getItem('jobTracker_jobs_cache'),
+      timestamp: new Date().toISOString()
+    };    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jobtracker-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('📁 Data exported successfully');
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   if (!isAuthenticated) {
-    return (
-      <>
-        <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
-        <LoadingScreen darkMode={darkMode} isMobile={isMobile} />
-      </>
-    );
+    return <div>Loading...</div>;
   }
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-        <div className={`max-w-6xl mx-auto px-4 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
-          
-          <SettingsHeader 
-            showMobileSidebar={showMobileSidebar}
-            setShowMobileSidebar={setShowMobileSidebar}
-            isMobile={isMobile}
-          />
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your account and application preferences</p>
+          </div>
 
-          <div className={`${isMobile ? 'block' : 'grid lg:grid-cols-4 gap-8'}`}>
-            
-            <SettingsSidebar 
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              isAdmin={isAdmin}
-              showMobileSidebar={showMobileSidebar}
-              setShowMobileSidebar={setShowMobileSidebar}
-              isMobile={isMobile}
-            />
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <nav className="space-y-2">
+                {[
+                  { id: 'profile', name: 'Profile & Security', icon: FaUser },
+                  { id: 'preferences', name: 'Preferences', icon: FaCog },
+                  { id: 'accessibility', name: 'Accessibility', icon: FaUniversalAccess },
+                  ...(isAdmin ? [{ id: 'developer', name: 'Developer Tools', icon: FaCode }] : [])
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <tab.icon className="mr-3" />
+                    {tab.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
             {/* Main Content */}
-            <div className={`lg:col-span-3 ${isMobile ? 'w-full' : ''}`}>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-xl">
+            <div className="lg:col-span-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 
                 {/* Profile & Security Tab */}
                 {activeTab === 'profile' && (
-                  <ProfileSection
-                    user={user}
-                    expandedSections={expandedSections}
-                    toggleSection={toggleSection}
-                    setShowEmailChangeModal={setShowEmailChangeModal}
-                    setShowPasswordChangeModal={setShowPasswordChangeModal}
-                    setShowDeleteModal={setShowDeleteModal}
-                    formatDate={formatDate}
-                    isMobile={isMobile}
-                  />
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Profile & Security</h2>
+                    
+                    {/* User Info */}
+                    {user && (
+                      <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h3 className="font-medium text-gray-900 dark:text-white mb-2">Account Information</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Member since: {formatDate(user.created_at)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Change Password */}
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <h3 className="font-medium text-gray-900 dark:text-white">Change Password</h3>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPasswords ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          New Password
+                        </label>
+                        <input
+                          type={showPasswords ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Confirm New Password
+                        </label>
+                        <input
+                          type={showPasswords ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords(!showPasswords)}
+                          className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          {showPasswords ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />}
+                          {showPasswords ? 'Hide' : 'Show'} passwords
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <FaSave className="mr-2" />
+                          {loading ? 'Changing...' : 'Change Password'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 )}
 
                 {/* Preferences Tab */}
                 {activeTab === 'preferences' && (
-                  <PreferencesSection
-                    toggleTheme={toggleTheme}
-                    darkMode={darkMode}
-                    notifications={notifications}
-                    autoRefresh={autoRefresh}
-                    dataRetention={dataRetention}
-                    handleSettingChange={handleSettingChange}
-                    exportData={exportData}
-                    showToast={showToast}
-                    isMobile={isMobile}
-                  />
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Preferences</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Theme */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Theme</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
+                        </div>
+                        <button
+                          onClick={toggleTheme}
+                          className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                        >
+                          <FaPalette className="mr-2" />
+                          {darkMode ? 'Dark' : 'Light'} Mode
+                        </button>
+                      </div>
+
+                      {/* Notifications */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Notifications</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Enable browser notifications</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={notifications}
+                            onChange={(e) => handleSettingChange('notifications', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Auto Refresh */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Auto Refresh</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Automatically refresh job data</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={autoRefresh}
+                            onChange={(e) => handleSettingChange('autoRefresh', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Data Retention */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Data Retention</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">How long to keep cached data</p>
+                        </div>
+                        <select
+                          value={dataRetention}
+                          onChange={(e) => handleSettingChange('dataRetention', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        >
+                          <option value="7">7 days</option>
+                          <option value="30">30 days</option>
+                          <option value="90">90 days</option>
+                          <option value="365">1 year</option>
+                        </select>
+                      </div>
+
+                      {/* Admin Panel - Admin Only */}
+                      {isAdmin ? (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                          >
+                            <FaCode className="mr-2" />
+                            Open Admin Panel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between opacity-50">
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Admin access required</p>
+                          </div>
+                          <div className="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed">
+                            Admin Only
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Export Data */}
+                      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={exportData}
+                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                          <FaDownload className="mr-2" />
+                          Export Data
+                        </button>
+                      </div>
+
+                      {/* Delete Account - Danger Zone */}
+                      <div className="pt-4 border-t border-red-200 dark:border-red-800">
+                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                          <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
+                          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+                          </p>
+                          <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                          >
+                            <FaTrash className="mr-2" />
+                            Delete Account
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Accessibility Tab */}
                 {activeTab === 'accessibility' && (
-                  <AccessibilitySection
-                    toastPosition={toastPosition}
-                    toastTheme={toastTheme}
-                    handleSettingChange={handleSettingChange}
-                    expandedSections={expandedSections}
-                    toggleSection={toggleSection}
-                    darkMode={darkMode}
-                    notifications={notifications}
-                    showToast={showToast}
-                    isMobile={isMobile}
-                  />
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Accessibility</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Toast Notification Settings */}
+                      <div className="space-y-4">
+                        <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
+                          <FaBell className="mr-2" />
+                          Notification Settings
+                        </h3>
+                        
+                        {/* Toast Position */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">Toast Position</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Choose where notifications appear on your screen</p>
+                          </div>
+                          <select
+                            value={toastPosition}
+                            onChange={(e) => handleSettingChange('toastPosition', e.target.value)}
+                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="top-left">Top Left</option>
+                            <option value="top-center">Top Center</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                          </select>
+                        </div>
+
+                        {/* Toast Theme */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">Toast Theme</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Choose the color scheme for notifications</p>
+                          </div>
+                          <select
+                            value={toastTheme}
+                            onChange={(e) => handleSettingChange('toastTheme', e.target.value)}
+                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="auto">Auto (follows system theme)</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="colored">Colored</option>
+                          </select>
+                        </div>
+
+                        {/* Test Toast Button */}
+                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <button
+                            onClick={() => {
+                              // Apply settings immediately before showing test toast
+                              window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+                                detail: { position: toastPosition, theme: toastTheme } 
+                              }));
+                              
+                              // Small delay to ensure settings are applied
+                              setTimeout(() => {
+                                toast.success("🎉 This is a test notification!", {
+                                  position: toastPosition,
+                                  theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+                                });
+                              }, 100);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                          >
+                            <FaBell className="mr-2" />
+                            Test Notification
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Visual Settings */}
+                      <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
+                          <FaPalette className="mr-2" />
+                          Visual Accessibility
+                        </h3>
+                        
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-start">
+                            <FaInfoCircle className="text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                Additional Accessibility Features
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                                These settings help customize the interface for better accessibility and user experience.
+                              </p>
+                              <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+                                <div className="flex items-center">
+                                  <FaCheckCircle className="mr-2" />
+                                  High contrast dark/light mode support
+                                </div>
+                                <div className="flex items-center">
+                                  <FaCheckCircle className="mr-2" />
+                                  Keyboard navigation support
+                                </div>
+                                <div className="flex items-center">
+                                  <FaCheckCircle className="mr-2" />
+                                  Screen reader compatible
+                                </div>
+                                <div className="flex items-center">
+                                  <FaCheckCircle className="mr-2" />
+                                  Customizable notification positioning
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Developer Tools Tab - Admin Only */}
                 {activeTab === 'developer' && isAdmin && (
-                  <DeveloperSection
-                    isAdmin={isAdmin}
-                    developerMode={developerMode}
-                    handleSettingChange={handleSettingChange}
-                    cacheInfo={cacheInfo}
-                    storageInfo={storageInfo}
-                    loadDeveloperInfo={loadDeveloperInfo}
-                    clearCache={clearCache}
-                    formatBytes={formatBytes}
-                    formatDate={formatDate}
-                    showToast={showToast}
-                    isMobile={isMobile}
-                  />
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Developer Tools</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Developer Mode Toggle */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">Developer Mode</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Enable advanced developer tools and debugging features</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={developerMode}
+                            onChange={(e) => handleSettingChange('developerMode', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+
+                    {!developerMode ? (
+                      <div className="text-center py-8">
+                        <FaCode className="mx-auto text-4xl text-gray-400 dark:text-gray-600 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">Developer mode is disabled</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">Use the toggle above to enable developer tools</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Cache Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
+                              <FaDatabase className="mr-2" />
+                              Cache Information
+                            </h3>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={loadDeveloperInfo}
+                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                              >
+                                <FaSync className="inline mr-1" />
+                                Refresh
+                              </button>
+                              <button
+                                onClick={clearCache}
+                                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                              >
+                                <FaTrash className="inline mr-1" />
+                                Clear
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {cacheInfo ? (
+                            cacheInfo.error ? (
+                              <p className="text-red-600 dark:text-red-400">{cacheInfo.error}</p>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Size:</span>
+                                  <span className="ml-2 font-mono">{formatBytes(cacheInfo.size)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Jobs:</span>
+                                  <span className="ml-2 font-mono">{cacheInfo.jobCount}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Created:</span>
+                                  <span className="ml-2 font-mono">{formatDate(cacheInfo.timestamp)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Expires:</span>
+                                  <span className={`ml-2 font-mono ${cacheInfo.isExpired ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                    {formatDate(parseInt(cacheInfo.expiry))}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Version:</span>
+                                  <span className="ml-2 font-mono">{cacheInfo.version}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                  <span className={`ml-2 font-mono ${cacheInfo.isExpired ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                    {cacheInfo.isExpired ? 'Expired' : 'Valid'}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          ) : (
+                            <p className="text-gray-600 dark:text-gray-400">No cache data found</p>
+                          )}
+                        </div>
+
+                        {/* Storage Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaHdd className="mr-2" />
+                            Local Storage
+                          </h3>
+                          
+                          {storageInfo && (
+                            <div>
+                              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Total Size:</span>
+                                  <span className="ml-2 font-mono">{formatBytes(storageInfo.totalSize)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Items:</span>
+                                  <span className="ml-2 font-mono">{storageInfo.itemCount}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {storageInfo.items.map((item, index) => (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded text-xs">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-mono text-blue-600 dark:text-blue-400">{item.key}</div>
+                                      <div className="text-gray-500 dark:text-gray-400 truncate">{item.preview}</div>
+                                    </div>
+                                    <div className="text-gray-600 dark:text-gray-400 ml-2">
+                                      {formatBytes(item.size)}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* System Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaMemory className="mr-2" />
+                            System Information
+                          </h3>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">User Agent:</span>
+                              <div className="font-mono text-xs break-all">{navigator.userAgent}</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Screen:</span>
+                              <span className="ml-2 font-mono">{screen.width}x{screen.height}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Viewport:</span>
+                              <span className="ml-2 font-mono">{window.innerWidth}x{window.innerHeight}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Language:</span>
+                              <span className="ml-2 font-mono">{navigator.language}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Online:</span>
+                              <span className={`ml-2 font-mono ${navigator.onLine ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {navigator.onLine ? 'Yes' : 'No'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Cookies Enabled:</span>
+                              <span className={`ml-2 font-mono ${navigator.cookieEnabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {navigator.cookieEnabled ? 'Yes' : 'No'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">API Base URL:</span>
+                              <span className="ml-2 font-mono text-blue-600 dark:text-blue-400">{API_BASE_URL}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Logo Backend Information */}
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                            <FaExternalLinkAlt className="mr-2" />
+                            Logo Backend Services
+                          </h3>
+                          
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4 text-sm">
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Clearbit Logo API</span>
+                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Primary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://logo.clearbit.com/{'{company}'}</div>
+                                  <div>Format: High-quality PNG/SVG logos</div>
+                                  <div>Fallback: Company initials with generated colors</div>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Logo.dev API</span>
+                                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Secondary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://img.logo.dev/{'{company}'}.com</div>
+                                  <div>Format: Optimized company logos</div>
+                                  <div>Usage: Fallback when Clearbit fails</div>
+                                </div>
+                              </div>
+
+                              <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-900 dark:text-white">Favicon Service</span>
+                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 rounded">Tertiary</span>
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                  <div>Endpoint: https://www.google.com/s2/favicons</div>
+                                  <div>Format: Favicon/small icons</div>
+                                  <div>Usage: Last resort fallback</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-white">Logo Cache Status</h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Logos are cached locally for better performance
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    // Clear logo cache from localStorage
+                                    Object.keys(localStorage).forEach(key => {
+                                      if (key.startsWith('logo_cache_')) {
+                                        localStorage.removeItem(key);
+                                      }
+                                    });
+                                    toast.success('🗑️ Logo cache cleared successfully');
+                                  }}
+                                  className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                                >
+                                  <FaTrash className="inline mr-1" />
+                                  Clear Logo Cache
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -557,41 +978,65 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         </div>
       </div>
 
-      <SettingsModals
-        // Delete modal props
-        showDeleteModal={showDeleteModal}
-        setShowDeleteModal={setShowDeleteModal}
-        deletePassword={deletePassword}
-        setDeletePassword={setDeletePassword}
-        deleteLoading={deleteLoading}
-        handleDeleteAccount={handleDeleteAccount}
-        
-        // Email change modal props
-        showEmailChangeModal={showEmailChangeModal}
-        setShowEmailChangeModal={setShowEmailChangeModal}
-        emailChangePassword={emailChangePassword}
-        setEmailChangePassword={setEmailChangePassword}
-        emailChangeLoading={emailChangeLoading}
-        handleEmailChange={handleEmailChange}
-        
-        // Password change modal props
-        showPasswordChangeModal={showPasswordChangeModal}
-        setShowPasswordChangeModal={setShowPasswordChangeModal}
-        currentPassword={currentPassword}
-        setCurrentPassword={setCurrentPassword}
-        newPassword={newPassword}
-        setNewPassword={setNewPassword}
-        confirmPassword={confirmPassword}
-        setConfirmPassword={setConfirmPassword}
-        showPasswords={showPasswords}
-        setShowPasswords={setShowPasswords}
-        passwordValidation={passwordValidation}
-        setPasswordValidation={setPasswordValidation}
-        loading={loading}
-        handlePasswordChange={handlePasswordChange}
-        
-        isMobile={isMobile}
-      />
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+              Confirm Account Deletion
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              This action cannot be undone. This will permanently delete your account and all your data.
+            </p>
+            <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">
+              Please enter your password to confirm:
+            </p>
+            <div className="mb-4">
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleDeleteAccount();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword('');
+                }}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading || !deletePassword.trim()}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FaTrash className="mr-2" />
+                    Delete Account
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
