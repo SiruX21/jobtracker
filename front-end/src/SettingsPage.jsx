@@ -101,7 +101,15 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   // Conditional toast helper - only show if notifications are enabled
   const localShowToast = (type, message, options = {}) => {
     if (notifications) {
-      showToast[type](message, options);
+      if (type === 'success') {
+        showToast.success(message, options);
+      } else if (type === 'error') {
+        showToast.error(message, options);
+      } else if (type === 'info') {
+        showToast.info(message, options);
+      } else if (type === 'warning') {
+        showToast.warning(message, options);
+      }
     }
   };
 
@@ -389,7 +397,11 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         // Dispatch event to notify App.jsx of the change
         window.dispatchEvent(new CustomEvent('notificationSettingsChanged'));
         // Always show this toast regardless of setting since it's about the setting itself
-        toast[value ? 'success' : 'info'](`🔔 Notifications ${value ? 'enabled' : 'disabled'}`);
+        if (value) {
+          showToast.success(`🔔 Notifications enabled`);
+        } else {
+          showToast.info(`🔔 Notifications disabled`);
+        }
         break;
       case 'autoRefresh':
         setAutoRefresh(value);
