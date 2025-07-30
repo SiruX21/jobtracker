@@ -4,7 +4,36 @@ import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, F
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
-import LoadingScreen from "./components/shared/LoadingScreen.jsx";
+
+// Temporary inline LoadingScreen component to avoid import issues
+const LoadingScreen = ({ type = 'general' }) => {
+  const getLoadingMessage = () => {
+    switch (type) {
+      case 'logout':
+        return {
+          title: 'Logging Out',
+          subtitle: 'Safely signing you out and clearing your session...'
+        };
+      default:
+        return {
+          title: 'Loading...',
+          subtitle: 'Please wait while we load your data'
+        };
+    }
+  };
+
+  const loadingMessage = getLoadingMessage();
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-8"></div>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{loadingMessage.title}</h2>
+        <p className="text-gray-600 dark:text-gray-400">{loadingMessage.subtitle}</p>
+      </div>
+    </div>
+  );
+};
 
 function Header({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
