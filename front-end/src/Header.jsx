@@ -92,7 +92,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <>
-      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg transition-all duration-300 ease-in-out ${isMobile ? 'py-3 px-4' : 'py-4 px-6'} flex items-center justify-between ${
+      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg transition-all duration-300 ease-in-out py-3 px-4 md:py-4 md:px-6 flex items-center justify-between ${
         isHomePage ? "relative" : "fixed top-0 left-0 z-50"
       }`}>
         {/* Logo */}
@@ -101,24 +101,23 @@ function Header({ darkMode, toggleTheme, isMobile }) {
           onClick={() => handleNavigation("/")}
         >
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-2 rounded-full shadow-lg">
-            <FaBriefcase size={isMobile ? 16 : 20} />
+            <FaBriefcase className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <h1 className={`font-bold text-blue-100 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <h1 className="font-bold text-blue-100 text-lg md:text-xl">
             JobTracker
           </h1>
         </div>
 
-        {/* Mobile Menu Button */}
-        {isMobile ? (
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
-          >
-            {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
-          </button>
-        ) : (
-          /* Desktop Navigation Links */
-          <nav className="flex items-center space-x-4">
+        {/* Mobile Menu Button - show on mobile, hide on desktop */}
+        <button
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          className="md:hidden text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
+        >
+          {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
+        </button>
+
+        {/* Desktop Navigation Links - hide on mobile, show on desktop */}
+        <nav className="hidden md:flex items-center space-x-4">
             {authToken && (
               <button
                 onClick={() => navigate("/")}
@@ -174,13 +173,12 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               </button>
             )}
           </nav>
-        )}
       </header>
 
-      {/* Mobile Navigation Menu */}
-      {isMobile && showMobileMenu && (
+      {/* Mobile Navigation Menu - show on mobile, hide on desktop */}
+      {showMobileMenu && (
         <div 
-          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
+          className="md:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
           onClick={() => setShowMobileMenu(false)}
         >
           <div 
