@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSearch, FaFilter } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 
 function SearchAndFilters({
   searchTerm,
@@ -71,6 +71,22 @@ function SearchAndFilters({
                 </span>
               )}
             </button>
+            
+            {/* Clear Filters Button */}
+            {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setDateFilter("all");
+                  setCompanyFilter("");
+                }}
+                className="flex items-center px-3 py-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                title="Clear all filters"
+              >
+                <FaTimes />
+              </button>
+            )}
           </div>
         </div>
 
@@ -133,19 +149,6 @@ function SearchAndFilters({
           Showing {filteredJobs.length} of {jobs.length} applications
           {searchTerm && ` for "${searchTerm}"`}
         </p>
-        
-        {filteredJobs.length > 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Sorted by: <span className="font-medium">
-              {sortBy === "date_desc" && "📅 Newest First"}
-              {sortBy === "date_asc" && "📅 Oldest First"}
-              {sortBy === "company_asc" && "🏢 Company A-Z"}
-              {sortBy === "company_desc" && "🏢 Company Z-A"}
-              {sortBy === "status" && "🎯 Status Priority"}
-              {sortBy === "title_asc" && "💼 Job Title A-Z"}
-            </span>
-          </p>
-        )}
       </div>
     </>
   );
