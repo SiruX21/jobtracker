@@ -101,7 +101,7 @@ function JobCards({
               <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => editJob(jobs.findIndex(j => j.id === job.id))}
+                    onClick={() => editJob(job, jobs.findIndex(j => j.id === job.id))}
                     className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                   >
                     <FaEdit className="mr-1 text-xs" />

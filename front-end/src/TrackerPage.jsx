@@ -683,9 +683,14 @@ function TrackerPage({ darkMode, toggleTheme }) {
           
           <JobCards 
             filteredJobs={filteredJobs}
+            jobs={jobs}
             statusColorMap={statusColorMap}
-            onEdit={openEditModal}
-            onDelete={deleteJob}
+            editJob={openEditModal}
+            deleteJob={deleteJob}
+            setSearchTerm={setSearchTerm}
+            setStatusFilter={setStatusFilter}
+            setDateFilter={setDateFilter}
+            setCompanyFilter={setCompanyFilter}
           />
           
           <AddJobModal 
