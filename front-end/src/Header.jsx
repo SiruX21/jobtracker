@@ -109,17 +109,17 @@ function Header({ darkMode, toggleTheme, isMobile }) {
         </div>
 
         {/* Navigation - responsive layout */}
-        <div className="flex items-center">
-          {/* Mobile Menu Button - show on mobile, hide on desktop */}
+        {isMobile ? (
+          /* Mobile Menu Button - show on mobile */
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="md:hidden text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
+            className="text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
           >
             {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
-
-          {/* Desktop Navigation Links - hide on mobile, show on desktop */}
-          <nav className="hidden md:flex items-center space-x-4">
+        ) : (
+          /* Desktop Navigation Links - show on desktop */
+          <nav className="flex items-center space-x-4">
             {authToken && (
               <button
                 onClick={() => navigate("/")}
@@ -175,13 +175,13 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               </button>
             )}
           </nav>
-        </div>
+        )}
       </header>
 
-      {/* Mobile Navigation Menu - show on mobile, hide on desktop */}
-      {showMobileMenu && (
+      {/* Mobile Navigation Menu - show on mobile only */}
+      {isMobile && showMobileMenu && (
         <div 
-          className="md:hidden fixed top-16 left-0 w-full h-full bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
+          className="fixed top-16 left-0 w-full h-full bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
           onClick={() => setShowMobileMenu(false)}
         >
           <div 

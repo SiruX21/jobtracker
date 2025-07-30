@@ -539,7 +539,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/admin')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Back to Dashboard
@@ -564,7 +564,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
               </h1>
             </div>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/admin')}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
               Back to App
