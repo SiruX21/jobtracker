@@ -7,6 +7,7 @@ import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
+import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
 // Import tracker components
 import TrackerHeader from "./components/tracker/TrackerHeader";
@@ -167,28 +168,52 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   // Available stats configuration
   const availableStats = [
-    { id: 'total', label: 'Total Applications', getValue: () => jobs.length },
-    { id: 'thisWeek', label: 'This Week', getValue: () => {
+    { id: 'total', label: 'Total Applications', icon: FaBuilding, color: 'blue-500', getValue: () => jobs.length },
+    { id: 'thisWeek', label: 'This Week', icon: FaCalendar, color: 'green-500', getValue: () => {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return jobs.filter(job => new Date(job.application_date) >= weekAgo).length;
     }},
-    { id: 'interviews', label: 'Interviews', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'interview').length },
-    { id: 'pending', label: 'Pending', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'applied').length },
-    { id: 'offers', label: 'Offers', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'offer').length },
-    { id: 'rejected', label: 'Rejected', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'rejected').length },
-    { id: 'ghosted', label: 'Ghosted', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'ghosted').length },
-    { id: 'reviewing', label: 'Reviewing', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'reviewing').length },
-    { id: 'thisMonth', label: 'This Month', getValue: () => {
+    { id: 'interviews', label: 'Interviews', icon: FaSearch, color: 'orange-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'interview').length },
+    { id: 'pending', label: 'Pending', icon: FaClock, color: 'purple-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'applied').length },
+    { id: 'offers', label: 'Offers', icon: FaThumbsUp, color: 'emerald-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'offer').length },
+    { id: 'rejected', label: 'Rejected', icon: FaTimes, color: 'red-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'rejected').length },
+    { id: 'ghosted', label: 'Ghosted', icon: FaTimes, color: 'gray-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'ghosted').length },
+    { id: 'reviewing', label: 'Reviewing', icon: FaSearch, color: 'yellow-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'reviewing').length },
+    { id: 'thisMonth', label: 'This Month', icon: FaCalendar, color: 'indigo-500', getValue: () => {
       const monthAgo = new Date();
       monthAgo.setDate(monthAgo.getDate() - 30);
       return jobs.filter(job => new Date(job.application_date) >= monthAgo).length;
     }},
-    { id: 'responseRate', label: 'Response Rate', getValue: () => {
+    { id: 'responseRate', label: 'Response Rate', icon: FaCheckCircle, color: 'teal-500', getValue: () => {
       const responded = jobs.filter(job => !['applied', 'ghosted'].includes(job.status.toLowerCase())).length;
       return jobs.length > 0 ? Math.round((responded / jobs.length) * 100) + '%' : '0%';
     }}
   ];
+
+  // Color mapping for stats to ensure Tailwind classes are properly included
+  const getStatColorClass = (colorKey) => {
+    const colorMap = {
+      'blue-500': 'bg-blue-500',
+      'green-500': 'bg-green-500',
+      'orange-500': 'bg-orange-500',
+      'purple-500': 'bg-purple-500',
+      'emerald-500': 'bg-emerald-500',
+      'red-500': 'bg-red-500',
+      'gray-500': 'bg-gray-500',
+      'yellow-500': 'bg-yellow-500',
+      'indigo-500': 'bg-indigo-500',
+      'teal-500': 'bg-teal-500',
+      'pink-500': 'bg-pink-500',
+      'cyan-500': 'bg-cyan-500',
+      'lime-500': 'bg-lime-500',
+      'amber-500': 'bg-amber-500',
+      'violet-500': 'bg-violet-500',
+      'rose-500': 'bg-rose-500',
+      'slate-500': 'bg-slate-500'
+    };
+    return colorMap[colorKey] || 'bg-blue-500';
+  };
 
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
@@ -633,6 +658,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             availableStats={availableStats}
             handleDashboardCardClick={handleDashboardCardClick}
             dashboardFilter={dashboardFilter}
+            getStatColorClass={getStatColorClass}
           />
           
           <AddApplicationButton onOpenModal={openAddModal} />
