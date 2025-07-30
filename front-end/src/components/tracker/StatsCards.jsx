@@ -18,7 +18,7 @@ function StatsCards({
         const isActive = dashboardFilter === statId;
         
         // Build className more explicitly to ensure proper re-rendering
-        const baseClasses = "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer";
+        const baseClasses = "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer";
         const activeClasses = isActive ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20" : "";
         const buttonClasses = `${baseClasses} ${activeClasses}`;
         
