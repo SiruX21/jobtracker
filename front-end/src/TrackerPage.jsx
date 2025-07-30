@@ -217,12 +217,8 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
-    console.log('Dashboard card clicked:', statId);
-    console.log('Current dashboardFilter:', dashboardFilter);
-    
     // If the same card is clicked again, clear all filters (toggle off)
     if (dashboardFilter === statId) {
-      console.log('Toggling off filter for:', statId);
       setSearchTerm("");
       setCompanyFilter("");
       setStatusFilter("all");
@@ -231,7 +227,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
       return;
     }
     
-    console.log('Setting new filter for:', statId);
     // Clear other filters when clicking a dashboard card
     setSearchTerm("");
     setCompanyFilter("");

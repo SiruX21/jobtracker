@@ -7,8 +7,6 @@ function StatsCards({
   handleDashboardCardClick, 
   getStatColorClass 
 }) {
-  console.log('StatsCards render - dashboardFilter:', dashboardFilter);
-  
   return (
     <div className={`grid gap-4 ${selectedStats.length === 1 ? 'grid-cols-1' : selectedStats.length === 2 ? 'grid-cols-1 md:grid-cols-2' : selectedStats.length === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
       {selectedStats.map(statId => {
@@ -19,15 +17,16 @@ function StatsCards({
         const value = stat.getValue();
         const isActive = dashboardFilter === statId;
         
-        console.log(`Card ${statId}: isActive = ${isActive} (dashboardFilter: ${dashboardFilter}, statId: ${statId})`);
+        // Build className more explicitly to ensure proper re-rendering
+        const baseClasses = "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer";
+        const activeClasses = isActive ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20" : "";
+        const buttonClasses = `${baseClasses} ${activeClasses}`;
         
         return (
           <button
-            key={statId}
+            key={`${statId}-${isActive}`}
             onClick={() => handleDashboardCardClick(statId)}
-            className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 text-left group cursor-pointer ${
-              isActive ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
-            }`}
+            className={buttonClasses}
             style={{ focusRingColor: stat.color.replace('-500', '-500') }}
           >
             <div className="flex items-center">
