@@ -16,7 +16,8 @@ function SearchAndFilters({
   setCompanyFilter,
   jobStatuses,
   filteredJobs,
-  jobs
+  jobs,
+  setDashboardFilter
 }) {
   return (
     <>
@@ -31,7 +32,10 @@ function SearchAndFilters({
                 type="text"
                 placeholder="Search companies, positions, locations..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (setDashboardFilter) setDashboardFilter(null);
+                }}
                 className="w-full h-12 pl-10 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
@@ -80,6 +84,7 @@ function SearchAndFilters({
                     setDateFilter("all");
                     setCompanyFilter("");
                     setShowFilters(false);
+                    if (setDashboardFilter) setDashboardFilter(null);
                   }}
                   title="Clear all filters"
                 />
@@ -97,7 +102,10 @@ function SearchAndFilters({
               </label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  if (setDashboardFilter) setDashboardFilter(null);
+                }}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="all">All Statuses</option>
@@ -115,7 +123,10 @@ function SearchAndFilters({
               </label>
               <select
                 value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  if (setDashboardFilter) setDashboardFilter(null);
+                }}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="all">All Time</option>
@@ -133,7 +144,10 @@ function SearchAndFilters({
                 type="text"
                 placeholder="Filter by company..."
                 value={companyFilter}
-                onChange={(e) => setCompanyFilter(e.target.value)}
+                onChange={(e) => {
+                  setCompanyFilter(e.target.value);
+                  if (setDashboardFilter) setDashboardFilter(null);
+                }}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>

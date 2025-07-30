@@ -218,7 +218,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
     // If the same card is clicked again, clear all filters (toggle off)
-    if (dashboardFilter === statId || (statId === 'total' && dashboardFilter === null)) {
+    if (dashboardFilter === statId) {
       setSearchTerm("");
       setCompanyFilter("");
       setStatusFilter("all");
@@ -227,6 +227,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
       return;
     }
     
+    // Clear other filters when clicking a dashboard card
     setSearchTerm("");
     setCompanyFilter("");
     
@@ -234,7 +235,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
       case 'total':
         setStatusFilter("all");
         setDateFilter("all");
-        setDashboardFilter(null);
+        setDashboardFilter('total');
         break;
       case 'thisWeek':
         setStatusFilter("all");
@@ -690,6 +691,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             jobStatuses={jobStatuses}
             filteredJobs={filteredJobs}
             jobs={jobs}
+            setDashboardFilter={setDashboardFilter}
           />
           
           <JobCards 

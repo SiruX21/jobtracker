@@ -15,7 +15,7 @@ function StatsCards({
         
         const IconComponent = stat.icon;
         const value = stat.getValue();
-        const isActive = dashboardFilter === statId || (statId === 'total' && !dashboardFilter);
+        const isActive = dashboardFilter === statId;
         
         return (
           <button
