@@ -4,7 +4,7 @@ import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, F
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
-import LoadingScreen from "./components/shared/LoadingScreen";
+import LoadingScreen from "./components/shared/LoadingScreen.jsx";
 
 function Header({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
