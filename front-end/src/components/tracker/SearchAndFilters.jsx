@@ -32,7 +32,7 @@ function SearchAndFilters({
                 placeholder="Search companies, positions, locations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                className="w-full h-12 pl-10 pr-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -47,7 +47,7 @@ function SearchAndFilters({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                className="h-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value="date_desc">📅 Newest First</option>
                 <option value="date_asc">📅 Oldest First</option>
@@ -58,10 +58,10 @@ function SearchAndFilters({
               </select>
             </div>
 
-            {/* Filter Toggle */}
+            {/* Filter Toggle with integrated Clear */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center h-12 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <FaFilter className="mr-2" />
               Filters
@@ -70,23 +70,21 @@ function SearchAndFilters({
                   {[statusFilter !== "all" ? 1 : 0, dateFilter !== "all" ? 1 : 0, companyFilter ? 1 : 0].reduce((a, b) => a + b, 0)}
                 </span>
               )}
+              {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
+                <FaTimes
+                  className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                    setDateFilter("all");
+                    setCompanyFilter("");
+                    setShowFilters(false);
+                  }}
+                  title="Clear all filters"
+                />
+              )}
             </button>
-            
-            {/* Clear Filters Button */}
-            {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setStatusFilter("all");
-                  setDateFilter("all");
-                  setCompanyFilter("");
-                }}
-                className="flex items-center px-3 py-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-                title="Clear all filters"
-              >
-                <FaTimes />
-              </button>
-            )}
           </div>
         </div>
 
