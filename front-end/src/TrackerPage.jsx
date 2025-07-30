@@ -686,7 +686,13 @@ function TrackerPage({ darkMode, toggleTheme }) {
             getStatColorClass={getStatColorClass}
           />
           
+          {/* Spacer */}
+          <div className="h-16"></div>
+          
           <AddApplicationButton onOpenModal={openAddModal} />
+          
+          {/* Spacer */}
+          <div className="h-16"></div>
           
           <SearchAndFilters 
             searchTerm={searchTerm}
