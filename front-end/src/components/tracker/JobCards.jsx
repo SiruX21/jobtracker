@@ -39,11 +39,24 @@ function JobCards({
         filteredJobs.map((job, index) => (
           <div
             key={job.id || index}
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 overflow-hidden animate-fadeIn"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 overflow-hidden animate-fadeIn cursor-pointer"
             style={{ animationDelay: `${index * 100}ms` }}
+            onClick={() => editJob(job, jobs.findIndex(j => j.id === job.id))}
           >
             {/* Company Logo Header */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 p-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 p-4 flex items-center justify-between relative">
+              {/* Quick Delete Icon - positioned at top-right */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteJob(jobs.findIndex(j => j.id === job.id));
+                }}
+                className="absolute top-2 right-2 p-1.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors opacity-80 hover:opacity-100 z-10"
+                title="Delete application"
+              >
+                <FaTrash className="w-3 h-3" />
+              </button>
+              
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
                   <img 
@@ -98,38 +111,21 @@ function JobCards({
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => editJob(job, jobs.findIndex(j => j.id === job.id))}
-                    className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                  >
-                    <FaEdit className="mr-1 text-xs" />
-                    Edit
-                  </button>
-                  
-                  <button
-                    onClick={() => deleteJob(jobs.findIndex(j => j.id === job.id))}
-                    className="flex items-center px-3 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-                  >
-                    <FaTrash className="mr-1 text-xs" />
-                    Delete
-                  </button>
-                </div>
-
-                {job.job_url && (
+              {/* View Job Link - if available */}
+              {job.job_url && (
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
                   <a
                     href={job.job_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center w-full px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
                   >
-                    <FaExternalLinkAlt className="mr-1 text-xs" />
-                    View Job
+                    <FaExternalLinkAlt className="mr-2 text-sm" />
+                    View Job Posting
                   </a>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         ))

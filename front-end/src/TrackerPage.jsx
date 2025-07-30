@@ -477,6 +477,30 @@ function TrackerPage({ darkMode, toggleTheme }) {
     }
   };
 
+  const deleteCurrentJob = async () => {
+    if (!newJob.id) return;
+    
+    setLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      await axios.delete(`${API_BASE_URL}/jobs/${newJob.id}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      
+      const updatedJobs = jobs.filter(job => job.id !== newJob.id);
+      setJobs(updatedJobs);
+      setFilteredJobs(updatedJobs);
+      toast.success("Job application deleted successfully!");
+      closeEditModal();
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast.error("Failed to delete job application. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteJob = async (index) => {
     if (!window.confirm("Are you sure you want to delete this job application?")) {
       return;
@@ -758,6 +782,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             onSubmit={addOrUpdateJob}
             loading={loading}
             darkMode={darkMode}
+            onDelete={deleteCurrentJob}
           />
           
           <LoadingOverlay loading={loading} editingJob={editingJob} />
