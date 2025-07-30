@@ -218,7 +218,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
     // If the same card is clicked again, clear all filters (toggle off)
-    if (dashboardFilter === statId || (statId === 'total' && !dashboardFilter)) {
+    if (dashboardFilter === statId || (statId === 'total' && dashboardFilter === null)) {
       setSearchTerm("");
       setCompanyFilter("");
       setStatusFilter("all");
@@ -661,6 +661,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             selectedStats={selectedStats}
             setSelectedStats={setSelectedStats}
             availableStats={availableStats}
+            getStatColorClass={getStatColorClass}
           />
           
           <StatsCards 
