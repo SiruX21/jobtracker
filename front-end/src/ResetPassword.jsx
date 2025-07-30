@@ -244,6 +244,6 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
       </div>
     </div>
   );
-};
+}
 
 export default ResetPassword;
