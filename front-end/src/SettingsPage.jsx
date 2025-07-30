@@ -10,7 +10,7 @@ import {
   FaEye, FaEyeSlash, FaBell, FaPalette, FaDownload, FaUpload,
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
   FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess,
-  FaBars, FaEnvelope
+  FaBars, FaEnvelope, FaChevronDown, FaUndo
 } from 'react-icons/fa';
 
 function SettingsPage({ darkMode, toggleTheme, isMobile }) {
@@ -36,6 +36,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
   const [emailChangePassword, setEmailChangePassword] = useState('');
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  
+  // Password change modal
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   
   // App settings
   const [developerMode, setDeveloperMode] = useState(() => 
@@ -66,6 +69,63 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   // UI state
   const [loading, setLoading] = useState(false);
 
+  // Password strength validation
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    feedback: '',
+    requirements: {
+      length: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      special: false
+    }
+  });
+
+  // Progressive disclosure states
+  const [expandedSections, setExpandedSections] = useState({
+    accountInfo: true,
+    dangerZone: false,
+    notificationSettings: true,
+    visualSettings: false,
+    cacheInfo: false,
+    storageInfo: false,
+    systemInfo: false,
+    logoServices: false
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const validatePasswordStrength = (password) => {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    const score = Object.values(requirements).filter(Boolean).length;
+    let feedback = '';
+
+    if (score <= 2) {
+      feedback = 'Weak password';
+    } else if (score <= 3) {
+      feedback = 'Fair password';
+    } else if (score <= 4) {
+      feedback = 'Good password';
+    } else {
+      feedback = 'Strong password';
+    }
+
+    setPasswordStrength({ score, feedback, requirements });
+  };
+
   // Check authentication and load user data
   useEffect(() => {
     const authToken = Cookies.get("authToken");
@@ -82,6 +142,31 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       loadDeveloperInfo();
     }
   }, [navigate, developerMode, isAdmin]);
+
+  // Handle escape key for modals
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (showDeleteModal) {
+          setShowDeleteModal(false);
+          setDeletePassword('');
+        }
+        if (showEmailChangeModal) {
+          setShowEmailChangeModal(false);
+          setEmailChangePassword('');
+        }
+        if (showPasswordChangeModal) {
+          setShowPasswordChangeModal(false);
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showDeleteModal, showEmailChangeModal, showPasswordChangeModal]);
 
   const loadUserProfile = async () => {
     try {
@@ -200,6 +285,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowPasswordChangeModal(false);
       toast.success('Password changed successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to change password');
@@ -372,7 +458,47 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   };
 
   if (!isAuthenticated) {
-    return <div>Loading...</div>;
+    return (
+      <div className={`${darkMode ? "dark" : ""}`}>
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
+          <div className={`max-w-6xl mx-auto px-4 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
+            {/* Skeleton Header */}
+            <div className="mb-8">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-64"></div>
+              </div>
+            </div>
+            
+            <div className={`${isMobile ? 'block' : 'grid lg:grid-cols-4 gap-8'}`}>
+              {/* Skeleton Sidebar */}
+              <div className="lg:col-span-1">
+                <div className="space-y-2 animate-pulse">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-12 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Skeleton Content */}
+              <div className="lg:col-span-3">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -426,8 +552,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     }}
                     className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02] ${
                       activeTab === tab.id
-                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm border-l-4 border-blue-500'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm'
                     } ${isMobile ? 'text-sm' : ''}`}
                   >
                     <tab.icon className="mr-3" />
@@ -448,105 +574,73 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     
                     {/* User Info */}
                     {user && (
-                      <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
+                      <div className="mb-8">
+                        <button
+                          onClick={() => toggleSection('accountInfo')}
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200"
+                        >
                           <h3 className="font-medium text-gray-900 dark:text-white">Account Information</h3>
-                          <button
-                            onClick={() => setShowEmailChangeModal(true)}
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
-                          >
-                            Change Email
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Member since: {formatDate(user.created_at)}
-                        </p>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowEmailChangeModal(true);
+                                }}
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
+                              >
+                                Change Email
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowPasswordChangeModal(true);
+                                }}
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
+                              >
+                                Change Password
+                              </button>
+                            </div>
+                            <FaChevronDown className={`transition-transform duration-200 ${expandedSections.accountInfo ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+                        {expandedSections.accountInfo && (
+                          <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 animate-fadeIn">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Member since: {formatDate(user.created_at)}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Change Password */}
-                    <form onSubmit={handlePasswordChange} className="space-y-4">
-                      <h3 className="font-medium text-gray-900 dark:text-white">Change Password</h3>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Current Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPasswords ? "text" : "password"}
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          New Password
-                        </label>
-                        <input
-                          type={showPasswords ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                          required
-                          minLength={6}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Confirm New Password
-                        </label>
-                        <input
-                          type={showPasswords ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                          required
-                        />
-                      </div>
-
-                      <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
-                        <button
-                          type="button"
-                          onClick={() => setShowPasswords(!showPasswords)}
-                          className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          {showPasswords ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />}
-                          {showPasswords ? 'Hide' : 'Show'} passwords
-                        </button>
-
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none ${isMobile ? 'w-full justify-center' : ''}`}
-                        >
-                          <FaSave className="mr-2" />
-                          {loading ? 'Changing...' : 'Change Password'}
-                        </button>
-                      </div>
-                    </form>
-
                     {/* Delete Account - Danger Zone */}
                     <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                        <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
-                        <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-                          Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
-                        </p>
-                        <button
-                          onClick={() => setShowDeleteModal(true)}
-                          className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
-                        >
-                          <FaTrash className="mr-2" />
-                          Delete Account
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => toggleSection('dangerZone')}
+                        className="w-full flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200"
+                      >
+                        <div className="flex items-center">
+                          <FaExclamationTriangle className="text-red-600 dark:text-red-400 mr-3" />
+                          <h3 className="font-medium text-red-900 dark:text-red-100">Danger Zone</h3>
+                        </div>
+                        <FaChevronDown className={`transition-transform duration-200 text-red-600 dark:text-red-400 ${expandedSections.dangerZone ? 'rotate-180' : ''}`} />
+                      </button>
+                      {expandedSections.dangerZone && (
+                        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 animate-fadeIn">
+                          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+                          </p>
+                          <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
+                          >
+                            <FaTrash className="mr-2" />
+                            Delete Account
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -609,7 +703,15 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                       {/* Data Retention */}
                       <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
                         <div>
-                          <h3 className="font-medium text-gray-900 dark:text-white">Data Retention</h3>
+                          <div className="flex items-center">
+                            <h3 className="font-medium text-gray-900 dark:text-white">Data Retention</h3>
+                            <div className="relative group ml-2">
+                              <FaInfoCircle className="w-4 h-4 text-gray-400 cursor-help" />
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                Controls how long cached data is kept before being refreshed
+                              </div>
+                            </div>
+                          </div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">How long to keep cached data</p>
                         </div>
                         <select
@@ -626,13 +728,31 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
                       {/* Export Data */}
                       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button
-                          onClick={exportData}
-                          className={`flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
-                        >
-                          <FaDownload className="mr-2" />
-                          Export Data
-                        </button>
+                        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'space-x-3'}`}>
+                          <button
+                            onClick={exportData}
+                            className={`flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
+                          >
+                            <FaDownload className="mr-2" />
+                            Export Data
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Reset all preferences to defaults
+                              setNotifications(true);
+                              setAutoRefresh(true);
+                              setDataRetention('30');
+                              localStorage.setItem('notifications', 'true');
+                              localStorage.setItem('autoRefresh', 'true');
+                              localStorage.setItem('dataRetention', '30');
+                              toast.success('🔄 Preferences reset to defaults');
+                            }}
+                            className={`flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
+                          >
+                            <FaUndo className="mr-2" />
+                            Reset to Defaults
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -702,7 +822,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                               setTimeout(() => {
                                 toast.success("🎉 This is a test notification!", {
                                   position: toastPosition,
-                                  theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+                                  theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme,
+                                  icon: "✨"
                                 });
                               }, 100);
                             }}
@@ -716,42 +837,56 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
                       {/* Visual Settings */}
                       <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
-                          <FaPalette className="mr-2" />
-                          Visual Accessibility
-                        </h3>
+                        <button
+                          onClick={() => toggleSection('visualSettings')}
+                          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                        >
+                          <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
+                            <FaPalette className="mr-2" />
+                            Visual Accessibility
+                          </h3>
+                          <FaChevronDown className={`transition-transform duration-200 ${expandedSections.visualSettings ? 'rotate-180' : ''}`} />
+                        </button>
                         
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <div className="flex items-start">
-                            <FaInfoCircle className="text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-                            <div>
-                              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Additional Accessibility Features
-                              </h4>
-                              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                                These settings help customize the interface for better accessibility and user experience.
-                              </p>
-                              <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  High contrast dark/light mode support
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Keyboard navigation support
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Screen reader compatible
-                                </div>
-                                <div className="flex items-center">
-                                  <FaCheckCircle className="mr-2" />
-                                  Customizable notification positioning
+                        {expandedSections.visualSettings && (
+                          <div className="animate-fadeIn">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-start">
+                                <FaInfoCircle className="text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                    Additional Accessibility Features
+                                  </h4>
+                                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                                    These settings help customize the interface for better accessibility and user experience.
+                                  </p>
+                                  <div className="grid grid-cols-1 gap-2 text-sm text-blue-700 dark:text-blue-300">
+                                    <div className="flex items-center">
+                                      <FaCheckCircle className="mr-2 text-green-600 dark:text-green-400" />
+                                      High contrast dark/light mode support
+                                    </div>
+                                    <div className="flex items-center">
+                                      <FaCheckCircle className="mr-2 text-green-600 dark:text-green-400" />
+                                      Keyboard navigation support
+                                    </div>
+                                    <div className="flex items-center">
+                                      <FaCheckCircle className="mr-2 text-green-600 dark:text-green-400" />
+                                      Screen reader compatible
+                                    </div>
+                                    <div className="flex items-center">
+                                      <FaCheckCircle className="mr-2 text-green-600 dark:text-green-400" />
+                                      Customizable notification positioning
+                                    </div>
+                                    <div className="flex items-center">
+                                      <FaCheckCircle className="mr-2 text-green-600 dark:text-green-400" />
+                                      Reduced motion for animations
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1046,8 +1181,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out">
-          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 ease-in-out animate-fadeIn">
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 shadow-2xl border border-gray-200 dark:border-gray-700 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
             <h3 className={`font-bold text-red-600 dark:text-red-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               Confirm Account Deletion
             </h3>
@@ -1106,8 +1241,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
       {/* Email Change Confirmation Modal */}
       {showEmailChangeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out">
-          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 ease-in-out animate-fadeIn">
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 shadow-2xl border border-gray-200 dark:border-gray-700 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
             <h3 className={`font-bold text-blue-600 dark:text-blue-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               Change Email Address
             </h3>
@@ -1167,6 +1302,141 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordChangeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 ease-in-out animate-fadeIn">
+          <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 w-full mx-4 transition-all duration-300 ease-in-out transform scale-100 shadow-2xl border border-gray-200 dark:border-gray-700 ${isMobile ? 'max-w-sm' : 'max-w-md'}`}>
+            <h3 className={`font-bold text-blue-600 dark:text-blue-400 mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+              Change Password
+            </h3>
+            
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type={showPasswords ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  New Password
+                </label>
+                <input
+                  type={showPasswords ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    validatePasswordStrength(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-blue-500"
+                  required
+                  minLength={6}
+                />
+                {newPassword && (
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            passwordStrength.score <= 2 ? 'bg-red-500' :
+                            passwordStrength.score <= 3 ? 'bg-yellow-500' :
+                            passwordStrength.score <= 4 ? 'bg-blue-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.score <= 2 ? 'text-red-600 dark:text-red-400' :
+                        passwordStrength.score <= 3 ? 'text-yellow-600 dark:text-yellow-400' :
+                        passwordStrength.score <= 4 ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
+                      }`}>
+                        {passwordStrength.feedback}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {Object.entries(passwordStrength.requirements).map(([req, met]) => (
+                        <div key={req} className={`flex items-center ${met ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          <span className="mr-1">{met ? '✓' : '○'}</span>
+                          {req === 'length' && '8+ characters'}
+                          {req === 'uppercase' && 'Uppercase'}
+                          {req === 'lowercase' && 'Lowercase'}
+                          {req === 'number' && 'Number'}
+                          {req === 'special' && 'Special char'}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showPasswords ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition-all duration-200 ease-in-out focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords(!showPasswords)}
+                  className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {showPasswords ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />}
+                  {showPasswords ? 'Hide' : 'Show'} passwords
+                </button>
+              </div>
+
+              <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'justify-end space-x-3'}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordChangeModal(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                  className={`px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all duration-200 ease-in-out transform hover:scale-105 ${isMobile ? 'w-full' : ''}`}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 disabled:hover:scale-100 hover:shadow-lg disabled:hover:shadow-none ${isMobile ? 'w-full justify-center' : ''}`}
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Changing...
+                    </>
+                  ) : (
+                    <>
+                      <FaSave className="mr-2" />
+                      Change Password
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
