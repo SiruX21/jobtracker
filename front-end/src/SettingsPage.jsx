@@ -11,6 +11,7 @@ import {
   FaInfoCircle, FaCheckCircle, FaExclamationTriangle, FaTimes,
   FaSync, FaClock, FaMemory, FaHdd, FaExternalLinkAlt, FaUniversalAccess
 } from 'react-icons/fa';
+import LoadingScreen from './components/shared/LoadingScreen';
 
 function SettingsPage({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
@@ -58,22 +59,33 @@ function SettingsPage({ darkMode, toggleTheme }) {
   
   // UI state
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Check authentication and load user data
   useEffect(() => {
-    const authToken = Cookies.get("authToken");
-    if (!authToken) {
-      console.log('No auth token found, redirecting to auth'); // Debug log
-      navigate('/auth');
-      return;
-    }
-    console.log('Auth token found, loading profile'); // Debug log
-    setIsAuthenticated(true);
-    loadUserProfile();
-    checkAdminStatus();
-    if (developerMode && isAdmin) {
-      loadDeveloperInfo();
-    }
+    const initializeSettings = async () => {
+      try {
+        const authToken = Cookies.get("authToken");
+        if (!authToken) {
+          console.log('No auth token found, redirecting to auth'); // Debug log
+          navigate('/auth');
+          return;
+        }
+        console.log('Auth token found, loading profile'); // Debug log
+        setIsAuthenticated(true);
+        await loadUserProfile();
+        await checkAdminStatus();
+        if (developerMode && isAdmin) {
+          loadDeveloperInfo();
+        }
+      } catch (error) {
+        console.error('Error initializing settings:', error);
+        toast.error('Failed to load settings');
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    initializeSettings();
   }, [navigate, developerMode, isAdmin]);
 
   const loadUserProfile = async () => {
@@ -337,8 +349,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
     return new Date(timestamp).toLocaleString();
   };
 
-  if (!isAuthenticated) {
-    return <div>Loading...</div>;
+  if (!isAuthenticated || initialLoading) {
+    return (
+      <div className={`${darkMode ? "dark" : ""}`}>
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+        <LoadingScreen type="settings" />
+      </div>
+    );
   }
 
   return (

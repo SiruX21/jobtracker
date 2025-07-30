@@ -20,6 +20,7 @@ import JobCards from "./components/tracker/JobCards";
 import AddJobModal from "./components/tracker/AddJobModal";
 import EditJobModal from "./components/tracker/EditJobModal";
 import LoadingOverlay from "./components/tracker/LoadingOverlay";
+import LoadingScreen from "./components/shared/LoadingScreen";
 
 // Utility functions
 const getCurrentDate = () => {
@@ -137,6 +138,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
     notes: ""
   });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [companySuggestionsList, setCompanySuggestionsList] = useState([]);
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState([]);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
@@ -595,8 +597,15 @@ function TrackerPage({ darkMode, toggleTheme }) {
   // Initialize data on mount
   useEffect(() => {
     const initializeData = async () => {
-      await fetchJobStatuses();
-      await fetchJobs();
+      try {
+        await fetchJobStatuses();
+        await fetchJobs();
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        toast.error('Failed to load data');
+      } finally {
+        setInitialLoading(false);
+      }
     };
     initializeData();
   }, []);
@@ -642,9 +651,13 @@ function TrackerPage({ darkMode, toggleTheme }) {
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {initialLoading ? (
+        <LoadingScreen type="tracker" />
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
           <TrackerHeader />
           
@@ -745,6 +758,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
           
         </div>
       </div>
+      )}
     </div>
   );
 }
