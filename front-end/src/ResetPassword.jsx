@@ -49,10 +49,6 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match.');
       return;
-    // Validate confirm password
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
     }
 
     if (!token) {
