@@ -370,6 +370,87 @@ def delete_account():
         print(f"Unexpected error during account deletion: {e}")
         return jsonify({"message": "Failed to delete account"}), 500
 
+@auth_bp.route("/request-email-change", methods=["POST"])
+@token_required
+def request_email_change_route():
+    """Simplified email change endpoint that matches frontend expectations"""
+    try:
+        data = request.get_json()
+        new_email = data.get('newEmail')
+        password = data.get('password')
+        user_id = request.current_user_id
+        
+        if not new_email or not password:
+            return jsonify({"error": "New email and password are required"}), 400
+        
+        # Verify current password first
+        conn, cursor = get_db()
+        cursor.execute("SELECT password_hash, email FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            conn.close()
+            return jsonify({"error": "User not found"}), 404
+            
+        # Import and use the verify_password function from auth_service
+        from app.services.auth_service import verify_password
+        if not verify_password(user['password_hash'], password):
+            conn.close()
+            return jsonify({"error": "Invalid password"}), 401
+        
+        # Check if new email is different from current
+        if new_email == user['email']:
+            conn.close()
+            return jsonify({"error": "New email must be different from current email"}), 400
+        
+        # Check if new email is already in use
+        cursor.execute("SELECT id FROM users WHERE email = ? AND id != ?", (new_email, user_id))
+        if cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "Email is already in use"}), 409
+        
+        # Generate tokens for two-step verification
+        import secrets
+        from datetime import datetime, timedelta
+        
+        current_email_token = secrets.token_urlsafe(32)
+        new_email_token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=24)
+        
+        # Store the email change request
+        cursor.execute("""
+            UPDATE users 
+            SET email_change_new_email = ?, 
+                email_change_current_token = ?, 
+                email_change_new_token = ?,
+                email_change_expires = ?
+            WHERE id = ?
+        """, (new_email, current_email_token, new_email_token, expires, user_id))
+        
+        conn.commit()
+        conn.close()
+        
+        # Send confirmation emails
+        from app.services.email_service import send_email_change_confirmation, send_new_email_verification
+        
+        try:
+            # Send confirmation to current email
+            send_email_change_confirmation(user['email'], current_email_token)
+            # Send verification to new email  
+            send_new_email_verification(new_email, new_email_token)
+        except Exception as e:
+            print(f"Failed to send email change confirmation: {e}")
+            return jsonify({"error": "Failed to send confirmation emails"}), 500
+        
+        return jsonify({
+            "success": True, 
+            "message": "Email change requests sent. Please check both your current and new email addresses."
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in request_email_change: {e}")
+        return jsonify({"error": "Failed to process email change request"}), 500
+
 @auth_bp.route("/initiate-email-change", methods=["POST"])
 @token_required
 def initiate_email_change_route():
