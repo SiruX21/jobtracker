@@ -51,7 +51,7 @@ function JobCards({
                   e.stopPropagation();
                   deleteJob(jobs.findIndex(j => j.id === job.id));
                 }}
-                className="absolute top-3 right-3 p-2 text-gray-400 dark:text-gray-500 rounded-full hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors opacity-50 hover:opacity-100"
+                className="absolute top-3 right-3 p-2 text-gray-500 dark:text-gray-400 rounded-full hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-70 hover:opacity-100"
                 title="Delete application"
               >
                 <FaTrash className="w-4 h-4" />

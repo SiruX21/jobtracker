@@ -27,22 +27,13 @@ function EditJobModal({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleDelete}
-                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
-                title="Delete Application"
-              >
-                <FaTrash size={20} />
-              </button>
-              <button 
-                onClick={onClose} 
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                title="Close"
-              >
-                <FaTimes size={24} />
-              </button>
-            </div>
+            <button 
+              onClick={onClose} 
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+              title="Close"
+            >
+              <FaTimes size={24} />
+            </button>
           </div>
 
           <div className="space-y-4">
@@ -151,43 +142,43 @@ function EditJobModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center pt-4">
-              {/* Delete Button - Left side */}
-              <button
-                onClick={handleDelete}
-                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 flex items-center transition-all duration-200"
-              >
-                <FaTrash className="mr-2" />
-                Delete
-              </button>
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
+            {/* Delete Button - Left side */}
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 flex items-center transition-all duration-200"
+            >
+              <FaTrash className="mr-2" />
+              Delete
+            </button>
 
-              {/* Cancel and Update Buttons - Right side */}
-              <div className="flex space-x-3">
-                <button
-                  onClick={onClose}
-                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={onSubmit}
-                  disabled={loading || !newJob.company_name || !newJob.job_title}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
-                >
-                  {loading ? (
-                    <>
-                      <FaSpinner className="mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <FaEdit className="mr-2" />
-                      Update Application
-                    </>
-                  )}
-                </button>
-              </div>
+            {/* Cancel and Update Buttons - Right side */}
+            <div className="flex space-x-3">
+              <button
+                onClick={onClose}
+                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onSubmit}
+                disabled={loading || !newJob.company_name || !newJob.job_title}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
+              >
+                {loading ? (
+                  <>
+                    <FaSpinner className="mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <FaEdit className="mr-2" />
+                    Update Application
+                  </>
+                )}
+              </button>
             </div>
+          </div>
           </div>
         </div>
       </div>
