@@ -62,6 +62,10 @@ def create_job(current_user):
         values = (user_id, job_title, company_name, application_date, status, job_url, notes, location)
         cursor.execute(sql, values)
         new_job_id = cursor.lastrowid
+        
+        # Add initial status history entry
+        add_status_history(cursor, new_job_id, None, status, user_id)
+        
         cursor.execute("SELECT * FROM job_applications WHERE id = ?", (new_job_id,))
         new_job = cursor.fetchone()
         
@@ -73,6 +77,8 @@ def create_job(current_user):
         if new_job.get('updated_at'):
             new_job['updated_at'] = new_job['updated_at'].isoformat()
 
+        conn.commit()
+        conn.close()
         return jsonify(new_job), 201
     except mariadb.Error as e:
         print(f"Database error creating job: {e}")
@@ -155,19 +161,28 @@ def update_job(current_user, job_id):
     try:
         conn, cursor = get_db()
         
+        # Get current job data to check for status changes
+        cursor.execute("SELECT * FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
+        current_job = cursor.fetchone()
+        
+        if not current_job:
+            return jsonify({"error": "Job application not found or access denied"}), 404
+        
         # If status is being updated, ensure it exists in job_statuses table
         if 'status' in update_fields:
             ensure_status_exists(cursor, update_fields['status'])
+            
+            # Track status change if status is different
+            old_status = current_job['status']
+            new_status = update_fields['status']
+            if old_status != new_status:
+                add_status_history(cursor, job_id, old_status, new_status, user_id)
         
         sql = f"UPDATE job_applications SET {set_clause} WHERE id = ? AND user_id = ?"
         cursor.execute(sql, tuple(values))
 
         if cursor.rowcount == 0:
-            cursor.execute("SELECT id FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
-            if not cursor.fetchone():
-                return jsonify({"error": "Job application not found or access denied"}), 404
-            else:
-                return jsonify({"message": "No changes detected or applied"}), 200
+            return jsonify({"message": "No changes detected or applied"}), 200
 
         cursor.execute("SELECT * FROM job_applications WHERE id = ?", (job_id,))
         updated_job = cursor.fetchone()
@@ -178,6 +193,8 @@ def update_job(current_user, job_id):
         if updated_job.get('updated_at'):
             updated_job['updated_at'] = updated_job['updated_at'].isoformat()
 
+        conn.commit()
+        conn.close()
         return jsonify(updated_job)
     except mariadb.Error as e:
         print(f"Database error updating job {job_id}: {e}")
@@ -327,4 +344,116 @@ def update_job_status(current_user, status_name):
         return jsonify({"error": "Failed to update job status"}), 500
     except Exception as e:
         print(f"Unexpected error updating job status: {e}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
+def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=None):
+    """Add a status change entry to the history table"""
+    try:
+        cursor.execute("""
+            INSERT INTO job_status_history (job_id, from_status, to_status, created_by, notes)
+            VALUES (?, ?, ?, ?, ?)
+        """, (job_id, from_status, to_status, user_id, notes))
+        return True
+    except mariadb.Error as e:
+        print(f"Error adding status history: {e}")
+        return False
+
+@jobs_bp.route('/status-history/<int:job_id>', methods=['GET'])
+@token_required
+def get_job_status_history(current_user, job_id):
+    """Get status history for a specific job"""
+    try:
+        conn, cursor = get_db()
+        
+        # Verify user owns this job
+        cursor.execute("""
+            SELECT id FROM jobs WHERE id = ? AND user_id = ?
+        """, (job_id, current_user['id']))
+        
+        if not cursor.fetchone():
+            return jsonify({"error": "Job not found or access denied"}), 404
+        
+        # Get status history
+        cursor.execute("""
+            SELECT jsh.id, jsh.from_status, jsh.to_status, jsh.changed_at, jsh.notes,
+                   u.username as changed_by
+            FROM job_status_history jsh
+            LEFT JOIN users u ON jsh.created_by = u.id
+            WHERE jsh.job_id = ?
+            ORDER BY jsh.changed_at ASC
+        """, (job_id,))
+        
+        history = []
+        for row in cursor.fetchall():
+            history.append({
+                'id': row['id'],
+                'from_status': row['from_status'],
+                'to_status': row['to_status'],
+                'changed_at': row['changed_at'].isoformat() if row['changed_at'] else None,
+                'notes': row['notes'],
+                'changed_by': row['changed_by']
+            })
+        
+        conn.close()
+        return jsonify(history), 200
+        
+    except mariadb.Error as e:
+        print(f"Database error getting status history: {e}")
+        return jsonify({"error": "Failed to get status history"}), 500
+    except Exception as e:
+        print(f"Unexpected error getting status history: {e}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
+@jobs_bp.route('/analytics/status-flow', methods=['GET'])
+@token_required  
+def get_status_flow_analytics(current_user):
+    """Get status flow data for Sankey diagram"""
+    try:
+        conn, cursor = get_db()
+        
+        # Get all status transitions for user's jobs
+        cursor.execute("""
+            SELECT jsh.from_status, jsh.to_status, COUNT(*) as transition_count
+            FROM job_status_history jsh
+            INNER JOIN jobs j ON jsh.job_id = j.id
+            WHERE j.user_id = ? AND jsh.from_status IS NOT NULL
+            GROUP BY jsh.from_status, jsh.to_status
+            ORDER BY transition_count DESC
+        """, (current_user['id'],))
+        
+        transitions = []
+        for row in cursor.fetchall():
+            transitions.append({
+                'from_status': row['from_status'],
+                'to_status': row['to_status'],
+                'count': row['transition_count']
+            })
+        
+        # Get initial status counts (applications that started with this status)
+        cursor.execute("""
+            SELECT jsh.to_status as status, COUNT(*) as count
+            FROM job_status_history jsh
+            INNER JOIN jobs j ON jsh.job_id = j.id
+            WHERE j.user_id = ? AND jsh.from_status IS NULL
+            GROUP BY jsh.to_status
+        """, (current_user['id'],))
+        
+        initial_statuses = []
+        for row in cursor.fetchall():
+            initial_statuses.append({
+                'status': row['status'],
+                'count': row['count']
+            })
+        
+        conn.close()
+        return jsonify({
+            'transitions': transitions,
+            'initial_statuses': initial_statuses
+        }), 200
+        
+    except mariadb.Error as e:
+        print(f"Database error getting status flow analytics: {e}")
+        return jsonify({"error": "Failed to get analytics data"}), 500
+    except Exception as e:
+        print(f"Unexpected error getting status flow analytics: {e}")
         return jsonify({"error": "An unexpected error occurred"}), 500

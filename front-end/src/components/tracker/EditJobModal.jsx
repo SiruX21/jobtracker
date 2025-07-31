@@ -1,5 +1,6 @@
-import React from 'react';
-import { FaTimes, FaEdit, FaSpinner, FaTrash } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaTimes, FaEdit, FaSpinner, FaTrash, FaHistory } from 'react-icons/fa';
+import StatusHistoryModal from './StatusHistoryModal';
 
 function EditJobModal({ 
   isOpen, 
@@ -12,6 +13,7 @@ function EditJobModal({
   darkMode,
   onDelete // Add delete handler prop
 }) {
+  const [showStatusHistory, setShowStatusHistory] = useState(false);
   if (!isOpen) return null;
 
   const handleDelete = () => {
@@ -69,9 +71,21 @@ function EditJobModal({
             {/* Status and Application Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Status
+                  </label>
+                  {newJob.id && (
+                    <button
+                      onClick={() => setShowStatusHistory(true)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center"
+                      type="button"
+                    >
+                      <FaHistory className="mr-1" />
+                      View History
+                    </button>
+                  )}
+                </div>
                 <select
                   value={newJob.status || ''}
                   onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
@@ -182,6 +196,15 @@ function EditJobModal({
           </div>
         </div>
       </div>
+
+      {/* Status History Modal */}
+      <StatusHistoryModal
+        isOpen={showStatusHistory}
+        onClose={() => setShowStatusHistory(false)}
+        jobId={newJob.id}
+        jobTitle={newJob.job_title}
+        companyName={newJob.company_name}
+      />
     </div>
   );
 }
