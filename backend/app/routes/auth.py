@@ -420,12 +420,13 @@ def request_email_change_route(current_user):
         # Store the email change request
         cursor.execute("""
             UPDATE users 
-            SET email_change_new_email = ?, 
-                email_change_current_token = ?, 
-                email_change_new_token = ?,
-                email_change_expires = ?
+            SET new_email = ?, 
+                email_change_token = ?, 
+                new_email_token = ?,
+                email_change_token_expires = ?,
+                new_email_token_expires = ?
             WHERE id = ?
-        """, (new_email, current_email_token, new_email_token, expires, user_id))
+        """, (new_email, current_email_token, new_email_token, expires, expires, user_id))
         
         conn.commit()
         conn.close()

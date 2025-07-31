@@ -161,7 +161,8 @@ function SettingsPage({ darkMode, toggleTheme }) {
       setEmailChangeStep('pending');
       toast.success('📧 Email change request sent! Check both your current and new email addresses for confirmation links.');
     } catch (error) {
-      toast.error(`❌ ${error.response?.data?.message || 'Failed to request email change'}`);
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to request email change';
+      toast.error(`❌ ${errorMessage}`);
     } finally {
       setEmailChangeLoading(false);
     }
