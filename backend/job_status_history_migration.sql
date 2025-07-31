@@ -7,7 +7,7 @@ CREATE TABLE job_status_history (
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     notes TEXT,
     created_by INT,
-    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES job_applications(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_job_id (job_id),
     INDEX idx_changed_at (changed_at)
@@ -21,5 +21,5 @@ SELECT
     status as to_status,
     application_date as changed_at,
     user_id as created_by
-FROM jobs
+FROM job_applications
 WHERE status IS NOT NULL;

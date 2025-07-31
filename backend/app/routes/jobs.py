@@ -367,7 +367,7 @@ def get_job_status_history(current_user, job_id):
         
         # Verify user owns this job
         cursor.execute("""
-            SELECT id FROM jobs WHERE id = ? AND user_id = ?
+            SELECT id FROM job_applications WHERE id = ? AND user_id = ?
         """, (job_id, current_user['id']))
         
         if not cursor.fetchone():
@@ -415,7 +415,7 @@ def get_status_flow_analytics(current_user):
         cursor.execute("""
             SELECT jsh.from_status, jsh.to_status, COUNT(*) as transition_count
             FROM job_status_history jsh
-            INNER JOIN jobs j ON jsh.job_id = j.id
+            INNER JOIN job_applications j ON jsh.job_id = j.id
             WHERE j.user_id = ? AND jsh.from_status IS NOT NULL
             GROUP BY jsh.from_status, jsh.to_status
             ORDER BY transition_count DESC
@@ -433,7 +433,7 @@ def get_status_flow_analytics(current_user):
         cursor.execute("""
             SELECT jsh.to_status as status, COUNT(*) as count
             FROM job_status_history jsh
-            INNER JOIN jobs j ON jsh.job_id = j.id
+            INNER JOIN job_applications j ON jsh.job_id = j.id
             WHERE j.user_id = ? AND jsh.from_status IS NULL
             GROUP BY jsh.to_status
         """, (current_user['id'],))
