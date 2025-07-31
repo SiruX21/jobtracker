@@ -320,6 +320,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const openEditModal = (job, index) => {
     setEditingJob({ ...job, index });
     setNewJob({
+      id: job.id,
       company_name: job.company_name,
       job_title: job.job_title,
       status: job.status,
@@ -450,7 +451,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
         });
         
         const updatedJobs = [...jobs];
-        updatedJobs[editingJob.index] = { ...editingJob, ...newJob };
+        updatedJobs[editingJob.index] = { ...newJob, id: editingJob.id };
         setJobs(updatedJobs);
         cacheUtils.set(updatedJobs);
         setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
