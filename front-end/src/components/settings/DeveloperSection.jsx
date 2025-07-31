@@ -9,7 +9,6 @@ import {
   FaTrash 
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { showToast } from '../../utils/toast';
 
 function DeveloperSection({ 
   isAdmin,

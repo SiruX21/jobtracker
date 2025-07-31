@@ -64,6 +64,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
   // UI state for expandable sections
   const [expandedSections, setExpandedSections] = useState({});
 
+  // Developer settings
+  const [developerMode, setDeveloperMode] = useState(() => 
+    localStorage.getItem('developerMode') === 'true'
+  );
+  const [cacheInfo, setCacheInfo] = useState(null);
+  const [storageInfo, setStorageInfo] = useState(null);
+
   // Check authentication and load user data
   useEffect(() => {
     const initializeSettings = async () => {
@@ -277,8 +284,97 @@ function SettingsPage({ darkMode, toggleTheme }) {
           });
         }, 100);
         break;
+      case 'developerMode':
+        setDeveloperMode(value);
+        localStorage.setItem('developerMode', value.toString());
+        if (value) {
+          loadDeveloperInfo();
+          toast.success('🔧 Developer mode enabled - Advanced tools are now available');
+        } else {
+          toast.info('🔧 Developer mode disabled');
+        }
+        break;
     }
   };
+
+  // Developer info functions
+  const loadDeveloperInfo = () => {
+    // Load cache information
+    const jobsCache = localStorage.getItem('jobTracker_jobs_cache');
+    const cacheExpiry = localStorage.getItem('jobTracker_cache_expiry');
+    
+    let cacheData = null;
+    if (jobsCache) {
+      try {
+        const parsed = JSON.parse(jobsCache);
+        cacheData = {
+          size: new Blob([jobsCache]).size,
+          jobCount: parsed.jobs ? parsed.jobs.length : 0,
+          timestamp: parsed.timestamp,
+          version: parsed.version,
+          expiry: cacheExpiry,
+          isExpired: Date.now() > parseInt(cacheExpiry || '0')
+        };
+      } catch (error) {
+        cacheData = { error: 'Invalid cache data' };
+      }
+    }
+    setCacheInfo(cacheData);
+
+    // Load storage information
+    let totalSize = 0;
+    let itemCount = 0;
+    const storageItems = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const value = localStorage.getItem(key);
+      const size = new Blob([value]).size;
+      totalSize += size;
+      itemCount++;
+      
+      if (key.startsWith('jobTracker_') || key === 'darkMode' || key === 'authToken') {
+        storageItems.push({
+          key,
+          size,
+          preview: value.length > 50 ? value.substring(0, 50) + '...' : value
+        });
+      }
+    }
+    
+    setStorageInfo({
+      totalSize,
+      itemCount,
+      items: storageItems
+    });
+  };
+
+  const clearCache = () => {
+    localStorage.removeItem('jobTracker_jobs_cache');
+    localStorage.removeItem('jobTracker_cache_expiry');
+    localStorage.removeItem('jobTracker_cache_version');
+    loadDeveloperInfo();
+    toast.success('🗑️ Cache cleared successfully');
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  // Load developer info when developer mode is enabled and user is admin
+  useEffect(() => {
+    if (developerMode && isAdmin) {
+      loadDeveloperInfo();
+    }
+  }, [developerMode, isAdmin]);
 
   // Render active tab
   const renderActiveTab = () => {
@@ -323,6 +419,15 @@ function SettingsPage({ darkMode, toggleTheme }) {
           <DeveloperSection
             isAdmin={isAdmin}
             isMobile={isMobile}
+            developerMode={developerMode}
+            handleSettingChange={handleSettingChange}
+            cacheInfo={cacheInfo}
+            storageInfo={storageInfo}
+            loadDeveloperInfo={loadDeveloperInfo}
+            clearCache={clearCache}
+            formatBytes={formatBytes}
+            formatDate={formatDate}
+            showToast={showToast}
           />
         ) : null;
       default:
