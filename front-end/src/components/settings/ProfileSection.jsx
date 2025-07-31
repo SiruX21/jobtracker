@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaUser, FaChevronDown, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import React from 'react';
+import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 
 function ProfileSection({ 
   user, 
@@ -9,20 +9,6 @@ function ProfileSection({
   setShowDeleteModal,
   isMobile 
 }) {
-  // Local state for expanded sections
-  const [expandedSections, setExpandedSections] = useState({
-    accountInfo: true,
-    dangerZone: true
-  });
-
-  // Toggle section expansion
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
   // Format date utility
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleString();
@@ -34,75 +20,59 @@ function ProfileSection({
         Profile & Security
       </h2>
       
-      {/* User Info */}
+      {/* Account Information */}
       {user && (
-                <div className="mb-8">
-          <div
-            onClick={() => toggleSection('accountInfo')}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200"
-          >
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-2">Account Information</h3>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowEmailChangeModal(true);
-                  }}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
-                >
-                  Change Email
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPasswordChangeModal(true);
-                  }}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-105"
-                >
-                  Change Password
-                </button>
-              </div>
-              <FaChevronDown className={`transition-transform duration-200 ${expandedSections.accountInfo ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-          {expandedSections.accountInfo && (
-            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 animate-fadeIn">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>
+        <div className="mb-8">
+          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            <h3 className="font-medium text-gray-900 dark:text-white mb-4">Account Information</h3>
+            
+            <div className="space-y-2 mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Member since: {formatDate(user.created_at)}
+                <span className="font-medium">Email:</span> {user.email}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Member since:</span> {formatDate(user.created_at)}
               </p>
             </div>
-          )}
+            
+            <div className={`flex ${isMobile ? 'flex-col space-y-2' : 'items-center space-x-4'}`}>
+              <button
+                onClick={() => setShowEmailChangeModal(true)}
+                className={`px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full' : ''}`}
+              >
+                Change Email
+              </button>
+              <button
+                onClick={() => setShowPasswordChangeModal(true)}
+                className={`px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full' : ''}`}
+              >
+                Change Password
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Delete Account - Danger Zone */}
-      <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={() => toggleSection('dangerZone')}
-          className="w-full flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200"
-        >
-          <div className="flex items-center">
+      {/* Danger Zone */}
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+          <div className="flex items-center mb-3">
             <FaExclamationTriangle className="text-red-600 dark:text-red-400 mr-3" />
             <h3 className="font-medium text-red-900 dark:text-red-100">Danger Zone</h3>
           </div>
-          <FaChevronDown className={`transition-transform duration-200 text-red-600 dark:text-red-400 ${expandedSections.dangerZone ? 'rotate-180' : ''}`} />
-        </button>
-        {expandedSections.dangerZone && (
-          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 animate-fadeIn">
-            <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-              Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
-            </p>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
-            >
-              <FaTrash className="mr-2" />
-              Delete Account
-            </button>
-          </div>
-        )}
+          
+          <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+          </p>
+          
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className={`flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
+          >
+            <FaTrash className="mr-2" />
+            Delete Account
+          </button>
+        </div>
       </div>
     </div>
   );
