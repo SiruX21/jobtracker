@@ -63,14 +63,14 @@ function ProfileSection({
       
       {/* User Info */}
       {user && (
-        <div className="mb-8">
-          <button
+                <div className="mb-8">
+          <div
             onClick={() => toggleSection('accountInfo')}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200"
+            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200"
           >
-            <h3 className="font-medium text-gray-900 dark:text-white">Account Information</h3>
-            <div className="flex items-center space-x-2">
-              <div className="flex space-x-2">
+            <div className="flex-1">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">Account Information</h3>
+              <div className="flex items-center space-x-4">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -92,7 +92,7 @@ function ProfileSection({
               </div>
               <FaChevronDown className={`transition-transform duration-200 ${expandedSections.accountInfo ? 'rotate-180' : ''}`} />
             </div>
-          </button>
+          </div>
           {expandedSections.accountInfo && (
             <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 animate-fadeIn">
               <p className="text-sm text-gray-600 dark:text-gray-400">Email: {user.email}</p>

@@ -50,6 +50,20 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Accessibility settings
+  const [toastPosition, setToastPosition] = useState(() => 
+    localStorage.getItem('toastPosition') || 'bottom-center'
+  );
+  const [toastTheme, setToastTheme] = useState(() => 
+    localStorage.getItem('toastTheme') || 'auto'
+  );
+  const [notifications, setNotifications] = useState(() => 
+    localStorage.getItem('notifications') !== 'false'
+  );
+
+  // UI state for expandable sections
+  const [expandedSections, setExpandedSections] = useState({});
+
   // Check authentication and load user data
   useEffect(() => {
     const initializeSettings = async () => {
@@ -217,6 +231,55 @@ function SettingsPage({ darkMode, toggleTheme }) {
     toast[type](message);
   };
 
+  // Toggle section helper
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Handle setting changes
+  const handleSettingChange = (setting, value) => {
+    switch (setting) {
+      case 'notifications':
+        setNotifications(value);
+        localStorage.setItem('notifications', value.toString());
+        toast.success(`🔔 Notifications ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'toastPosition':
+        setToastPosition(value);
+        localStorage.setItem('toastPosition', value);
+        // Dispatch custom event to notify App.jsx of the change
+        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+          detail: { position: value, theme: toastTheme } 
+        }));
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
+            position: value,
+            theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+          });
+        }, 100);
+        break;
+      case 'toastTheme':
+        setToastTheme(value);
+        localStorage.setItem('toastTheme', value);
+        // Dispatch custom event to notify App.jsx of the change
+        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+          detail: { position: toastPosition, theme: value } 
+        }));
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          toast.success(`🎨 Toast theme changed to ${value}`, {
+            position: toastPosition,
+            theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
+          });
+        }, 100);
+        break;
+    }
+  };
+
   // Render active tab
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -246,6 +309,13 @@ function SettingsPage({ darkMode, toggleTheme }) {
           <AccessibilitySection
             darkMode={darkMode}
             isMobile={isMobile}
+            toastPosition={toastPosition}
+            toastTheme={toastTheme}
+            notifications={notifications}
+            handleSettingChange={handleSettingChange}
+            expandedSections={expandedSections}
+            toggleSection={toggleSection}
+            showToast={showToast}
           />
         );
       case 'developer':

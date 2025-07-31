@@ -7,7 +7,6 @@ import {
   FaChevronDown, 
   FaUniversalAccess 
 } from 'react-icons/fa';
-import { showToast } from '../../utils/toast';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -89,11 +88,7 @@ function AccessibilitySection({
                 
                 // Small delay to ensure settings are applied
                 setTimeout(() => {
-                  showToast.success("🎉 This is a test notification!", {
-                    position: toastPosition,
-                    theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme,
-                    icon: "✨"
-                  });
+                  showToast('success', "🎉 This is a test notification!");
                 }, 100);
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
@@ -106,18 +101,18 @@ function AccessibilitySection({
 
         {/* Visual Settings */}
         <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <button
+          <div
             onClick={() => toggleSection('visualSettings')}
-            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
           >
             <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
               <FaPalette className="mr-2" />
               Visual Accessibility
             </h3>
-            <FaChevronDown className={`transition-transform duration-200 ${expandedSections.visualSettings ? 'rotate-180' : ''}`} />
-          </button>
+            <FaChevronDown className={`transition-transform duration-200 ${expandedSections?.visualSettings ? 'rotate-180' : ''}`} />
+          </div>
           
-          {expandedSections.visualSettings && (
+          {expandedSections?.visualSettings && (
             <div className="animate-fadeIn">
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-start">
