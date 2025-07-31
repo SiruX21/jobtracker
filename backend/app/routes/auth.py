@@ -372,13 +372,13 @@ def delete_account():
 
 @auth_bp.route("/request-email-change", methods=["POST"])
 @token_required
-def request_email_change_route():
+def request_email_change_route(current_user):
     """Simplified email change endpoint that matches frontend expectations"""
     try:
         data = request.get_json()
         new_email = data.get('newEmail')
         password = data.get('password')
-        user_id = request.current_user_id
+        user_id = current_user['id']
         
         if not new_email or not password:
             return jsonify({"error": "New email and password are required"}), 400
