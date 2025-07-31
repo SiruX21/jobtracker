@@ -366,9 +366,9 @@ def send_email_change_confirmation(user_email, token):
         print("Email configuration missing")
         return False
     
-    # Get backend URL for confirmation link
-    backend_url = os.getenv('BACKEND_URL', 'http://localhost:5000')
-    confirmation_link = f"{backend_url}/api/auth/confirm-email-change?token={token}"
+    # Get frontend URL for confirmation link
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    confirmation_link = f"{frontend_url}/confirm-email-change?token={token}"
     
     subject = "Confirm Email Change Request"
     
@@ -532,9 +532,9 @@ def send_new_email_verification(new_email, token):
         print("Email configuration missing")
         return False
     
-    # Get backend URL for verification link
-    backend_url = os.getenv('BACKEND_URL', 'http://localhost:5000')
-    verification_link = f"{backend_url}/api/auth/verify-new-email?token={token}"
+    # Get frontend URL for verification link
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    verification_link = f"{frontend_url}/verify-new-email?token={token}"
     
     subject = "Verify Your New Email Address"
     

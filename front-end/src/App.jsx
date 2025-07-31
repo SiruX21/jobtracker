@@ -11,6 +11,8 @@ import AdminPanel from "./AdminPanel";
 import EmailVerification from "./EmailVerification";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
+import ConfirmEmailChange from "./ConfirmEmailChange";
+import VerifyNewEmail from "./VerifyNewEmail";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -151,6 +153,14 @@ function App() {
           <Route
             path="/reset-password"
             element={<ResetPassword darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+          />
+          <Route
+            path="/confirm-email-change"
+            element={<ConfirmEmailChange darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+          />
+          <Route
+            path="/verify-new-email"
+            element={<VerifyNewEmail darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
         </Routes>
         
