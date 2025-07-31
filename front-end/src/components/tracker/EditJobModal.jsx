@@ -27,9 +27,22 @@ function EditJobModal({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <FaTimes size={24} />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleDelete}
+                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
+                title="Delete Application"
+              >
+                <FaTrash size={20} />
+              </button>
+              <button 
+                onClick={onClose} 
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                title="Close"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
