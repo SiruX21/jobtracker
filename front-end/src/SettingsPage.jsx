@@ -560,18 +560,18 @@ function SettingsPage({ darkMode, toggleTheme }) {
 
                       {/* Admin Panel - Admin Only */}
                       {isAdmin ? (
-                        <div className="relative">
-                          <button
-                            onClick={() => navigate('/admin')}
-                            className="absolute top-0 right-0 p-2 border border-gray-300 dark:border-gray-600 bg-transparent text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            title="Open Admin Panel"
-                          >
-                            <FaExternalLinkAlt className="w-4 h-4" />
-                          </button>
-                          <div className="pr-12">
+                        <div className="flex items-center justify-between">
+                          <div>
                             <h3 className="font-medium text-gray-900 dark:text-white">Admin Panel</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Access full system administration console</p>
                           </div>
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center"
+                          >
+                            <FaCode className="mr-2" />
+                            Open Admin Panel
+                          </button>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between opacity-50">
