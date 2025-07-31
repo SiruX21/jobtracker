@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaUser, FaChevronDown, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
-import Cookies from 'js-cookie';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { API_BASE_URL } from '../../config';
 
 function ProfileSection({ 
   user, 
@@ -15,8 +11,8 @@ function ProfileSection({
 }) {
   // Local state for expanded sections
   const [expandedSections, setExpandedSections] = useState({
-    accountInfo: false,
-    dangerZone: false
+    accountInfo: true,
+    dangerZone: true
   });
 
   // Toggle section expansion
@@ -31,29 +27,6 @@ function ProfileSection({
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleString();
   };
-
-  // Load user profile
-  const loadUserProfile = async () => {
-    try {
-      const authToken = Cookies.get("authToken");
-      if (!authToken) return;
-      
-      const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      setUser(response.data);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      toast.error('Failed to load user profile');
-    }
-  };
-
-  // Load user profile on component mount
-  useEffect(() => {
-    if (!user) {
-      loadUserProfile();
-    }
-  }, [user]);
 
   return (
     <div className={`${isMobile ? 'p-4' : 'p-6'}`}>

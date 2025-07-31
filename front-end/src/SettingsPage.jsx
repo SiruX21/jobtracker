@@ -81,7 +81,10 @@ function SettingsPage({ darkMode, toggleTheme }) {
           return;
         }
         setIsAuthenticated(true);
-        await checkAdminStatus();
+        await Promise.all([
+          loadUserProfile(),
+          checkAdminStatus()
+        ]);
       } catch (error) {
         console.error('Error initializing settings:', error);
         toast.error('Failed to load settings');
@@ -91,6 +94,22 @@ function SettingsPage({ darkMode, toggleTheme }) {
     };
     initializeSettings();
   }, [navigate]);
+
+  // Load user profile
+  const loadUserProfile = async () => {
+    try {
+      const authToken = Cookies.get("authToken");
+      if (!authToken) return;
+      
+      const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      toast.error('Failed to load user profile');
+    }
+  };
 
   // Check admin status
   const checkAdminStatus = async () => {
