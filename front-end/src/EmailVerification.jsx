@@ -17,7 +17,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
     
     if (!token) {
       setStatus('error');
-      showToast.error('Invalid verification link. No token provided.');
+      showToast('error', 'Invalid verification link. No token provided.');
       return;
     }
 
@@ -37,8 +37,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
         
         if (response.status === 200) {
           setStatus('success');
-          showToast.success('✅ Email verified successfully! Redirecting to login...');
-          
+          showToast('success', '✅ Email verified successfully! Redirecting to login...');
           // Redirect to login page after 3 seconds
           setTimeout(() => {
             navigate('/auth');
@@ -47,34 +46,34 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
       } catch (error) {
         setStatus('error');
         if (error.response?.data?.error) {
-          showToast.error(error.response.data.error);
+          showToast('error', error.response.data.error);
         } else {
-          showToast.error('Failed to verify email. Please try again or contact support.');
+          showToast('error', 'Failed to verify email. Please try again or contact support.');
         }
-      }
-    };
-
-    verifyEmail();
-  }, [searchParams, navigate, hasVerified]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
-      
-      {/* Main Content Container */}
-      <div className="mt-8 w-full max-w-md transform transition-all duration-500 ease-out">
-        
-        {/* Header */}
-        <div className="text-center mb-8 animate-fadeIn">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Email Verification
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Verifying your email address
-          </p>
-        </div>
-
-        {/* Status Content */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full mt-20">
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">
+          Email Verification
+        </h2>
+        {status === 'success' && (
+          <div className="text-green-600 dark:text-green-400 text-center mb-4">
+            <span role="img" aria-label="check">✅</span> Your email has been verified!
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="text-red-600 dark:text-red-400 text-center mb-4">
+            <span role="img" aria-label="cross">❌</span> Verification failed.
+          </div>
+        )}
+        {status === 'pending' && (
+          <div className="text-blue-600 dark:text-blue-400 text-center mb-4">
+            <span role="img" aria-label="hourglass">⏳</span> Verifying your email...
+          </div>
+        )}
+      </div>
+    </div>
+  );
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl border border-white/20 dark:border-gray-700/30 animate-slideInUp">
           {status === 'verifying' && (
             <div className="text-center space-y-4">
@@ -139,7 +138,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
                   Verification Failed
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  {message}
+                  There was a problem verifying your email. Please check your link or try again.
                 </p>
               </div>
               

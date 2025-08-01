@@ -2,54 +2,64 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast, showCriticalToast } from './utils/toast';
 import { API_BASE_URL } from './config';
 import Header from './Header';
-import LoadingScreen from './components/shared/LoadingScreen';
+import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 
-// Import modular components
-import SettingsHeader from './components/settings/SettingsHeader';
-import SettingsSidebar from './components/settings/SettingsSidebar';
+// Import refactored components
 import ProfileSection from './components/settings/ProfileSection';
 import PreferencesSection from './components/settings/PreferencesSection';
 import AccessibilitySection from './components/settings/AccessibilitySection';
 import DeveloperSection from './components/settings/DeveloperSection';
 import SettingsModals from './components/settings/SettingsModals';
+import SettingsHeader from './components/settings/SettingsHeader';
+import SettingsSidebar from './components/settings/SettingsSidebar';
+import LoadingScreen from './components/settings/LoadingScreen';
 
-function SettingsPage({ darkMode, toggleTheme }) {
+function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   
-  // Core state
+  // State management
   const [activeTab, setActiveTab] = useState('profile');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-
-  // Modal states (shared across components)
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
-  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
-
-  // Email change states
-  const [newEmail, setNewEmail] = useState('');
-  const [emailChangePassword, setEmailChangePassword] = useState('');
-  const [emailChangeStep, setEmailChangeStep] = useState('request');
-  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
-
-  // Password change states
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  
+  // Profile settings
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState({});
-  const [passwordLoading, setPasswordLoading] = useState(false);
-
-  // Delete account states
+  
+  // Account deletion
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
-
+  
+  // Email change
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+  const [emailChangePassword, setEmailChangePassword] = useState('');
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  
+  // Password change modal
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
+  
+  // App settings
+  const [developerMode, setDeveloperMode] = useState(() => 
+    localStorage.getItem('developerMode') === 'true'
+  );
+  const [notifications, setNotifications] = useState(() => 
+    localStorage.getItem('notifications') !== 'false'
+  );
+  const [autoRefresh, setAutoRefresh] = useState(() => 
+    localStorage.getItem('autoRefresh') !== 'false'
+  );
+  const [dataRetention, setDataRetention] = useState(() => 
+    localStorage.getItem('dataRetention') || '30'
+  );
+  
   // Accessibility settings
   const [toastPosition, setToastPosition] = useState(() => 
     localStorage.getItem('toastPosition') || 'bottom-center'
@@ -57,190 +67,79 @@ function SettingsPage({ darkMode, toggleTheme }) {
   const [toastTheme, setToastTheme] = useState(() => 
     localStorage.getItem('toastTheme') || 'auto'
   );
-  const [notifications, setNotifications] = useState(() => 
-    localStorage.getItem('notifications') !== 'false'
-  );
-
-  // UI state for expandable sections
-  const [expandedSections, setExpandedSections] = useState({});
-
-  // Developer settings
-  const [developerMode, setDeveloperMode] = useState(() => 
-    localStorage.getItem('developerMode') === 'true'
-  );
+  
+  // Developer info
   const [cacheInfo, setCacheInfo] = useState(null);
   const [storageInfo, setStorageInfo] = useState(null);
+  
+  // UI state
+  const [loading, setLoading] = useState(false);
 
-  // Check authentication and load user data
-  useEffect(() => {
-    const initializeSettings = async () => {
-      try {
-        const authToken = Cookies.get("authToken");
-        if (!authToken) {
-          navigate('/auth');
-          return;
-        }
-        setIsAuthenticated(true);
-        await Promise.all([
-          loadUserProfile(),
-          checkAdminStatus()
-        ]);
-      } catch (error) {
-        console.error('Error initializing settings:', error);
-        toast.error('Failed to load settings');
-      } finally {
-        setInitialLoading(false);
+  // Password validation state
+  const [passwordValidation, setPasswordValidation] = useState(null);
+
+  // Progressive disclosure states
+  const [expandedSections, setExpandedSections] = useState({
+    accountInfo: true,
+    dangerZone: false,
+    notificationSettings: true,
+    visualSettings: false,
+    cacheInfo: false,
+    storageInfo: false,
+    systemInfo: false,
+    logoServices: false
+  });
+
+  // Utility functions
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Conditional toast helper - only show if notifications are enabled
+  const localShowToast = (type, message, options = {}) => {
+    if (notifications) {
+      if (type === 'success') {
+        showToast.success(message, options);
+      } else if (type === 'error') {
+        showToast.error(message, options);
+      } else if (type === 'info') {
+        showToast.info(message, options);
+      } else if (type === 'warning') {
+        showToast.warning(message, options);
       }
-    };
-    initializeSettings();
-  }, [navigate]);
-
-  // Load user profile
-  const loadUserProfile = async () => {
-    try {
-      const authToken = Cookies.get("authToken");
-      if (!authToken) return;
-      
-      const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      setUser(response.data);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      toast.error('Failed to load user profile');
     }
   };
 
-  // Check admin status
-  const checkAdminStatus = async () => {
-    try {
-      const token = Cookies.get('authToken');
-      if (!token) return;
-
-      await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setIsAdmin(true);
-    } catch (error) {
-      setIsAdmin(false);
-    }
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Handle window resize for mobile detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Email change handler
-  const handleEmailChange = async () => {
-    if (!newEmail.trim() || !emailChangePassword.trim()) {
-      toast.error('❌ Please enter both new email and password');
-      return;
-    }
-
-    if (newEmail === user?.email) {
-      toast.error('❌ New email must be different from current email');
-      return;
-    }
-
-    setEmailChangeLoading(true);
-    
-    try {
-      const authToken = Cookies.get("authToken");
-      await axios.post(`${API_BASE_URL}/auth/request-email-change`, {
-        newEmail,
-        password: emailChangePassword
-      }, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-
-      setEmailChangeStep('pending');
-      toast.success('📧 Email change request sent! Check both your current and new email addresses for confirmation links.');
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to request email change';
-      toast.error(`❌ ${errorMessage}`);
-    } finally {
-      setEmailChangeLoading(false);
-    }
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
-  // Password change handler
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long');
-      return;
-    }
-    
-    setPasswordLoading(true);
-    try {
-      const authToken = Cookies.get("authToken");
-      await axios.put(`${API_BASE_URL}/auth/change-password`, {
-        currentPassword,
-        newPassword
-      }, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordChangeModal(false);
-      toast.success('Password changed successfully');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to change password');
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  // Delete account handler
-  const handleDeleteAccount = async () => {
-    if (!deletePassword.trim()) {
-      toast.error('❌ Please enter your password to confirm deletion');
-      return;
-    }
-
-    setDeleteLoading(true);
-    
-    try {
-      const authToken = Cookies.get("authToken");
-      await axios.delete(`${API_BASE_URL}/auth/delete-account`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: { password: deletePassword }
-      });
-
-      toast.success('🗑️ Account deleted successfully');
-      Cookies.remove('authToken');
-      localStorage.clear();
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
-    } catch (error) {
-      toast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
-      setDeletePassword('');
-    } finally {
-      setDeleteLoading(false);
-      setShowDeleteModal(false);
-    }
-  };
-
-  // Export data handler
   const exportData = () => {
     const data = {
-      user: user,
+      settings: {
+        developerMode,
+        notifications,
+        autoRefresh,
+        dataRetention,
+        toastPosition,
+        toastTheme,
+        darkMode
+      },
+      cache: localStorage.getItem('jobTracker_jobs_cache'),
       timestamp: new Date().toISOString()
     };
+    
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -250,74 +149,91 @@ function SettingsPage({ darkMode, toggleTheme }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('📁 Data exported successfully');
+    localShowToast('success', '📁 Data exported successfully');
   };
 
-  // Show toast helper
-  const showToast = (type, message) => {
-    toast[type](message);
-  };
+  // Check authentication and load user data
+  useEffect(() => {
+    const authToken = Cookies.get("authToken");
+    if (!authToken) {
+      console.log('No auth token found, redirecting to auth'); // Debug log
+      navigate('/auth');
+      return;
+    }
+    console.log('Auth token found, loading profile'); // Debug log
+    setIsAuthenticated(true);
+    loadUserProfile();
+    checkAdminStatus();
+    if (developerMode && isAdmin) {
+      loadDeveloperInfo();
+    }
+  }, [navigate, developerMode, isAdmin]);
 
-  // Toggle section helper
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  // Handle setting changes
-  const handleSettingChange = (setting, value) => {
-    switch (setting) {
-      case 'notifications':
-        setNotifications(value);
-        localStorage.setItem('notifications', value.toString());
-        toast.success(`🔔 Notifications ${value ? 'enabled' : 'disabled'}`);
-        break;
-      case 'toastPosition':
-        setToastPosition(value);
-        localStorage.setItem('toastPosition', value);
-        // Dispatch custom event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
-          detail: { position: value, theme: toastTheme } 
-        }));
-        // Small delay to ensure settings are applied before showing confirmation
-        setTimeout(() => {
-          toast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
-            position: value,
-            theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
-          });
-        }, 100);
-        break;
-      case 'toastTheme':
-        setToastTheme(value);
-        localStorage.setItem('toastTheme', value);
-        // Dispatch custom event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
-          detail: { position: toastPosition, theme: value } 
-        }));
-        // Small delay to ensure settings are applied before showing confirmation
-        setTimeout(() => {
-          toast.success(`🎨 Toast theme changed to ${value}`, {
-            position: toastPosition,
-            theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
-          });
-        }, 100);
-        break;
-      case 'developerMode':
-        setDeveloperMode(value);
-        localStorage.setItem('developerMode', value.toString());
-        if (value) {
-          loadDeveloperInfo();
-          toast.success('🔧 Developer mode enabled - Advanced tools are now available');
-        } else {
-          toast.info('🔧 Developer mode disabled');
+  // Handle escape key for modals
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (showDeleteModal) {
+          setShowDeleteModal(false);
+          setDeletePassword('');
         }
-        break;
+        if (showEmailChangeModal) {
+          setShowEmailChangeModal(false);
+          setEmailChangePassword('');
+        }
+        if (showPasswordChangeModal) {
+          setShowPasswordChangeModal(false);
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showDeleteModal, showEmailChangeModal, showPasswordChangeModal]);
+
+  const loadUserProfile = async () => {
+    try {
+      const authToken = Cookies.get("authToken");
+      console.log('Auth token:', authToken); // Debug log
+      console.log('API URL:', `${API_BASE_URL}/auth/profile`); // Debug log
+      
+      const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      console.log('Profile response:', response.data); // Debug log
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      console.error('Error response:', error.response); // Debug log
+      localShowToast('error', 'Failed to load user profile');
     }
   };
 
-  // Developer info functions
+  const checkAdminStatus = async () => {
+    try {
+      const token = Cookies.get('authToken');
+      if (!token) {
+        console.log('No auth token found for admin check');
+        return;
+      }
+
+      console.log('Checking admin status with token:', token.substring(0, 20) + '...');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log('Admin check successful:', response.status);
+      // If we get here without an error, user is admin
+      setIsAdmin(true);
+    } catch (error) {
+      console.log('Admin check failed:', error.response?.status, error.response?.data);
+      setIsAdmin(false);
+    }
+  };
+
   const loadDeveloperInfo = () => {
     // Load cache information
     const jobsCache = localStorage.getItem('jobTracker_jobs_cache');
@@ -369,120 +285,272 @@ function SettingsPage({ darkMode, toggleTheme }) {
     });
   };
 
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    if (!passwordValidation || !passwordValidation.valid) {
+      localShowToast('error', 'Please ensure your password meets all security requirements.');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      localShowToast('error', 'New passwords do not match');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const authToken = Cookies.get("authToken");
+      await axios.put(`${API_BASE_URL}/auth/change-password`, {
+        currentPassword,
+        newPassword
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordChangeModal(false);
+      localShowToast('success', 'Password changed successfully');
+    } catch (error) {
+      localShowToast('error', error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      localShowToast('error', '❌ Please enter your password to confirm deletion');
+      return;
+    }
+
+    setDeleteLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.delete(`${API_BASE_URL}/auth/delete-account`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: { password: deletePassword }
+      });
+
+      // Always show success for account deletion regardless of notification setting
+      showCriticalToast.success('🗑️ Account deleted successfully');
+      // Clear all storage and redirect to login
+      Cookies.remove('authToken');
+      localStorage.clear();
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error) {
+      localShowToast('error', `❌ ${error.response?.data?.message || 'Failed to delete account'}`);
+      setDeletePassword('');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleEmailChange = async () => {
+    if (!emailChangePassword.trim()) {
+      localShowToast('error', '❌ Please enter your current password to confirm email change');
+      return;
+    }
+
+    setEmailChangeLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      const response = await axios.post(`${API_BASE_URL}/api/auth/initiate-email-change`, {
+        current_password: emailChangePassword
+      }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+
+      localShowToast('success', '📧 Confirmation email sent to your current email address. Please check your inbox.');
+      setEmailChangePassword('');
+      setShowEmailChangeModal(false);
+    } catch (error) {
+      localShowToast('error', `❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
+      setEmailChangePassword('');
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
+  const handleSettingChange = (setting, value) => {
+    switch (setting) {
+      case 'developerMode':
+        setDeveloperMode(value);
+        localStorage.setItem('developerMode', value.toString());
+        if (value) {
+          loadDeveloperInfo();
+          localShowToast('success', '🔧 Developer mode enabled - Advanced tools are now available');
+        } else {
+          localShowToast('info', '🔧 Developer mode disabled');
+        }
+        break;
+      case 'notifications':
+        setNotifications(value);
+        localStorage.setItem('notifications', value.toString());
+        // Dispatch event to notify App.jsx of the change
+        window.dispatchEvent(new CustomEvent('notificationSettingsChanged'));
+        // Always show this toast regardless of setting since it's about the setting itself
+        if (value) {
+          showToast.success(`🔔 Notifications enabled`);
+        } else {
+          showToast.info(`🔔 Notifications disabled`);
+        }
+        break;
+      case 'autoRefresh':
+        setAutoRefresh(value);
+        localStorage.setItem('autoRefresh', value.toString());
+        localShowToast('success', `🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'dataRetention':
+        setDataRetention(value);
+        localStorage.setItem('dataRetention', value);
+        localShowToast('success', `📅 Data retention set to ${value} days`);
+        break;
+      case 'toastPosition':
+        setToastPosition(value);
+        localStorage.setItem('toastPosition', value);
+        // Dispatch custom event to notify App.jsx of the change
+        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+          detail: { position: value, theme: toastTheme } 
+        }));
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          localShowToast('success', `📍 Toast position changed to ${value.replace('-', ' ')}`, {
+            position: value,
+            theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
+          });
+        }, 100);
+        break;
+      case 'toastTheme':
+        setToastTheme(value);
+        localStorage.setItem('toastTheme', value);
+        // Dispatch custom event to notify App.jsx of the change
+        window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
+          detail: { position: toastPosition, theme: value } 
+        }));
+        // Small delay to ensure settings are applied before showing confirmation
+        setTimeout(() => {
+          localShowToast('success', `🎨 Toast theme changed to ${value}`, {
+            position: toastPosition,
+            theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
+          });
+        }, 100);
+        break;
+    }
+  };
+
   const clearCache = () => {
     localStorage.removeItem('jobTracker_jobs_cache');
     localStorage.removeItem('jobTracker_cache_expiry');
     localStorage.removeItem('jobTracker_cache_version');
     loadDeveloperInfo();
-    toast.success('🗑️ Cache cleared successfully');
+    localShowToast('success', '🗑️ Cache cleared successfully');
   };
 
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  // Load developer info when developer mode is enabled and user is admin
-  useEffect(() => {
-    if (developerMode && isAdmin) {
-      loadDeveloperInfo();
-    }
-  }, [developerMode, isAdmin]);
-
-  // Render active tab
-  const renderActiveTab = () => {
-    switch (activeTab) {
-      case 'profile':
-        return (
-          <ProfileSection
-            user={user}
-            setUser={setUser}
-            setShowEmailChangeModal={setShowEmailChangeModal}
-            setShowPasswordChangeModal={setShowPasswordChangeModal}
-            setShowDeleteModal={setShowDeleteModal}
-            isMobile={isMobile}
-          />
-        );
-      case 'preferences':
-        return (
-          <PreferencesSection
-            toggleTheme={toggleTheme}
-            darkMode={darkMode}
-            exportData={exportData}
-            showToast={showToast}
-            isMobile={isMobile}
-          />
-        );
-      case 'accessibility':
-        return (
-          <AccessibilitySection
-            darkMode={darkMode}
-            isMobile={isMobile}
-            toastPosition={toastPosition}
-            toastTheme={toastTheme}
-            notifications={notifications}
-            handleSettingChange={handleSettingChange}
-            expandedSections={expandedSections}
-            toggleSection={toggleSection}
-            showToast={showToast}
-          />
-        );
-      case 'developer':
-        return isAdmin ? (
-          <DeveloperSection
-            isAdmin={isAdmin}
-            isMobile={isMobile}
-            developerMode={developerMode}
-            handleSettingChange={handleSettingChange}
-            cacheInfo={cacheInfo}
-            storageInfo={storageInfo}
-            loadDeveloperInfo={loadDeveloperInfo}
-            clearCache={clearCache}
-            formatBytes={formatBytes}
-            formatDate={formatDate}
-            showToast={showToast}
-          />
-        ) : null;
-      default:
-        return null;
-    }
-  };
-
-  if (!isAuthenticated || initialLoading) {
+  if (!isAuthenticated) {
     return (
-      <div className={`${darkMode ? "dark" : ""}`}>
-        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-        <LoadingScreen type="settings" />
-      </div>
+      <>
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
+        <LoadingScreen darkMode={darkMode} isMobile={isMobile} />
+      </>
     );
   }
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <SettingsHeader />
+        <div className={`max-w-6xl mx-auto px-4 py-8 ${isMobile ? 'px-2 py-4' : ''}`}>
           
-          <div className="grid lg:grid-cols-4 gap-8">
+          <SettingsHeader 
+            showMobileSidebar={showMobileSidebar}
+            setShowMobileSidebar={setShowMobileSidebar}
+            isMobile={isMobile}
+          />
+
+          <div className={`${isMobile ? 'block' : 'grid lg:grid-cols-4 gap-8'}`}>
+            
             <SettingsSidebar 
-              activeTab={activeTab} 
+              activeTab={activeTab}
               setActiveTab={setActiveTab}
               isAdmin={isAdmin}
+              showMobileSidebar={showMobileSidebar}
+              setShowMobileSidebar={setShowMobileSidebar}
               isMobile={isMobile}
             />
-            
-            <div className="lg:col-span-3">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                {renderActiveTab()}
+
+            {/* Main Content */}
+            <div className={`lg:col-span-3 ${isMobile ? 'w-full' : ''}`}>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out hover:shadow-xl">
+                
+                {/* Profile & Security Tab */}
+                {activeTab === 'profile' && (
+                  <ProfileSection
+                    user={user}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                    setShowEmailChangeModal={setShowEmailChangeModal}
+                    setShowPasswordChangeModal={setShowPasswordChangeModal}
+                    setShowDeleteModal={setShowDeleteModal}
+                    formatDate={formatDate}
+                    isMobile={isMobile}
+                  />
+                )}
+
+                {/* Preferences Tab */}
+                {activeTab === 'preferences' && (
+                  <PreferencesSection
+                    toggleTheme={toggleTheme}
+                    darkMode={darkMode}
+                    notifications={notifications}
+                    autoRefresh={autoRefresh}
+                    dataRetention={dataRetention}
+                    handleSettingChange={handleSettingChange}
+                    exportData={exportData}
+                    showToast={showToast}
+                    isMobile={isMobile}
+                  />
+                )}
+
+                {/* Accessibility Tab */}
+                {activeTab === 'accessibility' && (
+                  <AccessibilitySection
+                    toastPosition={toastPosition}
+                    toastTheme={toastTheme}
+                    handleSettingChange={handleSettingChange}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                    darkMode={darkMode}
+                    notifications={notifications}
+                    showToast={showToast}
+                    isMobile={isMobile}
+                  />
+                )}
+
+                {/* Developer Tools Tab - Admin Only */}
+                {activeTab === 'developer' && isAdmin && (
+                  <DeveloperSection
+                    isAdmin={isAdmin}
+                    developerMode={developerMode}
+                    handleSettingChange={handleSettingChange}
+                    cacheInfo={cacheInfo}
+                    storageInfo={storageInfo}
+                    loadDeveloperInfo={loadDeveloperInfo}
+                    clearCache={clearCache}
+                    formatBytes={formatBytes}
+                    formatDate={formatDate}
+                    showToast={showToast}
+                    isMobile={isMobile}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -501,15 +569,10 @@ function SettingsPage({ darkMode, toggleTheme }) {
         // Email change modal props
         showEmailChangeModal={showEmailChangeModal}
         setShowEmailChangeModal={setShowEmailChangeModal}
-        newEmail={newEmail}
-        setNewEmail={setNewEmail}
         emailChangePassword={emailChangePassword}
         setEmailChangePassword={setEmailChangePassword}
-        emailChangeStep={emailChangeStep}
-        setEmailChangeStep={setEmailChangeStep}
         emailChangeLoading={emailChangeLoading}
         handleEmailChange={handleEmailChange}
-        user={user}
         
         // Password change modal props
         showPasswordChangeModal={showPasswordChangeModal}
@@ -524,7 +587,7 @@ function SettingsPage({ darkMode, toggleTheme }) {
         setShowPasswords={setShowPasswords}
         passwordValidation={passwordValidation}
         setPasswordValidation={setPasswordValidation}
-        loading={passwordLoading}
+        loading={loading}
         handlePasswordChange={handlePasswordChange}
         
         isMobile={isMobile}
@@ -534,5 +597,3 @@ function SettingsPage({ darkMode, toggleTheme }) {
 }
 
 export default SettingsPage;
-
-
