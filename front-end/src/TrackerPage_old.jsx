@@ -7,6 +7,7 @@ import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
+import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
 // Import tracker components
 import TrackerHeader from "./components/tracker/TrackerHeader";
@@ -19,6 +20,7 @@ import JobCards from "./components/tracker/JobCards";
 import AddJobModal from "./components/tracker/AddJobModal";
 import EditJobModal from "./components/tracker/EditJobModal";
 import LoadingOverlay from "./components/tracker/LoadingOverlay";
+import LoadingScreen from "./components/shared/LoadingScreen";
 
 // Utility functions
 const getCurrentDate = () => {
@@ -136,6 +138,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
     notes: ""
   });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [companySuggestionsList, setCompanySuggestionsList] = useState([]);
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState([]);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
@@ -167,31 +170,66 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   // Available stats configuration
   const availableStats = [
-    { id: 'total', label: 'Total Applications', getValue: () => jobs.length },
-    { id: 'thisWeek', label: 'This Week', getValue: () => {
+    { id: 'total', label: 'Total Applications', icon: FaBuilding, color: 'blue-500', getValue: () => jobs.length },
+    { id: 'thisWeek', label: 'This Week', icon: FaCalendar, color: 'green-500', getValue: () => {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return jobs.filter(job => new Date(job.application_date) >= weekAgo).length;
     }},
-    { id: 'interviews', label: 'Interviews', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'interview').length },
-    { id: 'pending', label: 'Pending', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'applied').length },
-    { id: 'offers', label: 'Offers', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'offer').length },
-    { id: 'rejected', label: 'Rejected', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'rejected').length },
-    { id: 'ghosted', label: 'Ghosted', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'ghosted').length },
-    { id: 'reviewing', label: 'Reviewing', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'reviewing').length },
-    { id: 'thisMonth', label: 'This Month', getValue: () => {
+    { id: 'interviews', label: 'Interviews', icon: FaSearch, color: 'orange-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'interview').length },
+    { id: 'pending', label: 'Pending', icon: FaClock, color: 'purple-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'applied').length },
+    { id: 'offers', label: 'Offers', icon: FaThumbsUp, color: 'emerald-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'offer').length },
+    { id: 'rejected', label: 'Rejected', icon: FaTimes, color: 'red-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'rejected').length },
+    { id: 'ghosted', label: 'Ghosted', icon: FaTimes, color: 'gray-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'ghosted').length },
+    { id: 'reviewing', label: 'Reviewing', icon: FaSearch, color: 'yellow-500', getValue: () => jobs.filter(job => job.status.toLowerCase() === 'reviewing').length },
+    { id: 'thisMonth', label: 'This Month', icon: FaCalendar, color: 'indigo-500', getValue: () => {
       const monthAgo = new Date();
       monthAgo.setDate(monthAgo.getDate() - 30);
       return jobs.filter(job => new Date(job.application_date) >= monthAgo).length;
     }},
-    { id: 'responseRate', label: 'Response Rate', getValue: () => {
+    { id: 'responseRate', label: 'Response Rate', icon: FaCheckCircle, color: 'teal-500', getValue: () => {
       const responded = jobs.filter(job => !['applied', 'ghosted'].includes(job.status.toLowerCase())).length;
       return jobs.length > 0 ? Math.round((responded / jobs.length) * 100) + '%' : '0%';
     }}
   ];
 
+  // Color mapping for stats to ensure Tailwind classes are properly included
+  const getStatColorClass = (colorKey) => {
+    const colorMap = {
+      'blue-500': 'bg-blue-500',
+      'green-500': 'bg-green-500',
+      'orange-500': 'bg-orange-500',
+      'purple-500': 'bg-purple-500',
+      'emerald-500': 'bg-emerald-500',
+      'red-500': 'bg-red-500',
+      'gray-500': 'bg-gray-500',
+      'yellow-500': 'bg-yellow-500',
+      'indigo-500': 'bg-indigo-500',
+      'teal-500': 'bg-teal-500',
+      'pink-500': 'bg-pink-500',
+      'cyan-500': 'bg-cyan-500',
+      'lime-500': 'bg-lime-500',
+      'amber-500': 'bg-amber-500',
+      'violet-500': 'bg-violet-500',
+      'rose-500': 'bg-rose-500',
+      'slate-500': 'bg-slate-500'
+    };
+    return colorMap[colorKey] || 'bg-blue-500';
+  };
+
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
+    // If the same card is clicked again, clear all filters (toggle off)
+    if (dashboardFilter === statId) {
+      setSearchTerm("");
+      setCompanyFilter("");
+      setStatusFilter("all");
+      setDateFilter("all");
+      setDashboardFilter(null);
+      return;
+    }
+    
+    // Clear other filters when clicking a dashboard card
     setSearchTerm("");
     setCompanyFilter("");
     
@@ -199,7 +237,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
       case 'total':
         setStatusFilter("all");
         setDateFilter("all");
-        setDashboardFilter(null);
+        setDashboardFilter('total');
         break;
       case 'thisWeek':
         setStatusFilter("all");
@@ -282,6 +320,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
   const openEditModal = (job, index) => {
     setEditingJob({ ...job, index });
     setNewJob({
+      id: job.id,
       company_name: job.company_name,
       job_title: job.job_title,
       status: job.status,
@@ -412,7 +451,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
         });
         
         const updatedJobs = [...jobs];
-        updatedJobs[editingJob.index] = { ...editingJob, ...newJob };
+        updatedJobs[editingJob.index] = { ...newJob, id: editingJob.id };
         setJobs(updatedJobs);
         cacheUtils.set(updatedJobs);
         setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
@@ -434,6 +473,30 @@ function TrackerPage({ darkMode, toggleTheme }) {
         Cookies.remove("authToken");
         navigate("/auth");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteCurrentJob = async () => {
+    if (!newJob.id) return;
+    
+    setLoading(true);
+    
+    try {
+      const authToken = Cookies.get("authToken");
+      await axios.delete(`${API_BASE_URL}/jobs/${newJob.id}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      
+      const updatedJobs = jobs.filter(job => job.id !== newJob.id);
+      setJobs(updatedJobs);
+      setFilteredJobs(updatedJobs);
+      toast.success("Job application deleted successfully!");
+      closeEditModal();
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast.error("Failed to delete job application. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -556,11 +619,45 @@ function TrackerPage({ darkMode, toggleTheme }) {
     setFilteredJobs(filtered);
   }, [jobs, searchTerm, statusFilter, dateFilter, companyFilter, sortBy, dashboardFilter]);
 
+  // Company autocomplete effect
+  useEffect(() => {
+    if (companySearchTerm && companySearchTerm.length > 0) {
+      // Filter company suggestions based on search term
+      const filtered = companySuggestions.filter(company =>
+        company.toLowerCase().includes(companySearchTerm.toLowerCase())
+      ).slice(0, 8); // Limit to 8 suggestions
+      
+      setAutocompleteSuggestions(filtered);
+    } else {
+      setAutocompleteSuggestions([]);
+    }
+  }, [companySearchTerm]);
+
+  // Job title autocomplete effect
+  useEffect(() => {
+    if (jobTitleSearchTerm && jobTitleSearchTerm.length > 0) {
+      const suggestions = getJobTitleSuggestions(jobTitleSearchTerm);
+      setJobTitleSuggestions(suggestions.slice(0, 8)); // Limit to 8 suggestions
+    } else {
+      setJobTitleSuggestions([]);
+    }
+  }, [jobTitleSearchTerm]);
+
   // Initialize data on mount
   useEffect(() => {
     const initializeData = async () => {
-      await fetchJobStatuses();
-      await fetchJobs();
+      try {
+        // Initialize company suggestions
+        setCompanySuggestionsList(companySuggestions);
+        
+        await fetchJobStatuses();
+        await fetchJobs();
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        toast.error('Failed to load data');
+      } finally {
+        setInitialLoading(false);
+      }
     };
     initializeData();
   }, []);
@@ -606,9 +703,13 @@ function TrackerPage({ darkMode, toggleTheme }) {
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {initialLoading ? (
+        <LoadingScreen type="tracker" />
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pt-20 transition-all duration-700 ease-in-out">
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
           <TrackerHeader />
           
@@ -626,6 +727,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             selectedStats={selectedStats}
             setSelectedStats={setSelectedStats}
             availableStats={availableStats}
+            getStatColorClass={getStatColorClass}
           />
           
           <StatsCards 
@@ -633,9 +735,16 @@ function TrackerPage({ darkMode, toggleTheme }) {
             availableStats={availableStats}
             handleDashboardCardClick={handleDashboardCardClick}
             dashboardFilter={dashboardFilter}
+            getStatColorClass={getStatColorClass}
           />
           
+          {/* Spacer */}
+          <div className="h-16"></div>
+          
           <AddApplicationButton onOpenModal={openAddModal} />
+          
+          {/* Spacer */}
+          <div className="h-16"></div>
           
           <SearchAndFilters 
             searchTerm={searchTerm}
@@ -653,13 +762,19 @@ function TrackerPage({ darkMode, toggleTheme }) {
             jobStatuses={jobStatuses}
             filteredJobs={filteredJobs}
             jobs={jobs}
+            setDashboardFilter={setDashboardFilter}
           />
           
           <JobCards 
             filteredJobs={filteredJobs}
+            jobs={jobs}
             statusColorMap={statusColorMap}
-            onEdit={openEditModal}
-            onDelete={deleteJob}
+            editJob={openEditModal}
+            deleteJob={deleteJob}
+            setSearchTerm={setSearchTerm}
+            setStatusFilter={setStatusFilter}
+            setDateFilter={setDateFilter}
+            setCompanyFilter={setCompanyFilter}
           />
           
           <AddJobModal 
@@ -695,12 +810,14 @@ function TrackerPage({ darkMode, toggleTheme }) {
             onSubmit={addOrUpdateJob}
             loading={loading}
             darkMode={darkMode}
+            onDelete={deleteCurrentJob}
           />
           
           <LoadingOverlay loading={loading} editingJob={editingJob} />
           
         </div>
       </div>
+      )}
     </div>
   );
 }
