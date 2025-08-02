@@ -13,4 +13,6 @@ function AddApplicationButton({ onOpenModal }) {
       </button>
     </div>
   );
-}export default AddApplicationButton;
+}
+
+export default AddApplicationButton;
