@@ -1,6 +1,5 @@
 import React from 'react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
-import { getCompanyLogoSync } from '../../data/companySuggestions';
 
 function AddJobModal({ 
   isOpen, 
@@ -17,7 +16,6 @@ function AddJobModal({
   setCompanySearchTerm,
   jobTitleSearchTerm,
   setJobTitleSearchTerm,
-  companySuggestionsList,
   jobTitleSuggestions,
   autocompleteSuggestions,
   searchLoading,
@@ -81,22 +79,27 @@ function AddJobModal({
                         <div
                           key={index}
                           onClick={() => {
-                            setNewJob({ ...newJob, company_name: suggestion });
+                            setNewJob({ ...newJob, company_name: suggestion.name });
                             setCompanySearchTerm("");
                           }}
                           className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
                         >
                           <div className="w-8 h-8 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden mr-3">
                             <img 
-                              src={getCompanyLogoSync(suggestion)} 
-                              alt={suggestion}
+                              src={suggestion.logo_url} 
+                              alt={suggestion.name}
                               className="w-6 h-6 object-contain"
                               onError={(e) => {
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion)}&background=3b82f6&color=ffffff&size=24&bold=true`;
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion.name)}&background=3b82f6&color=ffffff&size=24&bold=true`;
                               }}
                             />
                           </div>
-                          <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
+                          <div className="flex-1">
+                            <div className="text-gray-900 dark:text-gray-100 font-medium">{suggestion.name}</div>
+                            {suggestion.industry && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">{suggestion.industry}</div>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

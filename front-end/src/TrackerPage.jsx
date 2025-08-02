@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
-import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
+import { getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
 import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
@@ -139,7 +139,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
   });
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [companySuggestionsList, setCompanySuggestionsList] = useState([]);
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState([]);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [jobTitleSearchTerm, setJobTitleSearchTerm] = useState("");
@@ -566,16 +565,36 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   // Company autocomplete effect
   useEffect(() => {
-    if (companySearchTerm && companySearchTerm.length > 0) {
-      // Filter company suggestions based on search term
-      const filtered = companySuggestions.filter(company =>
-        company.toLowerCase().includes(companySearchTerm.toLowerCase())
-      ).slice(0, 8); // Limit to 8 suggestions
-      
-      setAutocompleteSuggestions(filtered);
-    } else {
-      setAutocompleteSuggestions([]);
-    }
+    const searchCompanies = async () => {
+      if (companySearchTerm && companySearchTerm.length >= 2) {
+        setSearchLoading(true);
+        try {
+          const authToken = Cookies.get("authToken");
+          const response = await axios.get(`${API_BASE_URL}/logos/search`, {
+            params: {
+              q: companySearchTerm,
+              limit: 8
+            },
+            headers: { Authorization: `Bearer ${authToken}` }
+          });
+          
+          setAutocompleteSuggestions(response.data.results || []);
+        } catch (error) {
+          console.error('Error searching companies:', error);
+          setAutocompleteSuggestions([]);
+        } finally {
+          setSearchLoading(false);
+        }
+      } else {
+        setAutocompleteSuggestions([]);
+        setSearchLoading(false);
+      }
+    };
+
+    // Debounce the search to avoid too many API calls
+    const timeoutId = setTimeout(searchCompanies, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [companySearchTerm]);
 
   // Job title autocomplete effect
@@ -592,9 +611,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        // Initialize company suggestions
-        setCompanySuggestionsList(companySuggestions);
-        
         await fetchJobStatuses();
         await fetchJobs();
       } catch (error) {
@@ -729,7 +745,6 @@ function TrackerPage({ darkMode, toggleTheme }) {
             setCompanySearchTerm={setCompanySearchTerm}
             jobTitleSearchTerm={jobTitleSearchTerm}
             setJobTitleSearchTerm={setJobTitleSearchTerm}
-            companySuggestionsList={companySuggestionsList}
             jobTitleSuggestions={jobTitleSuggestions}
             autocompleteSuggestions={autocompleteSuggestions}
             searchLoading={searchLoading}
