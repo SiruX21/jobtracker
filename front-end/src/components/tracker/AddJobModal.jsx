@@ -27,9 +27,10 @@ function AddJobModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative overflow-visible">
+        <div className="max-h-[90vh] overflow-y-auto overflow-x-visible">
+          <div className="p-6 overflow-visible">
+            <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Application</h2>
               <div className="flex items-center mt-2">
@@ -52,14 +53,14 @@ function AddJobModal({
 
           {/* Step 1: Company & Position */}
           {currentStep === 1 && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-visible">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company & Position Details</h3>
               
-              <div>
+              <div className="overflow-visible">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Company Name *
                 </label>
-                <div className="relative">
+                <div className="relative overflow-visible">
                   <input
                     type="text"
                     value={companySearchTerm || newJob.company_name}
@@ -74,7 +75,7 @@ function AddJobModal({
                   
                   {/* Company Suggestions Dropdown */}
                   {companySearchTerm && autocompleteSuggestions && autocompleteSuggestions.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                    <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
                       {autocompleteSuggestions.map((suggestion, index) => (
                         <div
                           key={index}
@@ -107,11 +108,11 @@ function AddJobModal({
                 </div>
               </div>
 
-              <div>
+              <div className="overflow-visible">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Job Title *
                 </label>
-                <div className="relative">
+                <div className="relative overflow-visible">
                   <input
                     type="text"
                     value={jobTitleSearchTerm || newJob.job_title}
@@ -126,7 +127,7 @@ function AddJobModal({
                   
                   {/* Job Title Suggestions Dropdown */}
                   {jobTitleSearchTerm && jobTitleSuggestions && jobTitleSuggestions.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                    <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
                       {jobTitleSuggestions.map((suggestion, index) => (
                         <div
                           key={index}
@@ -300,6 +301,7 @@ function AddJobModal({
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

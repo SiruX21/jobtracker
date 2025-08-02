@@ -618,10 +618,8 @@ function TrackerPage({ darkMode, toggleTheme }) {
       }
     };
 
-    // Debounce the search to avoid too many API calls
-    const timeoutId = setTimeout(searchCompanies, 300);
-    
-    return () => clearTimeout(timeoutId);
+    // Search immediately without debounce for instant suggestions
+    searchCompanies();
   }, [companySearchTerm]);
 
   // Job title autocomplete effect
