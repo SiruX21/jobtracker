@@ -193,6 +193,11 @@ function TrackerPage({ darkMode, toggleTheme }) {
     }}
   ];
 
+  // Utility function to convert color to background class
+  const getStatColorClass = (color) => {
+    return `bg-${color}`;
+  };
+
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
     setSearchTerm("");
@@ -666,6 +671,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             selectedStats={selectedStats}
             setSelectedStats={setSelectedStats}
             availableStats={availableStats}
+            getStatColorClass={getStatColorClass}
           />
           
           <StatsCards 
@@ -673,6 +679,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
             availableStats={availableStats}
             handleDashboardCardClick={handleDashboardCardClick}
             dashboardFilter={dashboardFilter}
+            getStatColorClass={getStatColorClass}
           />
           
           <AddApplicationButton onOpenModal={openAddModal} />
