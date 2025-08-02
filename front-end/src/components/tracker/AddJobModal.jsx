@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
+import { createPortal } from 'react-dom';
 
 function AddJobModal({ 
   isOpen, 
@@ -23,13 +24,80 @@ function AddJobModal({
   autoLogos,
   darkMode
 }) {
+  const companyInputRef = useRef(null);
+  const jobTitleInputRef = useRef(null);
+  const [companyDropdownPosition, setCompanyDropdownPosition] = useState({});
+  const [jobTitleDropdownPosition, setJobTitleDropdownPosition] = useState({});
+
+  // Update dropdown positions when suggestions are shown
+  useEffect(() => {
+    if (companySearchTerm && autocompleteSuggestions?.length > 0 && companyInputRef.current) {
+      const updatePosition = () => {
+        const rect = companyInputRef.current.getBoundingClientRect();
+        setCompanyDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        });
+      };
+      
+      updatePosition();
+      window.addEventListener('scroll', updatePosition);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [companySearchTerm, autocompleteSuggestions]);
+
+  useEffect(() => {
+    if (jobTitleSearchTerm && jobTitleSuggestions?.length > 0 && jobTitleInputRef.current) {
+      const updatePosition = () => {
+        const rect = jobTitleInputRef.current.getBoundingClientRect();
+        setJobTitleDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        });
+      };
+      
+      updatePosition();
+      window.addEventListener('scroll', updatePosition);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [jobTitleSearchTerm, jobTitleSuggestions]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (companyInputRef.current && !companyInputRef.current.contains(event.target)) {
+        setCompanySearchTerm("");
+      }
+      if (jobTitleInputRef.current && !jobTitleInputRef.current.contains(event.target)) {
+        setJobTitleSearchTerm("");
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative overflow-visible">
-        <div className="max-h-[90vh] overflow-y-auto overflow-x-visible">
-          <div className="p-6 overflow-visible">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative">
+        <div className="max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
             <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Application</h2>
@@ -53,15 +121,16 @@ function AddJobModal({
 
           {/* Step 1: Company & Position */}
           {currentStep === 1 && (
-            <div className="space-y-4 overflow-visible">
+            <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company & Position Details</h3>
               
-              <div className="overflow-visible">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Company Name *
                 </label>
-                <div className="relative overflow-visible">
+                <div className="relative">
                   <input
+                    ref={companyInputRef}
                     type="text"
                     value={companySearchTerm || newJob.company_name || ""}
                     onChange={(e) => {
@@ -81,54 +150,17 @@ function AddJobModal({
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
                   
-                  {/* Company Suggestions Dropdown */}
-                  {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && (
-                    <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
-                      {autocompleteSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          onClick={() => {
-                            setNewJob({ ...newJob, company_name: suggestion.name });
-                            setCompanySearchTerm("");
-                            // Focus the job title field after company selection
-                            setTimeout(() => {
-                              const jobTitleInput = document.querySelector('input[placeholder="Start typing job title..."]');
-                              if (jobTitleInput) {
-                                jobTitleInput.focus();
-                              }
-                            }, 100);
-                          }}
-                          className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
-                        >
-                          <div className="w-8 h-8 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden mr-3">
-                            <img 
-                              src={suggestion.logo_url} 
-                              alt={suggestion.name}
-                              className="w-6 h-6 object-contain"
-                              onError={(e) => {
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion.name)}&background=3b82f6&color=ffffff&size=24&bold=true`;
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-gray-900 dark:text-gray-100 font-medium">{suggestion.name}</div>
-                            {suggestion.industry && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">{suggestion.industry}</div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Company Suggestions Dropdown - Remove from here, will be rendered as portal */}
                 </div>
               </div>
 
-              <div className="overflow-visible">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Job Title *
                 </label>
-                <div className="relative overflow-visible">
+                <div className="relative">
                   <input
+                    ref={jobTitleInputRef}
                     type="text"
                     value={jobTitleSearchTerm || newJob.job_title || ""}
                     onChange={(e) => {
@@ -148,23 +180,7 @@ function AddJobModal({
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
                   
-                  {/* Job Title Suggestions Dropdown */}
-                  {jobTitleSearchTerm && jobTitleSearchTerm.length > 0 && jobTitleSuggestions && jobTitleSuggestions.length > 0 && (
-                    <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
-                      {jobTitleSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          onClick={() => {
-                            setNewJob({ ...newJob, job_title: suggestion });
-                            setJobTitleSearchTerm("");
-                          }}
-                          className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
-                        >
-                          <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Job Title Suggestions Dropdown - Remove from here, will be rendered as portal */}
                 </div>
               </div>
 
@@ -327,6 +343,85 @@ function AddJobModal({
           </div>
         </div>
       </div>
+
+      {/* Company Suggestions Portal */}
+      {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top && 
+        createPortal(
+          <div 
+            className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
+            style={{
+              top: companyDropdownPosition.top + 4,
+              left: companyDropdownPosition.left,
+              width: companyDropdownPosition.width,
+              zIndex: 10000
+            }}
+          >
+            {autocompleteSuggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                onClick={() => {
+                  setNewJob({ ...newJob, company_name: suggestion.name });
+                  setCompanySearchTerm("");
+                  // Focus the job title field after company selection
+                  setTimeout(() => {
+                    if (jobTitleInputRef.current) {
+                      jobTitleInputRef.current.focus();
+                    }
+                  }, 100);
+                }}
+                className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+              >
+                <div className="w-8 h-8 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden mr-3">
+                  <img 
+                    src={suggestion.logo_url} 
+                    alt={suggestion.name}
+                    className="w-6 h-6 object-contain"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion.name)}&background=3b82f6&color=ffffff&size=24&bold=true`;
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="text-gray-900 dark:text-gray-100 font-medium">{suggestion.name}</div>
+                  {suggestion.industry && (
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{suggestion.industry}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>,
+          document.body
+        )
+      }
+
+      {/* Job Title Suggestions Portal */}
+      {jobTitleSearchTerm && jobTitleSearchTerm.length > 0 && jobTitleSuggestions && jobTitleSuggestions.length > 0 && jobTitleDropdownPosition.top &&
+        createPortal(
+          <div 
+            className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
+            style={{
+              top: jobTitleDropdownPosition.top + 4,
+              left: jobTitleDropdownPosition.left,
+              width: jobTitleDropdownPosition.width,
+              zIndex: 10001 // Higher than company dropdown
+            }}
+          >
+            {jobTitleSuggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                onClick={() => {
+                  setNewJob({ ...newJob, job_title: suggestion });
+                  setJobTitleSearchTerm("");
+                }}
+                className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+              >
+                <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
+              </div>
+            ))}
+          </div>,
+          document.body
+        )
+      }
     </div>
   );
 }
