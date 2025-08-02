@@ -63,18 +63,26 @@ function AddJobModal({
                 <div className="relative overflow-visible">
                   <input
                     type="text"
-                    value={companySearchTerm || newJob.company_name}
+                    value={companySearchTerm || newJob.company_name || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      setCompanySearchTerm(value);
+                      if (value !== newJob.company_name) {
+                        setCompanySearchTerm(value);
+                      }
                       setNewJob({ ...newJob, company_name: value });
+                    }}
+                    onFocus={() => {
+                      // When focusing, if there's a selected company, clear search to show suggestions
+                      if (newJob.company_name && !companySearchTerm) {
+                        setCompanySearchTerm(newJob.company_name);
+                      }
                     }}
                     placeholder="Start typing company name..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
                   
                   {/* Company Suggestions Dropdown */}
-                  {companySearchTerm && autocompleteSuggestions && autocompleteSuggestions.length > 0 && (
+                  {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && (
                     <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
                       {autocompleteSuggestions.map((suggestion, index) => (
                         <div
@@ -82,6 +90,13 @@ function AddJobModal({
                           onClick={() => {
                             setNewJob({ ...newJob, company_name: suggestion.name });
                             setCompanySearchTerm("");
+                            // Focus the job title field after company selection
+                            setTimeout(() => {
+                              const jobTitleInput = document.querySelector('input[placeholder="Start typing job title..."]');
+                              if (jobTitleInput) {
+                                jobTitleInput.focus();
+                              }
+                            }, 100);
                           }}
                           className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
                         >
@@ -115,18 +130,26 @@ function AddJobModal({
                 <div className="relative overflow-visible">
                   <input
                     type="text"
-                    value={jobTitleSearchTerm || newJob.job_title}
+                    value={jobTitleSearchTerm || newJob.job_title || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      setJobTitleSearchTerm(value);
+                      if (value !== newJob.job_title) {
+                        setJobTitleSearchTerm(value);
+                      }
                       setNewJob({ ...newJob, job_title: value });
+                    }}
+                    onFocus={() => {
+                      // When focusing, if there's a selected job title, clear search to show suggestions
+                      if (newJob.job_title && !jobTitleSearchTerm) {
+                        setJobTitleSearchTerm(newJob.job_title);
+                      }
                     }}
                     placeholder="Start typing job title..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
                   
                   {/* Job Title Suggestions Dropdown */}
-                  {jobTitleSearchTerm && jobTitleSuggestions && jobTitleSuggestions.length > 0 && (
+                  {jobTitleSearchTerm && jobTitleSearchTerm.length > 0 && jobTitleSuggestions && jobTitleSuggestions.length > 0 && (
                     <div className="absolute z-[9999] w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl">
                       {jobTitleSuggestions.map((suggestion, index) => (
                         <div
