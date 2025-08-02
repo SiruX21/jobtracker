@@ -51,7 +51,8 @@ function SearchAndFilters({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:bg-gray-700 dark:text-gray-100 transition-all duration-300"
+                className="h-12 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:bg-gray-700 dark:text-gray-100 transition-all duration-300"
+                style={{ outline: 'none' }}
               >
                 <option value="date_desc">📅 Newest First</option>
                 <option value="date_asc">📅 Oldest First</option>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
+import { getCompanyLogoSync } from '../../data/companySuggestions';
 
 function AddJobModal({ 
   isOpen, 
@@ -11,7 +12,18 @@ function AddJobModal({
   setNewJob, 
   jobStatuses,
   onSubmit,
-  loading
+  loading,
+  companySearchTerm,
+  setCompanySearchTerm,
+  jobTitleSearchTerm,
+  setJobTitleSearchTerm,
+  companySuggestionsList,
+  jobTitleSuggestions,
+  autocompleteSuggestions,
+  searchLoading,
+  companyLogoLoading,
+  autoLogos,
+  darkMode
 }) {
   if (!isOpen) return null;
 
@@ -49,26 +61,84 @@ function AddJobModal({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Company Name *
                 </label>
-                <input
-                  type="text"
-                  value={newJob.company_name}
-                  onChange={(e) => setNewJob({ ...newJob, company_name: e.target.value })}
-                  placeholder="Enter company name"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={companySearchTerm || newJob.company_name}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setCompanySearchTerm(value);
+                      setNewJob({ ...newJob, company_name: value });
+                    }}
+                    placeholder="Start typing company name..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                  
+                  {/* Company Suggestions Dropdown */}
+                  {companySearchTerm && autocompleteSuggestions && autocompleteSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                      {autocompleteSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            setNewJob({ ...newJob, company_name: suggestion });
+                            setCompanySearchTerm("");
+                          }}
+                          className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+                        >
+                          <div className="w-8 h-8 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden mr-3">
+                            <img 
+                              src={getCompanyLogoSync(suggestion)} 
+                              alt={suggestion}
+                              className="w-6 h-6 object-contain"
+                              onError={(e) => {
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion)}&background=3b82f6&color=ffffff&size=24&bold=true`;
+                              }}
+                            />
+                          </div>
+                          <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Job Title *
                 </label>
-                <input
-                  type="text"
-                  value={newJob.job_title}
-                  onChange={(e) => setNewJob({ ...newJob, job_title: e.target.value })}
-                  placeholder="Enter job title"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={jobTitleSearchTerm || newJob.job_title}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setJobTitleSearchTerm(value);
+                      setNewJob({ ...newJob, job_title: value });
+                    }}
+                    placeholder="Start typing job title..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                  
+                  {/* Job Title Suggestions Dropdown */}
+                  {jobTitleSearchTerm && jobTitleSuggestions && jobTitleSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                      {jobTitleSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            setNewJob({ ...newJob, job_title: suggestion });
+                            setJobTitleSearchTerm("");
+                          }}
+                          className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+                        >
+                          <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">
@@ -182,13 +252,30 @@ function AddJobModal({
 
               <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Review</h4>
-                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                  <p><strong>Company:</strong> {newJob.company_name}</p>
-                  <p><strong>Position:</strong> {newJob.job_title}</p>
-                  <p><strong>Status:</strong> {newJob.status}</p>
-                  <p><strong>Date:</strong> {newJob.application_date}</p>
-                  {newJob.location && <p><strong>Location:</strong> {newJob.location}</p>}
-                  {newJob.job_url && <p><strong>URL:</strong> {newJob.job_url}</p>}
+                <div className="flex items-start space-x-4">
+                  {/* Company Logo */}
+                  {newJob.company_name && (
+                    <div className="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <img 
+                        src={getCompanyLogoSync(newJob.company_name)} 
+                        alt={newJob.company_name}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`;
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Application Details */}
+                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                    <p><strong>Company:</strong> {newJob.company_name}</p>
+                    <p><strong>Position:</strong> {newJob.job_title}</p>
+                    <p><strong>Status:</strong> {newJob.status}</p>
+                    <p><strong>Date:</strong> {newJob.application_date}</p>
+                    {newJob.location && <p><strong>Location:</strong> {newJob.location}</p>}
+                    {newJob.job_url && <p><strong>URL:</strong> {newJob.job_url}</p>}
+                  </div>
                 </div>
               </div>
 
