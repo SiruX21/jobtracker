@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
-import { getJobTitleSuggestions } from "./data/companySuggestions";
+import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
 import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
@@ -570,7 +570,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
         setSearchLoading(true);
         try {
           const authToken = Cookies.get("authToken");
-          const response = await axios.get(`${API_BASE_URL}/logos/search`, {
+          const response = await axios.get(`${API_BASE_URL}/api/logos/search`, {
             params: {
               q: companySearchTerm,
               limit: 8
@@ -580,8 +580,23 @@ function TrackerPage({ darkMode, toggleTheme }) {
           
           setAutocompleteSuggestions(response.data.results || []);
         } catch (error) {
-          console.error('Error searching companies:', error);
-          setAutocompleteSuggestions([]);
+          console.error('Error searching companies via API, falling back to static suggestions:', error);
+          
+          // Fallback to static company suggestions
+          const filtered = companySuggestions.filter(company =>
+            company.name.toLowerCase().includes(companySearchTerm.toLowerCase())
+          ).slice(0, 8);
+          
+          // Convert static suggestions to API format
+          const fallbackSuggestions = filtered.map(company => ({
+            name: company.name,
+            logo_url: company.logo,
+            industry: company.commonTitles?.[0] ? `${company.commonTitles[0]} roles` : 'Technology',
+            domain: company.website,
+            confidence: 0.8
+          }));
+          
+          setAutocompleteSuggestions(fallbackSuggestions);
         } finally {
           setSearchLoading(false);
         }

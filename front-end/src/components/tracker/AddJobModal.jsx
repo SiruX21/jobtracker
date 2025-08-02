@@ -260,11 +260,11 @@ function AddJobModal({
                   {newJob.company_name && (
                     <div className="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
                       <img 
-                        src={getCompanyLogoSync(newJob.company_name)} 
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`}
                         alt={newJob.company_name}
                         className="w-12 h-12 object-contain"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=6b7280&color=ffffff&size=48&bold=true`;
                         }}
                       />
                     </div>
