@@ -578,7 +578,19 @@ function TrackerPage({ darkMode, toggleTheme }) {
             headers: { Authorization: `Bearer ${authToken}` }
           });
           
-          setAutocompleteSuggestions(response.data.results || []);
+          // Handle nested results structure
+          const apiResults = response.data.results;
+          const suggestions = Array.isArray(apiResults) ? apiResults : (apiResults?.results || []);
+          
+          // Fix logo URLs to be absolute
+          const fixedSuggestions = suggestions.map(suggestion => ({
+            ...suggestion,
+            logo_url: suggestion.logo_url?.startsWith('/') 
+              ? `${API_BASE_URL}${suggestion.logo_url}` 
+              : suggestion.logo_url
+          }));
+          
+          setAutocompleteSuggestions(fixedSuggestions);
         } catch (error) {
           console.error('Error searching companies via API, falling back to static suggestions:', error);
           
