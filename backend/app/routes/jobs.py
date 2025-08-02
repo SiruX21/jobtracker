@@ -6,6 +6,53 @@ from app.routes.auth import token_required
 
 jobs_bp = Blueprint('jobs', __name__)
 
+def ensure_status_history_table(cursor):
+    """Ensure the job_status_history table exists"""
+    try:
+        # Check if table exists
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM information_schema.tables 
+            WHERE table_schema = DATABASE() 
+            AND table_name = 'job_status_history'
+        """)
+        table_exists = cursor.fetchone()['count'] > 0
+        
+        if not table_exists:
+            print("Creating job_status_history table...")
+            # Create the table
+            cursor.execute("""
+                CREATE TABLE job_status_history (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    job_id INT NOT NULL,
+                    from_status VARCHAR(255),
+                    to_status VARCHAR(255) NOT NULL,
+                    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    notes TEXT,
+                    created_by INT,
+                    FOREIGN KEY (job_id) REFERENCES job_applications(id) ON DELETE CASCADE,
+                    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+                    INDEX idx_job_id (job_id),
+                    INDEX idx_changed_at (changed_at)
+                )
+            """)
+            
+            # Insert initial history for existing jobs
+            cursor.execute("""
+                INSERT INTO job_status_history (job_id, from_status, to_status, changed_at, created_by)
+                SELECT 
+                    id as job_id,
+                    NULL as from_status,
+                    status as to_status,
+                    application_date as changed_at,
+                    user_id as created_by
+                FROM job_applications
+                WHERE status IS NOT NULL
+            """)
+            print("job_status_history table created and populated with existing job data")
+            
+    except Exception as e:
+        print(f"Error ensuring status history table: {e}")
+
 def generate_random_color():
     """Generate a random color code for new statuses"""
     colors = [
@@ -349,6 +396,9 @@ def update_job_status(current_user, status_name):
 def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=None):
     """Add a status change entry to the history table"""
     try:
+        # Ensure the table exists
+        ensure_status_history_table(cursor)
+        
         cursor.execute("""
             INSERT INTO job_status_history (job_id, from_status, to_status, created_by, notes)
             VALUES (?, ?, ?, ?, ?)
@@ -364,6 +414,9 @@ def get_job_status_history(current_user, job_id):
     """Get status history for a specific job"""
     try:
         conn, cursor = get_db()
+        
+        # Ensure the table exists
+        ensure_status_history_table(cursor)
         
         # Verify user owns this job
         cursor.execute("""
@@ -410,6 +463,9 @@ def get_status_flow_analytics(current_user):
     """Get status flow data for Sankey diagram"""
     try:
         conn, cursor = get_db()
+        
+        # Ensure the table exists
+        ensure_status_history_table(cursor)
         
         # Get all status transitions for user's jobs
         cursor.execute("""
