@@ -81,7 +81,10 @@ function AddJobModal({
       if (companyInputRef.current && !companyInputRef.current.contains(event.target)) {
         const companyDropdown = document.querySelector('[data-company-dropdown]');
         if (!companyDropdown || !companyDropdown.contains(event.target)) {
-          setCompanySearchTerm("");
+          // Use a small timeout to allow click handlers to complete first
+          setTimeout(() => {
+            setCompanySearchTerm("");
+          }, 0);
         }
       }
       
@@ -89,7 +92,10 @@ function AddJobModal({
       if (jobTitleInputRef.current && !jobTitleInputRef.current.contains(event.target)) {
         const jobTitleDropdown = document.querySelector('[data-jobtitle-dropdown]');
         if (!jobTitleDropdown || !jobTitleDropdown.contains(event.target)) {
-          setJobTitleSearchTerm("");
+          // Use a small timeout to allow click handlers to complete first
+          setTimeout(() => {
+            setJobTitleSearchTerm("");
+          }, 0);
         }
       }
     };
@@ -98,7 +104,7 @@ function AddJobModal({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [setCompanySearchTerm, setJobTitleSearchTerm]);
 
   if (!isOpen) return null;
 
@@ -154,16 +160,14 @@ function AddJobModal({
                       }
                     }}
                     onBlur={() => {
-                      // When losing focus, if there's no search happening, make sure the company name is set
+                      // When losing focus, handle the search term properly
                       setTimeout(() => {
-                        if (companySearchTerm === "" && newJob.company_name) {
-                          // Keep the selected value
-                        } else if (companySearchTerm !== "") {
-                          // If user typed something but didn't select from dropdown, use what they typed
-                          setNewJob({ ...newJob, company_name: companySearchTerm });
+                        // If user typed something but dropdown is not visible, use what they typed
+                        if (companySearchTerm !== "" && (!autocompleteSuggestions || autocompleteSuggestions.length === 0)) {
+                          setNewJob(prev => ({ ...prev, company_name: companySearchTerm }));
                           setCompanySearchTerm("");
                         }
-                      }, 150); // Small delay to allow click events to fire first
+                      }, 200); // Longer delay to allow click events to complete
                     }}
                     placeholder="Start typing company name..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
@@ -194,16 +198,14 @@ function AddJobModal({
                       }
                     }}
                     onBlur={() => {
-                      // When losing focus, if there's no search happening, make sure the job title is set
+                      // When losing focus, handle the search term properly
                       setTimeout(() => {
-                        if (jobTitleSearchTerm === "" && newJob.job_title) {
-                          // Keep the selected value
-                        } else if (jobTitleSearchTerm !== "") {
-                          // If user typed something but didn't select from dropdown, use what they typed
-                          setNewJob({ ...newJob, job_title: jobTitleSearchTerm });
+                        // If user typed something but dropdown is not visible, use what they typed
+                        if (jobTitleSearchTerm !== "" && (!jobTitleSuggestions || jobTitleSuggestions.length === 0)) {
+                          setNewJob(prev => ({ ...prev, job_title: jobTitleSearchTerm }));
                           setJobTitleSearchTerm("");
                         }
-                      }, 150); // Small delay to allow click events to fire first
+                      }, 200); // Longer delay to allow click events to complete
                     }}
                     placeholder="Start typing job title..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
@@ -389,9 +391,16 @@ function AddJobModal({
             {autocompleteSuggestions.map((suggestion, index) => (
               <div
                 key={index}
-                onClick={() => {
-                  setNewJob({ ...newJob, company_name: suggestion.name });
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Update the job with the selected company
+                  setNewJob(prev => ({ ...prev, company_name: suggestion.name }));
+                  
+                  // Clear the search term to close the dropdown
                   setCompanySearchTerm("");
+                  
                   // Focus the job title field after company selection
                   setTimeout(() => {
                     if (jobTitleInputRef.current) {
@@ -440,9 +449,16 @@ function AddJobModal({
             {jobTitleSuggestions.map((suggestion, index) => (
               <div
                 key={index}
-                onClick={() => {
-                  setNewJob({ ...newJob, job_title: suggestion });
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Update the job with the selected title
+                  setNewJob(prev => ({ ...prev, job_title: suggestion }));
+                  
+                  // Clear the search term to close the dropdown
                   setJobTitleSearchTerm("");
+                  
                   // Close the dropdown by removing focus from the input
                   if (jobTitleInputRef.current) {
                     jobTitleInputRef.current.blur();
