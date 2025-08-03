@@ -1,28 +1,24 @@
 from flask import Blueprint, request, jsonify, current_app
 import mariadb
 import random
-from app import get_db
+from app import get_db, limiter
 from app.routes.auth import token_required
 
-# Rate limiting
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 jobs_bp = Blueprint('jobs', __name__)
-
-# Attach limiter to blueprint (if not already done in app factory)
-def get_limiter():
-    if not hasattr(current_app, 'limiter'):
-        # Fallback: create a limiter if not present (for blueprint testing)
-        return Limiter(key_func=get_remote_address, app=current_app)
-    return current_app.limiter
 
 def ensure_status_history_table(cursor):
     """Ensure the job_status_history table exists"""
     try:
         # Check if table exists
-        cursor.execute("""
-            SELECT COUNT(*) as count FROM information_schema.tables 
+        cursor.execute("@jobs_bp.route("/jobs/status@jobs_bp.route("/jobs/statuses", methods=["POST"])
+@token_required
+@set_user_id_in_request
+@limiter.limit("5 per minute")
+def create_job_status(current_user):methods=["GET"])
+@token_required
+@set_user_id_in_request
+@limiter.limit("30 per minute")
+def get_job_statuses(current_user):          SELECT COUNT(*) as count FROM information_schema.tables 
             WHERE table_schema = DATABASE() 
             AND table_name = 'job_status_history'
         """)
@@ -92,16 +88,6 @@ def ensure_status_exists(cursor, status_name):
 
 from functools import wraps
 
-# Helper to apply per-user rate limit (by user id if logged in, else IP)
-def user_rate_limit(limit):
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            return f(*args, **kwargs)
-        wrapped.__name__ = f.__name__
-        return get_limiter().limit(limit, key_func=lambda: getattr(request, 'current_user_id', get_remote_address()))(wrapped)
-    return decorator
-
 def set_user_id_in_request(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -113,7 +99,8 @@ def set_user_id_in_request(f):
 @jobs_bp.route("/jobs", methods=["POST"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
+def create_job(current_user):
 def create_job(current_user):
     data = request.json
     user_id = current_user['id']
@@ -190,7 +177,7 @@ def create_job(current_user):
 @jobs_bp.route("/jobs", methods=["GET"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("60 per minute")
+@limiter.limit("60 per minute")
 def get_jobs(current_user):
     user_id = current_user['id']
     try:
@@ -218,7 +205,7 @@ def get_jobs(current_user):
 @jobs_bp.route("/jobs/<int:job_id>", methods=["GET"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_job(current_user, job_id):
     user_id = current_user['id']
     try:
@@ -245,7 +232,7 @@ def get_job(current_user, job_id):
 @jobs_bp.route("/jobs/<int:job_id>", methods=["PUT"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def update_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
@@ -344,7 +331,7 @@ def update_job(current_user, job_id):
 @jobs_bp.route("/jobs/<int:job_id>", methods=["DELETE"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def delete_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
@@ -461,7 +448,7 @@ def create_job_status(current_user):
 @jobs_bp.route("/job-statuses/<status_name>", methods=["GET"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_job_status_color(current_user, status_name):
     """Get a specific job status color"""
     try:
@@ -487,7 +474,7 @@ def get_job_status_color(current_user, status_name):
 @jobs_bp.route("/job-statuses/<status_name>", methods=["PUT"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def update_job_status(current_user, status_name):
     """Update a job status color"""
     data = request.json
@@ -544,7 +531,7 @@ def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=No
 @jobs_bp.route('/status-history/<int:job_id>', methods=['GET'])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_job_status_history(current_user, job_id):
     """Get status history for a specific job"""
     try:
@@ -595,7 +582,7 @@ def get_job_status_history(current_user, job_id):
 @jobs_bp.route('/analytics/status-flow', methods=['GET'])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def get_status_flow_analytics(current_user):
     """Get status flow data for Sankey diagram"""
     try:

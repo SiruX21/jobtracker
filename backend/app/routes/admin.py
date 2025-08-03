@@ -2,36 +2,14 @@ from flask import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
 from functools import wraps
-from app import get_db
+from app import get_db, limiter
 from app.config import Config
 import bcrypt
 from datetime import datetime, timedelta
 import secrets
 import string
 
-# Rate limiting
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 admin_bp = Blueprint('admin', __name__)
-
-# Attach limiter to blueprint (if not already done in app factory)
-def get_limiter():
-    if not hasattr(current_app, 'limiter'):
-        # Fallback: create a limiter if not present (for blueprint testing)
-        return Limiter(key_func=get_remote_address, app=current_app)
-    return current_app.limiter
-
-# Helper to apply per-IP rate limit
-def ip_rate_limit(limit):
-    def decorator(f):
-        from functools import wraps
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            return f(*args, **kwargs)
-        wrapped.__name__ = f.__name__
-        return get_limiter().limit(limit, key_func=get_remote_address)(wrapped)
-    return decorator
 
 def admin_required(f):
     @wraps(f)
@@ -79,7 +57,7 @@ def admin_required(f):
 
 @admin_bp.route("/admin/dashboard", methods=["GET"])
 @admin_required
-@ip_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def admin_dashboard():
     """Get admin dashboard data"""
     try:
@@ -157,7 +135,7 @@ def admin_dashboard():
 
 @admin_bp.route("/admin/users", methods=["GET"])
 @admin_required
-@ip_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_users():
     """Get paginated users list"""
     try:
@@ -220,7 +198,7 @@ def get_users():
 
 @admin_bp.route("/admin/jobs", methods=["GET"])
 @admin_required
-@ip_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_all_jobs():
     """Get paginated job applications list"""
     try:
@@ -291,7 +269,7 @@ def get_all_jobs():
 
 @admin_bp.route("/admin/users/<int:user_id>", methods=["PUT"])
 @admin_required
-@ip_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def update_user(user_id):
     """Update user details"""
     try:
@@ -316,7 +294,7 @@ def update_user(user_id):
 
 @admin_bp.route("/admin/users/<int:user_id>", methods=["DELETE"])
 @admin_required
-@ip_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def delete_user(user_id):
     """Delete a user"""
     try:
@@ -334,7 +312,7 @@ def delete_user(user_id):
 
 @admin_bp.route("/admin/jobs/<int:job_id>", methods=["DELETE"])
 @admin_required
-@ip_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def delete_job_admin(job_id):
     """Delete a job application"""
     try:
@@ -351,7 +329,7 @@ def delete_job_admin(job_id):
 
 @admin_bp.route("/admin/users", methods=["POST"])
 @admin_required
-@ip_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def create_admin_user():
     """Create a new admin user"""
     try:

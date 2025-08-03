@@ -1,35 +1,17 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import jwt
 import mariadb
 from functools import wraps
-from app import get_db
+from app import get_db, limiter
 from app.config import Config
 from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email
 from app.utils.password_validator import PasswordValidator
 
 
 auth_bp = Blueprint('auth', __name__)
-
-# Attach limiter to blueprint (if not already done in app factory)
-def get_limiter():
-    if not hasattr(current_app, 'limiter'):
-        # Fallback: create a limiter if not present (for blueprint testing)
-        return Limiter(key_func=get_remote_address, app=current_app)
-    return current_app.limiter
-
-# Helper to apply per-IP rate limit
-def ip_rate_limit(limit):
-    def decorator(f):
-        from functools import wraps
         @wraps(f)
         def wrapped(*args, **kwargs):
-            return f(*args, **kwargs)
-        wrapped.__name__ = f.__name__
-        return get_limiter().limit(limit, key_func=get_remote_address)(wrapped)
-    return decorator
-
+            # Get limiter at runtime and check rate limit
 def create_cors_response():
     """Create a CORS response with configurable origins"""
     response = jsonify()
@@ -78,7 +60,7 @@ def token_required(f):
     return decorated
 
 @auth_bp.route("/register", methods=["POST", "OPTIONS"])
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def register():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -115,7 +97,7 @@ def register():
     return jsonify({"message": result["message"]}), 201
 
 @auth_bp.route("/login", methods=["POST", "OPTIONS"])
-@ip_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def login():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -148,7 +130,7 @@ def login():
     }), 200
 
 @auth_bp.route("/verify-email", methods=["GET"])
-@ip_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def verify_email():
     token = request.args.get('token')
     
@@ -163,7 +145,7 @@ def verify_email():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/resend-verification", methods=["POST"])
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def resend_verification():
     data = request.json
     
@@ -186,7 +168,7 @@ def resend_verification():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/forgot-password", methods=["POST", "OPTIONS"])
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def forgot_password():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -213,7 +195,7 @@ def forgot_password():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/reset-password", methods=["POST", "OPTIONS"])
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def reset_password_route():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -297,7 +279,7 @@ def get_profile():
         return jsonify({"message": "Failed to load profile"}), 500
 
 @auth_bp.route("/change-password", methods=["PUT", "OPTIONS"])
-@ip_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def change_password():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -370,7 +352,7 @@ def change_password():
         return jsonify({"message": "Failed to change password"}), 500
 
 @auth_bp.route('/delete-account', methods=['DELETE', 'OPTIONS'])
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def delete_account():
     if request.method == 'OPTIONS':
         response = create_cors_response()
@@ -439,7 +421,7 @@ def delete_account():
 
 @auth_bp.route("/request-email-change", methods=["POST"])
 @token_required
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def request_email_change_route(current_user):
     """Simplified email change endpoint that matches frontend expectations"""
     try:
@@ -535,7 +517,7 @@ def request_email_change_route(current_user):
 
 @auth_bp.route("/initiate-email-change", methods=["POST"])
 @token_required
-@ip_rate_limit("3 per minute")
+@limiter.limit("3 per minute")
 def initiate_email_change_route():
     """Step 1: Initiate email change process"""
     data = request.get_json()
@@ -557,7 +539,7 @@ def initiate_email_change_route():
     return jsonify(result), 200
 
 @auth_bp.route("/confirm-email-change", methods=["GET", "POST"])
-@ip_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def confirm_email_change_route():
     """Step 2: Confirm email change and provide new email"""
     if request.method == "GET":
@@ -796,7 +778,7 @@ def verify_new_email_route():
     """
 
 @auth_bp.route('/validate-password', methods=['POST', 'OPTIONS'])
-@ip_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def validate_password_endpoint():
     """Validate password strength"""
     if request.method == 'OPTIONS':

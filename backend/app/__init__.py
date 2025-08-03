@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import mariadb
 import os
 import threading
@@ -35,12 +37,18 @@ def db_operation(func):
         return func(*args, **kwargs)
     return wrapper
 
+# Global limiter instance
+limiter = Limiter(key_func=get_remote_address)
+
 def create_app():
     app = Flask(__name__)
     
     # Load configuration based on environment
     env = os.getenv('ENVIRONMENT', 'development')
     app.config.from_object(config.get(env, config['default']))
+    
+    # Initialize Flask-Limiter
+    limiter.init_app(app)
     
     # Configure CORS - Use configurable origins
     CORS(app, 

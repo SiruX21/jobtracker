@@ -1,31 +1,12 @@
 from flask import Blueprint, request, jsonify, redirect, url_for, current_app
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from app.services.auth_service import verify_email_token, resend_verification_email
+from app import limiter
 
 
 email_bp = Blueprint('email', __name__)
 
-# Attach limiter to blueprint (if not already done in app factory)
-def get_limiter():
-    if not hasattr(current_app, 'limiter'):
-        # Fallback: create a limiter if not present (for blueprint testing)
-        return Limiter(key_func=get_remote_address, app=current_app)
-    return current_app.limiter
-
-# Helper to apply per-IP rate limit
-def ip_rate_limit(limit):
-    def decorator(f):
-        from functools import wraps
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            return f(*args, **kwargs)
-        wrapped.__name__ = f.__name__
-        return get_limiter().limit(limit, key_func=get_remote_address)(wrapped)
-    return decorator
-
 @email_bp.route("/verify-email", methods=["GET"])
-@ip_rate_limit("10 per minute")
+@limiter.limit("10 per minute")
 def verify_email_page():
     """Handle email verification from email links"""
     token = request.args.get('token')

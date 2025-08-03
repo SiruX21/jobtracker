@@ -1,29 +1,8 @@
 from flask import Blueprint, request, jsonify, Response, current_app
 from app.services.logo_cache_service import logo_cache
-
-# Rate limiting
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from app import limiter
 
 logos_bp = Blueprint('logos', __name__)
-
-# Attach limiter to blueprint (if not already done in app factory)
-def get_limiter():
-    if not hasattr(current_app, 'limiter'):
-        # Fallback: create a limiter if not present (for blueprint testing)
-        return Limiter(key_func=get_remote_address, app=current_app)
-    return current_app.limiter
-
-# Helper to apply per-IP rate limit
-def ip_rate_limit(limit):
-    def decorator(f):
-        from functools import wraps
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            return f(*args, **kwargs)
-        wrapped.__name__ = f.__name__
-        return get_limiter().limit(limit, key_func=get_remote_address)(wrapped)
-    return decorator
 
 @logos_bp.route("/logos/company/<company_name>", methods=["GET"])
 def get_company_logo(company_name):
