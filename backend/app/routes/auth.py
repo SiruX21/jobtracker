@@ -9,9 +9,7 @@ from app.utils.password_validator import PasswordValidator
 
 
 auth_bp = Blueprint('auth', __name__)
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            # Get limiter at runtime and check rate limit
+
 def create_cors_response():
     """Create a CORS response with configurable origins"""
     response = jsonify()
