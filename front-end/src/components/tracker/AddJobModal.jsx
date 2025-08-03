@@ -77,11 +77,20 @@ function AddJobModal({
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Check if click is outside company input and not on company dropdown
       if (companyInputRef.current && !companyInputRef.current.contains(event.target)) {
-        setCompanySearchTerm("");
+        const companyDropdown = document.querySelector('[data-company-dropdown]');
+        if (!companyDropdown || !companyDropdown.contains(event.target)) {
+          setCompanySearchTerm("");
+        }
       }
+      
+      // Check if click is outside job title input and not on job title dropdown
       if (jobTitleInputRef.current && !jobTitleInputRef.current.contains(event.target)) {
-        setJobTitleSearchTerm("");
+        const jobTitleDropdown = document.querySelector('[data-jobtitle-dropdown]');
+        if (!jobTitleDropdown || !jobTitleDropdown.contains(event.target)) {
+          setJobTitleSearchTerm("");
+        }
       }
     };
 
@@ -132,19 +141,29 @@ function AddJobModal({
                   <input
                     ref={companyInputRef}
                     type="text"
-                    value={companySearchTerm || newJob.company_name || ""}
+                    value={companySearchTerm !== "" ? companySearchTerm : newJob.company_name || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value !== newJob.company_name) {
-                        setCompanySearchTerm(value);
-                      }
+                      setCompanySearchTerm(value);
                       setNewJob({ ...newJob, company_name: value });
                     }}
                     onFocus={() => {
-                      // When focusing, if there's a selected company, clear search to show suggestions
-                      if (newJob.company_name && !companySearchTerm) {
+                      // When focusing, if there's a selected company and no search term, start searching
+                      if (newJob.company_name && companySearchTerm === "") {
                         setCompanySearchTerm(newJob.company_name);
                       }
+                    }}
+                    onBlur={() => {
+                      // When losing focus, if there's no search happening, make sure the company name is set
+                      setTimeout(() => {
+                        if (companySearchTerm === "" && newJob.company_name) {
+                          // Keep the selected value
+                        } else if (companySearchTerm !== "") {
+                          // If user typed something but didn't select from dropdown, use what they typed
+                          setNewJob({ ...newJob, company_name: companySearchTerm });
+                          setCompanySearchTerm("");
+                        }
+                      }, 150); // Small delay to allow click events to fire first
                     }}
                     placeholder="Start typing company name..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
@@ -162,19 +181,29 @@ function AddJobModal({
                   <input
                     ref={jobTitleInputRef}
                     type="text"
-                    value={jobTitleSearchTerm || newJob.job_title || ""}
+                    value={jobTitleSearchTerm !== "" ? jobTitleSearchTerm : newJob.job_title || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value !== newJob.job_title) {
-                        setJobTitleSearchTerm(value);
-                      }
+                      setJobTitleSearchTerm(value);
                       setNewJob({ ...newJob, job_title: value });
                     }}
                     onFocus={() => {
-                      // When focusing, if there's a selected job title, clear search to show suggestions
-                      if (newJob.job_title && !jobTitleSearchTerm) {
+                      // When focusing, if there's a selected job title and no search term, start searching
+                      if (newJob.job_title && jobTitleSearchTerm === "") {
                         setJobTitleSearchTerm(newJob.job_title);
                       }
+                    }}
+                    onBlur={() => {
+                      // When losing focus, if there's no search happening, make sure the job title is set
+                      setTimeout(() => {
+                        if (jobTitleSearchTerm === "" && newJob.job_title) {
+                          // Keep the selected value
+                        } else if (jobTitleSearchTerm !== "") {
+                          // If user typed something but didn't select from dropdown, use what they typed
+                          setNewJob({ ...newJob, job_title: jobTitleSearchTerm });
+                          setJobTitleSearchTerm("");
+                        }
+                      }, 150); // Small delay to allow click events to fire first
                     }}
                     placeholder="Start typing job title..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
@@ -348,6 +377,7 @@ function AddJobModal({
       {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top && 
         createPortal(
           <div 
+            data-company-dropdown
             className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
             style={{
               top: companyDropdownPosition.top + 4,
@@ -398,6 +428,7 @@ function AddJobModal({
       {jobTitleSearchTerm && jobTitleSearchTerm.length > 0 && jobTitleSuggestions && jobTitleSuggestions.length > 0 && jobTitleDropdownPosition.top &&
         createPortal(
           <div 
+            data-jobtitle-dropdown
             className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
             style={{
               top: jobTitleDropdownPosition.top + 4,
@@ -412,6 +443,10 @@ function AddJobModal({
                 onClick={() => {
                   setNewJob({ ...newJob, job_title: suggestion });
                   setJobTitleSearchTerm("");
+                  // Close the dropdown by removing focus from the input
+                  if (jobTitleInputRef.current) {
+                    jobTitleInputRef.current.blur();
+                  }
                 }}
                 className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
               >
