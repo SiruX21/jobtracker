@@ -114,7 +114,7 @@ const cacheUtils = {
   }
 };
 
-function TrackerPage({ darkMode, toggleTheme }) {
+function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
 
   // State variables
@@ -688,7 +688,7 @@ function TrackerPage({ darkMode, toggleTheme }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       {initialLoading ? (
         <LoadingScreen type="tracker" />
       ) : (
