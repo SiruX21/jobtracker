@@ -26,9 +26,13 @@ function AddJobModal({
 }) {
   const companyInputRef = useRef(null);
   const jobTitleInputRef = useRef(null);
+  const statusInputRef = useRef(null);
   const [companyDropdownPosition, setCompanyDropdownPosition] = useState({});
   const [jobTitleDropdownPosition, setJobTitleDropdownPosition] = useState({});
+  const [statusDropdownPosition, setStatusDropdownPosition] = useState({});
   const [selectedCompanyLogo, setSelectedCompanyLogo] = useState(null);
+  const [statusSearchTerm, setStatusSearchTerm] = useState("");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   // Update dropdown positions when suggestions are shown
   useEffect(() => {
@@ -75,6 +79,29 @@ function AddJobModal({
     }
   }, [jobTitleSearchTerm, jobTitleSuggestions]);
 
+  // Update status dropdown position when dropdown is shown
+  useEffect(() => {
+    if (showStatusDropdown && statusInputRef.current) {
+      const updatePosition = () => {
+        const rect = statusInputRef.current.getBoundingClientRect();
+        setStatusDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        });
+      };
+      
+      updatePosition();
+      window.addEventListener('scroll', updatePosition);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [showStatusDropdown]);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -99,6 +126,18 @@ function AddJobModal({
           }, 0);
         }
       }
+      
+      // Check if click is outside status input and not on status dropdown
+      if (statusInputRef.current && !statusInputRef.current.contains(event.target)) {
+        const statusDropdown = document.querySelector('[data-status-dropdown]');
+        if (!statusDropdown || !statusDropdown.contains(event.target)) {
+          // Use a small timeout to allow click handlers to complete first
+          setTimeout(() => {
+            setShowStatusDropdown(false);
+            setStatusSearchTerm("");
+          }, 0);
+        }
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -108,6 +147,11 @@ function AddJobModal({
   }, [setCompanySearchTerm, setJobTitleSearchTerm]);
 
   if (!isOpen) return null;
+
+  // Filter status suggestions based on search term
+  const filteredStatuses = jobStatuses?.filter(status => 
+    status.status_name.toLowerCase().includes((statusSearchTerm || newJob.status || "").toLowerCase())
+  ) || [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -258,21 +302,38 @@ function AddJobModal({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status
                   </label>
-                  <input
-                    type="text"
-                    list="status-suggestions"
-                    value={newJob.status}
-                    onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
-                    placeholder="Enter or select status..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  />
-                  <datalist id="status-suggestions">
-                    {jobStatuses?.map((status) => (
-                      <option key={status.id || status.status_name} value={status.status_name}>
-                        {status.status_name}
-                      </option>
-                    ))}
-                  </datalist>
+                  <div className="relative">
+                    <input
+                      ref={statusInputRef}
+                      type="text"
+                      value={statusSearchTerm !== "" ? statusSearchTerm : newJob.status || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setStatusSearchTerm(value);
+                        setNewJob({ ...newJob, status: value });
+                        setShowStatusDropdown(true);
+                      }}
+                      onFocus={() => {
+                        setShowStatusDropdown(true);
+                        // When focusing, if there's a selected status and no search term, start searching
+                        if (newJob.status && statusSearchTerm === "") {
+                          setStatusSearchTerm(newJob.status);
+                        }
+                      }}
+                      onBlur={() => {
+                        // When losing focus, handle the search term properly
+                        setTimeout(() => {
+                          // If user typed something but dropdown is not visible, use what they typed
+                          if (statusSearchTerm !== "" && !showStatusDropdown) {
+                            setNewJob(prev => ({ ...prev, status: statusSearchTerm }));
+                            setStatusSearchTerm("");
+                          }
+                        }, 200); // Longer delay to allow click events to complete
+                      }}
+                      placeholder="Enter or select status..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     You can type a custom status or select from existing ones
                   </p>
@@ -498,6 +559,52 @@ function AddJobModal({
                 className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
               >
                 <span className="text-gray-900 dark:text-gray-100">{suggestion}</span>
+              </div>
+            ))}
+          </div>,
+          document.body
+        )
+      }
+
+      {/* Status Suggestions Portal */}
+      {showStatusDropdown && statusDropdownPosition.top && filteredStatuses.length > 0 &&
+        createPortal(
+          <div 
+            data-status-dropdown
+            className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
+            style={{
+              top: statusDropdownPosition.top + 4,
+              left: statusDropdownPosition.left,
+              width: statusDropdownPosition.width,
+              zIndex: 10002 // Higher than other dropdowns
+            }}
+          >
+            {filteredStatuses.map((status, index) => (
+              <div
+                key={status.id || status.status_name}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Update the job with the selected status
+                  setNewJob(prev => ({ ...prev, status: status.status_name }));
+                  
+                  // Clear the search term and close the dropdown
+                  setStatusSearchTerm("");
+                  setShowStatusDropdown(false);
+                  
+                  // Remove focus from the input
+                  if (statusInputRef.current) {
+                    statusInputRef.current.blur();
+                  }
+                }}
+                className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+              >
+                <div 
+                  className="w-4 h-4 rounded-full mr-3 flex-shrink-0"
+                  style={{ backgroundColor: status.color || '#6b7280' }}
+                ></div>
+                <span className="text-gray-900 dark:text-gray-100">{status.status_name}</span>
               </div>
             ))}
           </div>,
