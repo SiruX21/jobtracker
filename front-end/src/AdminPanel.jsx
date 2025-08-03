@@ -19,6 +19,9 @@ import UserDetailModal from './components/admin/UserDetailModal';
 import CreateAdminModal from './components/admin/CreateAdminModal';
 import AddEnvVarModal from './components/admin/AddEnvVarModal';
 
+// Import tracker components for job editing
+import EditJobModal from './components/tracker/EditJobModal';
+
 // Component to render company logos with fallback
 function AdminPanel({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
@@ -60,6 +63,19 @@ function AdminPanel({ darkMode, toggleTheme }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [newAdminData, setNewAdminData] = useState({ username: '', email: '', password: '' });
+  
+  // Edit Job Modal states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [newJob, setNewJob] = useState({
+    company_name: '',
+    job_title: '',
+    status: '',
+    application_date: '',
+    location: '',
+    job_url: '',
+    notes: ''
+  });
 
   useEffect(() => {
     checkAdminAccess();
@@ -393,6 +409,83 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
   };
 
+  // Edit Job Modal functions
+  const openEditModal = (job) => {
+    setEditingJob({ ...job });
+    setNewJob({
+      id: job.id,
+      company_name: job.company_name,
+      job_title: job.position_title, // Note: admin API uses position_title, tracker uses job_title
+      status: job.status,
+      application_date: job.applied_date, // Note: admin API uses applied_date, tracker uses application_date
+      location: job.location || "",
+      job_url: job.job_url || "",
+      notes: job.notes || ""
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingJob(null);
+    setNewJob({
+      company_name: '',
+      job_title: '',
+      status: '',
+      application_date: '',
+      location: '',
+      job_url: '',
+      notes: ''
+    });
+  };
+
+  const updateJob = async () => {
+    if (!newJob.company_name || !newJob.job_title) return;
+
+    setLoading(true);
+    try {
+      const authToken = Cookies.get("authToken");
+      
+      // Convert field names back to what the API expects
+      const jobData = {
+        company_name: newJob.company_name,
+        position_title: newJob.job_title, // Convert back to position_title
+        status: newJob.status,
+        applied_date: newJob.application_date, // Convert back to applied_date
+        location: newJob.location,
+        job_url: newJob.job_url,
+        notes: newJob.notes
+      };
+      
+      await axios.put(`${API_BASE_URL}/api/admin/jobs/${editingJob.id}`, jobData, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      
+      closeEditModal();
+      loadJobs(); // Reload the jobs list
+      
+      toast.success(`Job application for ${newJob.company_name} - ${newJob.job_title} updated successfully!`);
+      
+    } catch (error) {
+      console.error("Error updating job:", error);
+      toast.error("Failed to update job application. Please try again.");
+      
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteJobFromModal = async () => {
+    if (editingJob) {
+      await deleteJob(editingJob.id);
+      closeEditModal();
+    }
+  };
+
   const createAdminUser = async () => {
     try {
       const token = Cookies.get('authToken');
@@ -616,6 +709,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             setSelectedUser={setSelectedUser}
             statusColorMap={statusColorMap}
             getCompanyLogoSync={getCompanyLogoSync}
+            openEditModal={openEditModal}
           />
         )}
 
@@ -658,6 +752,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             loadJobs={loadJobs}
             deleteJob={deleteJob}
             getCompanyLogoSync={getCompanyLogoSync}
+            openEditModal={openEditModal}
           />
         )}
 
@@ -699,6 +794,18 @@ function AdminPanel({ darkMode, toggleTheme }) {
           newEnvVar={newEnvVar}
           setNewEnvVar={setNewEnvVar}
           addEnvironmentVar={addEnvironmentVar}
+        />
+
+        <EditJobModal 
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          newJob={newJob}
+          setNewJob={setNewJob}
+          jobStatuses={jobStatuses}
+          onSubmit={updateJob}
+          loading={loading}
+          darkMode={darkMode}
+          onDelete={handleDeleteJobFromModal}
         />
       </div>
     </div>

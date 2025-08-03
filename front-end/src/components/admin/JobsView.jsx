@@ -16,7 +16,8 @@ function JobsView({
   setJobsPage,
   loadJobs,
   deleteJob,
-  getCompanyLogoSync
+  getCompanyLogoSync,
+  openEditModal
 }) {
   return (
     <div className="space-y-6">
@@ -137,7 +138,10 @@ function JobsView({
               ) : (
                 jobs.map((job) => (
                   <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td 
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => openEditModal(job)}
+                    >
                       <div className="flex items-center">
                         <div className="flex-shrink-0 mr-3">
                           <div className="w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
@@ -166,11 +170,17 @@ function JobsView({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td 
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => openEditModal(job)}
+                    >
                       <div className="text-sm text-gray-900 dark:text-white">{job.username}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">{job.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td 
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => openEditModal(job)}
+                    >
                       <span 
                         className="px-2 py-1 text-xs rounded text-white"
                         style={{
@@ -180,7 +190,10 @@ function JobsView({
                         {job.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td 
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer"
+                      onClick={() => openEditModal(job)}
+                    >
                       {formatDate(job.applied_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

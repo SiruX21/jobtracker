@@ -9,7 +9,8 @@ function DashboardView({
   handleDashboardCardClick,
   statusColorMap,
   getCompanyLogoSync,
-  setSelectedUser
+  setSelectedUser,
+  openEditModal
 }) {
   return (
     <div className="space-y-6">
@@ -171,7 +172,11 @@ function DashboardView({
           <div className="p-6">
             <div className="space-y-3">
               {dashboardData.recent_activity.jobs.map((job) => (
-                <div key={job.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 text-left group cursor-pointer">
+                <div 
+                  key={job.id} 
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 text-left group cursor-pointer"
+                  onClick={() => openEditModal(job)}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 min-w-0 flex-1">
                       <div className="flex-shrink-0">
