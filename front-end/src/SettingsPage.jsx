@@ -190,8 +190,18 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       }
     };
 
+    // Handle header mobile menu opening - close settings mobile sidebar
+    const handleHeaderMobileMenuOpened = () => {
+      setShowMobileSidebar(false);
+    };
+
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    window.addEventListener('headerMobileMenuOpened', handleHeaderMobileMenuOpened);
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('headerMobileMenuOpened', handleHeaderMobileMenuOpened);
+    };
   }, [showDeleteModal, showEmailChangeModal, showPasswordChangeModal]);
 
   const loadUserProfile = async () => {

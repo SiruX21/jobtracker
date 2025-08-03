@@ -51,6 +51,16 @@ function Header({ darkMode, toggleTheme, isMobile }) {
     }
   }, [authToken]);
 
+  // Listen for settings mobile menu opening - close header mobile menu
+  useEffect(() => {
+    const handleSettingsMobileMenuOpened = () => {
+      setShowMobileMenu(false);
+    };
+
+    window.addEventListener('settingsMobileMenuOpened', handleSettingsMobileMenuOpened);
+    return () => window.removeEventListener('settingsMobileMenuOpened', handleSettingsMobileMenuOpened);
+  }, []);
+
   const checkAdminStatus = async () => {
     try {
       const token = Cookies.get('authToken');
@@ -92,7 +102,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <>
-      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg transition-all duration-300 ease-in-out py-3 px-4 md:py-4 md:px-6 flex items-center justify-between ${
+      <header className={`w-full bg-blue-800 dark:bg-blue-900 shadow-lg transition-all duration-300 ease-in-out py-4 px-4 md:px-6 flex items-center justify-between ${
         isHomePage ? "relative" : "fixed top-0 left-0 z-50"
       }`}>
         {/* Logo */}
@@ -112,7 +122,15 @@ function Header({ darkMode, toggleTheme, isMobile }) {
         {isMobile ? (
           /* Mobile Menu Button - show on mobile */
           <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            onClick={() => {
+              const newShowMobileMenu = !showMobileMenu;
+              setShowMobileMenu(newShowMobileMenu);
+              
+              // Dispatch event to close other mobile menus when opening header menu
+              if (newShowMobileMenu) {
+                window.dispatchEvent(new CustomEvent('headerMobileMenuOpened'));
+              }
+            }}
             className="text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
           >
             {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -181,11 +199,12 @@ function Header({ darkMode, toggleTheme, isMobile }) {
       {/* Mobile Navigation Menu - show on mobile only */}
       {isMobile && showMobileMenu && (
         <div 
-          className="fixed top-16 left-0 w-full h-full bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
           onClick={() => setShowMobileMenu(false)}
         >
           <div 
             className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg transform transition-transform duration-300 ease-in-out"
+            style={{ marginTop: '72px' }}
             onClick={(e) => e.stopPropagation()}
           >
             <nav className="py-4 px-4 space-y-3">

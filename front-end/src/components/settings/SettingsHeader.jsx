@@ -20,7 +20,15 @@ function SettingsHeader({
         {/* Mobile menu button */}
         {isMobile && (
           <button
-            onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+            onClick={() => {
+              const newShowMobileSidebar = !showMobileSidebar;
+              setShowMobileSidebar(newShowMobileSidebar);
+              
+              // Dispatch event to close other mobile menus when opening settings sidebar
+              if (newShowMobileSidebar) {
+                window.dispatchEvent(new CustomEvent('settingsMobileMenuOpened'));
+              }
+            }}
             className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg active:scale-95"
           >
             <FaBars className={`text-gray-600 dark:text-gray-400 transition-transform duration-200 ${showMobileSidebar ? 'rotate-90' : 'rotate-0'}`} />
