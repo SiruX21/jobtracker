@@ -10,15 +10,8 @@ def ensure_status_history_table(cursor):
     """Ensure the job_status_history table exists"""
     try:
         # Check if table exists
-        cursor.execute("@jobs_bp.route("/jobs/status@jobs_bp.route("/jobs/statuses", methods=["POST"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("5 per minute")
-def create_job_status(current_user):methods=["GET"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("30 per minute")
-def get_job_statuses(current_user):          SELECT COUNT(*) as count FROM information_schema.tables 
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM information_schema.tables 
             WHERE table_schema = DATABASE() 
             AND table_name = 'job_status_history'
         """)
@@ -100,7 +93,6 @@ def set_user_id_in_request(f):
 @token_required
 @set_user_id_in_request
 @limiter.limit("10 per minute")
-def create_job(current_user):
 def create_job(current_user):
     data = request.json
     user_id = current_user['id']
