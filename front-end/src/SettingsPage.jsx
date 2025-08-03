@@ -15,7 +15,7 @@ import DeveloperSection from './components/settings/DeveloperSection';
 import SettingsModals from './components/settings/SettingsModals';
 import SettingsHeader from './components/settings/SettingsHeader';
 import SettingsSidebar from './components/settings/SettingsSidebar';
-import LoadingScreen from './components/settings/LoadingScreen';
+import LoadingScreen from './components/shared/LoadingScreen';
 
 function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
@@ -468,7 +468,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     return (
       <>
         <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
-        <LoadingScreen darkMode={darkMode} isMobile={isMobile} />
+        <LoadingScreen type="settings" />
       </>
     );
   }
