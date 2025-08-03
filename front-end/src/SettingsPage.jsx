@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { showToast, showCriticalToast } from './utils/toast';
@@ -23,6 +23,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   // State management
   const [activeTab, setActiveTab] = useState('profile');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -154,19 +155,29 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   // Check authentication and load user data
   useEffect(() => {
-    const authToken = Cookies.get("authToken");
-    if (!authToken) {
-      console.log('No auth token found, redirecting to auth'); // Debug log
-      navigate('/auth');
-      return;
-    }
-    console.log('Auth token found, loading profile'); // Debug log
-    setIsAuthenticated(true);
-    loadUserProfile();
-    checkAdminStatus();
-    if (developerMode && isAdmin) {
-      loadDeveloperInfo();
-    }
+    const initializeSettings = async () => {
+      try {
+        const authToken = Cookies.get("authToken");
+        if (!authToken) {
+          console.log('No auth token found, redirecting to auth'); // Debug log
+          navigate('/auth');
+          return;
+        }
+        console.log('Auth token found, loading profile'); // Debug log
+        setIsAuthenticated(true);
+        await loadUserProfile();
+        await checkAdminStatus();
+        if (developerMode && isAdmin) {
+          loadDeveloperInfo();
+        }
+      } catch (error) {
+        console.error('Error initializing settings:', error);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    initializeSettings();
   }, [navigate, developerMode, isAdmin]);
 
   // Handle escape key for modals
@@ -464,13 +475,17 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     localShowToast('success', '🗑️ Cache cleared successfully');
   };
 
-  if (!isAuthenticated) {
+  if (initialLoading) {
     return (
       <>
         <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
         <LoadingScreen type="settings" />
       </>
     );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
   return (
