@@ -28,6 +28,7 @@ function AddJobModal({
   const jobTitleInputRef = useRef(null);
   const [companyDropdownPosition, setCompanyDropdownPosition] = useState({});
   const [jobTitleDropdownPosition, setJobTitleDropdownPosition] = useState({});
+  const [selectedCompanyLogo, setSelectedCompanyLogo] = useState(null);
 
   // Update dropdown positions when suggestions are shown
   useEffect(() => {
@@ -143,37 +144,57 @@ function AddJobModal({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Company Name *
                 </label>
-                <div className="relative">
-                  <input
-                    ref={companyInputRef}
-                    type="text"
-                    value={companySearchTerm !== "" ? companySearchTerm : newJob.company_name || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setCompanySearchTerm(value);
-                      setNewJob({ ...newJob, company_name: value });
-                    }}
-                    onFocus={() => {
-                      // When focusing, if there's a selected company and no search term, start searching
-                      if (newJob.company_name && companySearchTerm === "") {
-                        setCompanySearchTerm(newJob.company_name);
-                      }
-                    }}
-                    onBlur={() => {
-                      // When losing focus, handle the search term properly
-                      setTimeout(() => {
-                        // If user typed something but dropdown is not visible, use what they typed
-                        if (companySearchTerm !== "" && (!autocompleteSuggestions || autocompleteSuggestions.length === 0)) {
-                          setNewJob(prev => ({ ...prev, company_name: companySearchTerm }));
-                          setCompanySearchTerm("");
-                        }
-                      }, 200); // Longer delay to allow click events to complete
-                    }}
-                    placeholder="Start typing company name..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  />
+                <div className="relative flex items-center space-x-3">
+                  {/* Company Logo */}
+                  {newJob.company_name && (
+                    <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-600">
+                      <img 
+                        src={selectedCompanyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`}
+                        alt={newJob.company_name}
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=6b7280&color=ffffff&size=32&bold=true`;
+                        }}
+                      />
+                    </div>
+                  )}
                   
-                  {/* Company Suggestions Dropdown - Remove from here, will be rendered as portal */}
+                  {/* Company Input */}
+                  <div className="flex-1 relative">
+                    <input
+                      ref={companyInputRef}
+                      type="text"
+                      value={companySearchTerm !== "" ? companySearchTerm : newJob.company_name || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setCompanySearchTerm(value);
+                        setNewJob({ ...newJob, company_name: value });
+                        
+                        // Clear the selected logo when manually typing (not selecting from dropdown)
+                        if (value !== newJob.company_name) {
+                          setSelectedCompanyLogo(null);
+                        }
+                      }}
+                      onFocus={() => {
+                        // When focusing, if there's a selected company and no search term, start searching
+                        if (newJob.company_name && companySearchTerm === "") {
+                          setCompanySearchTerm(newJob.company_name);
+                        }
+                      }}
+                      onBlur={() => {
+                        // When losing focus, handle the search term properly
+                        setTimeout(() => {
+                          // If user typed something but dropdown is not visible, use what they typed
+                          if (companySearchTerm !== "" && (!autocompleteSuggestions || autocompleteSuggestions.length === 0)) {
+                            setNewJob(prev => ({ ...prev, company_name: companySearchTerm }));
+                            setCompanySearchTerm("");
+                          }
+                        }, 200); // Longer delay to allow click events to complete
+                      }}
+                      placeholder="Start typing company name..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -237,17 +258,24 @@ function AddJobModal({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status
                   </label>
-                  <select
+                  <input
+                    type="text"
+                    list="status-suggestions"
                     value={newJob.status}
                     onChange={(e) => setNewJob({ ...newJob, status: e.target.value })}
+                    placeholder="Enter or select status..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  >
+                  />
+                  <datalist id="status-suggestions">
                     {jobStatuses?.map((status) => (
-                      <option key={status.id} value={status.status_name}>
+                      <option key={status.id || status.status_name} value={status.status_name}>
                         {status.status_name}
                       </option>
                     ))}
-                  </select>
+                  </datalist>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    You can type a custom status or select from existing ones
+                  </p>
                 </div>
 
                 <div>
@@ -331,7 +359,7 @@ function AddJobModal({
                   {newJob.company_name && (
                     <div className="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
                       <img 
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`}
+                        src={selectedCompanyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`}
                         alt={newJob.company_name}
                         className="w-12 h-12 object-contain"
                         onError={(e) => {
@@ -397,6 +425,9 @@ function AddJobModal({
                   
                   // Update the job with the selected company
                   setNewJob(prev => ({ ...prev, company_name: suggestion.name }));
+                  
+                  // Store the selected company logo
+                  setSelectedCompanyLogo(suggestion.logo_url);
                   
                   // Clear the search term to close the dropdown
                   setCompanySearchTerm("");
