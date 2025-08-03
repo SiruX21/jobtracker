@@ -199,6 +199,16 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
 
   // Dashboard filter handler
   const handleDashboardCardClick = (statId) => {
+    // If the clicked card is already active, clear all filters
+    if (dashboardFilter === statId) {
+      setSearchTerm("");
+      setCompanyFilter("");
+      setStatusFilter("all");
+      setDateFilter("all");
+      setDashboardFilter(null);
+      return;
+    }
+
     setSearchTerm("");
     setCompanyFilter("");
     
