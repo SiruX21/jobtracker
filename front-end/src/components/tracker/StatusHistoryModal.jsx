@@ -20,7 +20,7 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName }) {
     setError(null);
     try {
       const authToken = Cookies.get("authToken");
-      const response = await axios.get(`${API_BASE_URL}/jobs/status-history/${jobId}`, {
+      const response = await axios.get(`${API_BASE_URL}/status-history/${jobId}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       setHistory(response.data);

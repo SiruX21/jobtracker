@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import jwt
 import mariadb
 from functools import wraps
@@ -7,7 +9,26 @@ from app.config import Config
 from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email
 from app.utils.password_validator import PasswordValidator
 
+
 auth_bp = Blueprint('auth', __name__)
+
+# Attach limiter to blueprint (if not already done in app factory)
+def get_limiter():
+    if not hasattr(current_app, 'limiter'):
+        # Fallback: create a limiter if not present (for blueprint testing)
+        return Limiter(key_func=get_remote_address, app=current_app)
+    return current_app.limiter
+
+# Helper to apply per-IP rate limit
+def ip_rate_limit(limit):
+    def decorator(f):
+        from functools import wraps
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            return f(*args, **kwargs)
+        wrapped.__name__ = f.__name__
+        return get_limiter().limit(limit, key_func=get_remote_address)(wrapped)
+    return decorator
 
 def create_cors_response():
     """Create a CORS response with configurable origins"""
@@ -48,30 +69,43 @@ def token_required(f):
             return jsonify({"message": "Token is invalid!"}), 401
         except mariadb.Error as e:
             print(f"Database error during token verification: {e}")
-            return jsonify({"message": "Could not verify token due to server error"}), 500
+            return jsonify({"message": "Authentication failed"}), 500
         except Exception as e:
             print(f"Unexpected error during token verification: {e}")
-            return jsonify({"message": "Could not verify token"}), 500
+            return jsonify({"message": "Authentication failed"}), 500
 
         return f(current_user, *args, **kwargs)
     return decorated
 
 @auth_bp.route("/register", methods=["POST", "OPTIONS"])
+@ip_rate_limit("3 per minute")
 def register():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return create_cors_response()
     
     data = request.json
+    
+    # --- Input Validation & Sanitization ---
+    errors = {}
     username = data.get("username")
     email = data.get("email") or data.get("username")  # Support email as username
     password = data.get("password")
 
-    if not username or not password or not email:
-        return jsonify({"error": "Username, email and password are required"}), 400
-    
-    if "@" not in email:
-        return jsonify({"error": "Invalid email format"}), 400
+    if not username or not isinstance(username, str) or len(username) < 3 or len(username) > 50:
+        errors['username'] = "Username is required and must be 3-50 characters."
+    if not email or not isinstance(email, str) or len(email) > 100:
+        errors['email'] = "Email is required and must be under 100 characters."
+    else:
+        import re
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            errors['email'] = "Invalid email format."
+    if not password or not isinstance(password, str) or len(password) < 6:
+        errors['password'] = "Password is required and must be at least 6 characters."
+
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+    # --- End Validation ---
 
     result = register_user(username, email, password)
     
@@ -81,17 +115,27 @@ def register():
     return jsonify({"message": result["message"]}), 201
 
 @auth_bp.route("/login", methods=["POST", "OPTIONS"])
+@ip_rate_limit("5 per minute")
 def login():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return create_cors_response()
     
     data = request.json
+    
+    # --- Input Validation & Sanitization ---
+    errors = {}
     email = data.get("username") or data.get("email")  # Support both username and email
     password = data.get("password")
 
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
+    if not email or not isinstance(email, str) or len(email) > 100:
+        errors['email'] = "Email/username is required and must be under 100 characters."
+    if not password or not isinstance(password, str):
+        errors['password'] = "Password is required."
+
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+    # --- End Validation ---
 
     result = login_user(email, password, current_app.config['SECRET_KEY'])
     
@@ -104,6 +148,7 @@ def login():
     }), 200
 
 @auth_bp.route("/verify-email", methods=["GET"])
+@ip_rate_limit("10 per minute")
 def verify_email():
     token = request.args.get('token')
     
@@ -118,12 +163,20 @@ def verify_email():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/resend-verification", methods=["POST"])
+@ip_rate_limit("3 per minute")
 def resend_verification():
     data = request.json
+    
+    # --- Input Validation & Sanitization ---
     email = data.get("email")
     
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
+    if not email or not isinstance(email, str) or len(email) > 100:
+        return jsonify({"error": "Valid email is required"}), 400
+    
+    import re
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        return jsonify({"error": "Invalid email format"}), 400
+    # --- End Validation ---
     
     result = resend_verification_email(email)
     
@@ -133,16 +186,24 @@ def resend_verification():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/forgot-password", methods=["POST", "OPTIONS"])
+@ip_rate_limit("3 per minute")
 def forgot_password():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return create_cors_response()
     
     data = request.json
+    
+    # --- Input Validation & Sanitization ---
     email = data.get("email")
     
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
+    if not email or not isinstance(email, str) or len(email) > 100:
+        return jsonify({"error": "Valid email is required"}), 400
+    
+    import re
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        return jsonify({"error": "Invalid email format"}), 400
+    # --- End Validation ---
     
     result = request_password_reset(email)
     
@@ -152,20 +213,24 @@ def forgot_password():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/reset-password", methods=["POST", "OPTIONS"])
+@ip_rate_limit("3 per minute")
 def reset_password_route():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return create_cors_response()
     
     data = request.json
+    
+    # --- Input Validation & Sanitization ---
     token = data.get("token")
     new_password = data.get("password")
     
-    if not token or not new_password:
-        return jsonify({"error": "Token and new password are required"}), 400
+    if not token or not isinstance(token, str) or len(token) > 500:
+        return jsonify({"error": "Valid reset token is required"}), 400
     
-    if len(new_password) < 6:
+    if not new_password or not isinstance(new_password, str) or len(new_password) < 6:
         return jsonify({"error": "Password must be at least 6 characters long"}), 400
+    # --- End Validation ---
     
     result = reset_password(token, new_password)
     
@@ -232,6 +297,7 @@ def get_profile():
         return jsonify({"message": "Failed to load profile"}), 500
 
 @auth_bp.route("/change-password", methods=["PUT", "OPTIONS"])
+@ip_rate_limit("5 per minute")
 def change_password():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
@@ -304,6 +370,7 @@ def change_password():
         return jsonify({"message": "Failed to change password"}), 500
 
 @auth_bp.route('/delete-account', methods=['DELETE', 'OPTIONS'])
+@ip_rate_limit("3 per minute")
 def delete_account():
     if request.method == 'OPTIONS':
         response = create_cors_response()
@@ -372,6 +439,7 @@ def delete_account():
 
 @auth_bp.route("/request-email-change", methods=["POST"])
 @token_required
+@ip_rate_limit("3 per minute")
 def request_email_change_route(current_user):
     """Simplified email change endpoint that matches frontend expectations"""
     try:
@@ -380,8 +448,21 @@ def request_email_change_route(current_user):
         password = data.get('password')
         user_id = current_user['id']
         
-        if not new_email or not password:
-            return jsonify({"error": "New email and password are required"}), 400
+        # --- Input Validation & Sanitization ---
+        errors = {}
+        if not new_email or not isinstance(new_email, str) or len(new_email) > 100:
+            errors['newEmail'] = "New email is required and must be under 100 characters."
+        else:
+            import re
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', new_email):
+                errors['newEmail'] = "Invalid email format."
+        
+        if not password or not isinstance(password, str):
+            errors['password'] = "Password is required."
+        
+        if errors:
+            return jsonify({"error": "Validation failed", "details": errors}), 400
+        # --- End Validation ---
         
         # Verify current password first
         conn, cursor = get_db()
@@ -454,6 +535,7 @@ def request_email_change_route(current_user):
 
 @auth_bp.route("/initiate-email-change", methods=["POST"])
 @token_required
+@ip_rate_limit("3 per minute")
 def initiate_email_change_route():
     """Step 1: Initiate email change process"""
     data = request.get_json()
@@ -475,6 +557,7 @@ def initiate_email_change_route():
     return jsonify(result), 200
 
 @auth_bp.route("/confirm-email-change", methods=["GET", "POST"])
+@ip_rate_limit("5 per minute")
 def confirm_email_change_route():
     """Step 2: Confirm email change and provide new email"""
     if request.method == "GET":
@@ -713,6 +796,7 @@ def verify_new_email_route():
     """
 
 @auth_bp.route('/validate-password', methods=['POST', 'OPTIONS'])
+@ip_rate_limit("10 per minute")
 def validate_password_endpoint():
     """Validate password strength"""
     if request.method == 'OPTIONS':

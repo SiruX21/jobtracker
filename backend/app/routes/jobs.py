@@ -1,10 +1,21 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import mariadb
 import random
 from app import get_db
 from app.routes.auth import token_required
 
+# Rate limiting
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 jobs_bp = Blueprint('jobs', __name__)
+
+# Attach limiter to blueprint (if not already done in app factory)
+def get_limiter():
+    if not hasattr(current_app, 'limiter'):
+        # Fallback: create a limiter if not present (for blueprint testing)
+        return Limiter(key_func=get_remote_address, app=current_app)
+    return current_app.limiter
 
 def ensure_status_history_table(cursor):
     """Ensure the job_status_history table exists"""
@@ -79,21 +90,63 @@ def ensure_status_exists(cursor, status_name):
         """, (status_name, color_code))
         print(f"Created new status: {status_name} with color {color_code}")
 
+from functools import wraps
+
+# Helper to apply per-user rate limit (by user id if logged in, else IP)
+def user_rate_limit(limit):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            return f(*args, **kwargs)
+        wrapped.__name__ = f.__name__
+        return get_limiter().limit(limit, key_func=lambda: getattr(request, 'current_user_id', get_remote_address()))(wrapped)
+    return decorator
+
+def set_user_id_in_request(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'current_user' in kwargs and kwargs['current_user']:
+            request.current_user_id = kwargs['current_user']['id']
+        return f(*args, **kwargs)
+    return decorated
+
 @jobs_bp.route("/jobs", methods=["POST"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("10 per minute")
 def create_job(current_user):
     data = request.json
     user_id = current_user['id']
+    
+    # --- Input Validation & Sanitization ---
+    errors = {}
     job_title = data.get('job_title')
     company_name = data.get('company_name')
-    application_date = data.get('application_date')
     status = data.get('status', 'Applied')
+    location = data.get('location')
     job_url = data.get('job_url')
     notes = data.get('notes')
-    location = data.get('location')
+    application_date = data.get('application_date')
 
-    if not job_title or not company_name:
-        return jsonify({"error": "Job title and company name are required"}), 400
+    if not job_title or not isinstance(job_title, str) or len(job_title) > 100:
+        errors['job_title'] = "Job title is required and must be a string up to 100 characters."
+    if not company_name or not isinstance(company_name, str) or len(company_name) > 100:
+        errors['company_name'] = "Company name is required and must be a string up to 100 characters."
+    if not isinstance(status, str) or len(status) > 50:
+        errors['status'] = "Status must be a string up to 50 characters."
+    if location and (not isinstance(location, str) or len(location) > 100):
+        errors['location'] = "Location must be a string up to 100 characters."
+    if job_url:
+        if not isinstance(job_url, str) or len(job_url) > 2048:
+            errors['job_url'] = "Job URL must be a string up to 2048 characters."
+        else:
+            import re
+            if not re.match(r'^https?://', job_url):
+                errors['job_url'] = "Job URL must be a valid URL."
+    
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
+    # --- End Validation ---
 
     try:
         conn, cursor = get_db()
@@ -129,13 +182,15 @@ def create_job(current_user):
         return jsonify(new_job), 201
     except mariadb.Error as e:
         print(f"Database error creating job: {e}")
-        return jsonify({"error": "Failed to create job application"}), 500
+        return jsonify({"error": "Failed to create job application due to a database error"}), 500
     except Exception as e:
         print(f"Unexpected error creating job: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        return jsonify({"error": "An unexpected error occurred while creating the job"}), 500
 
 @jobs_bp.route("/jobs", methods=["GET"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("60 per minute")
 def get_jobs(current_user):
     user_id = current_user['id']
     try:
@@ -162,6 +217,8 @@ def get_jobs(current_user):
 
 @jobs_bp.route("/jobs/<int:job_id>", methods=["GET"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("30 per minute")
 def get_job(current_user, job_id):
     user_id = current_user['id']
     try:
@@ -187,9 +244,34 @@ def get_job(current_user, job_id):
 
 @jobs_bp.route("/jobs/<int:job_id>", methods=["PUT"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("10 per minute")
 def update_job(current_user, job_id):
     user_id = current_user['id']
+    is_admin = current_user.get('role') == 'admin'
     data = request.json
+
+    # Basic validation
+    errors = {}
+    if 'job_title' in data and (not isinstance(data['job_title'], str) or len(data['job_title']) > 100):
+        errors['job_title'] = "Job title must be a string up to 100 characters."
+    if 'company_name' in data and (not isinstance(data['company_name'], str) or len(data['company_name']) > 100):
+        errors['company_name'] = "Company name must be a string up to 100 characters."
+    if 'status' in data and (not isinstance(data['status'], str) or len(data['status']) > 50):
+        errors['status'] = "Status must be a string up to 50 characters."
+    if 'location' in data and (not isinstance(data['location'], str) or len(data['location']) > 100):
+        errors['location'] = "Location must be a string up to 100 characters."
+    if 'job_url' in data and data['job_url']:
+        if not isinstance(data['job_url'], str) or len(data['job_url']) > 2048:
+             errors['job_url'] = "Job URL must be a string up to 2048 characters."
+        else:
+            # Simple regex to check for a plausible URL format
+            import re
+            if not re.match(r'^https?://', data['job_url']):
+                errors['job_url'] = "Job URL must be a valid URL (e.g., http://...)."
+
+    if errors:
+        return jsonify({"error": "Validation failed", "details": errors}), 400
 
     allowed_fields = ['job_title', 'company_name', 'application_date', 'status', 'job_url', 'notes', 'location']
     update_fields = {}
@@ -203,34 +285,39 @@ def update_job(current_user, job_id):
     set_clause = ", ".join([f"{field} = ?" for field in update_fields])
     values = list(update_fields.values())
     values.append(job_id)
-    values.append(user_id)
 
     try:
         conn, cursor = get_db()
-        
-        # Get current job data to check for status changes
-        cursor.execute("SELECT * FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
+        # Fetch the job to check ownership
+        cursor.execute("SELECT user_id, status FROM job_applications WHERE id = ?", (job_id,))
         current_job = cursor.fetchone()
-        
         if not current_job:
-            return jsonify({"error": "Job application not found or access denied"}), 404
-        
+            return jsonify({"error": "Job application not found"}), 404
+
+        # Authorization check: must be owner or admin
+        if current_job['user_id'] != user_id and not is_admin:
+            return jsonify({"error": "Access denied"}), 403
+
         # If status is being updated, ensure it exists in job_statuses table
         if 'status' in update_fields:
             ensure_status_exists(cursor, update_fields['status'])
-            
             # Track status change if status is different
             old_status = current_job['status']
             new_status = update_fields['status']
             if old_status != new_status:
+                # Use the ID of the user performing the change
                 add_status_history(cursor, job_id, old_status, new_status, user_id)
-        
-        sql = f"UPDATE job_applications SET {set_clause} WHERE id = ? AND user_id = ?"
+
+        # Build and execute the update query
+        sql = f"UPDATE job_applications SET {set_clause} WHERE id = ?"
         cursor.execute(sql, tuple(values))
 
         if cursor.rowcount == 0:
+            # This can happen if the submitted data is the same as the existing data
+            conn.close()
             return jsonify({"message": "No changes detected or applied"}), 200
 
+        # Fetch and return the updated job
         cursor.execute("SELECT * FROM job_applications WHERE id = ?", (job_id,))
         updated_job = cursor.fetchone()
         if updated_job.get('application_date'):
@@ -244,27 +331,48 @@ def update_job(current_user, job_id):
         conn.close()
         return jsonify(updated_job)
     except mariadb.Error as e:
+        # Log the detailed error for debugging
         print(f"Database error updating job {job_id}: {e}")
-        return jsonify({"error": "Failed to update job application"}), 500
+        # Return a generic error message to the client
+        return jsonify({"error": "Failed to update job application due to a database error"}), 500
     except Exception as e:
+        # Log the detailed error for debugging
         print(f"Unexpected error updating job {job_id}: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        # Return a generic error message to the client
+        return jsonify({"error": "An unexpected error occurred while updating the job"}), 500
 
 @jobs_bp.route("/jobs/<int:job_id>", methods=["DELETE"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("10 per minute")
 def delete_job(current_user, job_id):
     user_id = current_user['id']
+    is_admin = current_user.get('role') == 'admin'
     try:
         conn, cursor = get_db()
-        cursor.execute("DELETE FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
+
+        # First, verify ownership or admin status
+        cursor.execute("SELECT user_id FROM job_applications WHERE id = ?", (job_id,))
+        job = cursor.fetchone()
+
+        if not job:
+            return jsonify({"error": "Job application not found"}), 404
+
+        if job['user_id'] != user_id and not is_admin:
+            return jsonify({"error": "Access denied"}), 403
+
+        # If authorized, proceed with deletion
+        cursor.execute("DELETE FROM job_applications WHERE id = ?", (job_id,))
+        
         if cursor.rowcount > 0:
+            conn.commit()
+            conn.close()
             return jsonify({"message": "Job application deleted successfully"})
         else:
-            cursor.execute("SELECT id FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
-            if not cursor.fetchone():
-                return jsonify({"error": "Job application not found or access denied"}), 404
-            else:
-                return jsonify({"error": "Deletion failed unexpectedly"}), 500
+            # This case should ideally not be reached if the above checks pass
+            conn.close()
+            return jsonify({"error": "Deletion failed unexpectedly"}), 500
+            
     except mariadb.Error as e:
         print(f"Database error deleting job {job_id}: {e}")
         return jsonify({"error": "Failed to delete job application"}), 500
@@ -274,6 +382,8 @@ def delete_job(current_user, job_id):
 
 @jobs_bp.route("/job-statuses", methods=["GET"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("30 per minute")
 def get_job_statuses(current_user):
     """Get all available job statuses with their colors"""
     try:
@@ -297,15 +407,22 @@ def get_job_statuses(current_user):
 
 @jobs_bp.route("/job-statuses", methods=["POST"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("5 per minute")
 def create_job_status(current_user):
     """Create a new job status with auto-generated color"""
     data = request.json
     status_name = data.get('status_name', '').strip()
     custom_color = data.get('color_code')
     
-    if not status_name:
-        return jsonify({"error": "Status name is required"}), 400
+    if not status_name or not isinstance(status_name, str) or len(status_name) > 50:
+        return jsonify({"error": "Status name is required and must be a string up to 50 characters."}), 400
     
+    if custom_color:
+        import re
+        if not isinstance(custom_color, str) or not re.match(r'^#[0-9a-fA-F]{6}$', custom_color):
+            return jsonify({"error": "Invalid color code format. Must be a hex code (e.g., #RRGGBB)."}), 400
+
     # Generate color if not provided
     color_code = custom_color if custom_color else generate_random_color()
     
@@ -322,6 +439,9 @@ def create_job_status(current_user):
             INSERT INTO job_statuses (status_name, color_code, is_default) 
             VALUES (?, ?, FALSE)
         """, (status_name, color_code))
+        
+        conn.commit()
+        conn.close()
         
         return jsonify({
             "message": "Status created successfully",
@@ -340,6 +460,8 @@ def create_job_status(current_user):
 
 @jobs_bp.route("/job-statuses/<status_name>", methods=["GET"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("30 per minute")
 def get_job_status_color(current_user, status_name):
     """Get a specific job status color"""
     try:
@@ -364,13 +486,21 @@ def get_job_status_color(current_user, status_name):
 
 @jobs_bp.route("/job-statuses/<status_name>", methods=["PUT"])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("5 per minute")
 def update_job_status(current_user, status_name):
     """Update a job status color"""
     data = request.json
     new_color = data.get('color_code')
     
+    # --- Input Validation ---
     if not new_color:
         return jsonify({"error": "Color code is required"}), 400
+    
+    import re
+    if not isinstance(new_color, str) or not re.match(r'^#[0-9a-fA-F]{6}$', new_color):
+        return jsonify({"error": "Invalid color code format. Must be a hex code (e.g., #RRGGBB)."}), 400
+    # --- End Validation ---
     
     try:
         conn, cursor = get_db()
@@ -383,8 +513,11 @@ def update_job_status(current_user, status_name):
         """, (new_color, status_name))
         
         if cursor.rowcount > 0:
+            conn.commit()
+            conn.close()
             return jsonify({"message": "Status color updated successfully"}), 200
         else:
+            conn.close()
             return jsonify({"error": "Status not found"}), 404
     except mariadb.Error as e:
         print(f"Database error updating job status: {e}")
@@ -410,6 +543,8 @@ def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=No
 
 @jobs_bp.route('/status-history/<int:job_id>', methods=['GET'])
 @token_required
+@set_user_id_in_request
+@user_rate_limit("30 per minute")
 def get_job_status_history(current_user, job_id):
     """Get status history for a specific job"""
     try:
@@ -458,7 +593,9 @@ def get_job_status_history(current_user, job_id):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 @jobs_bp.route('/analytics/status-flow', methods=['GET'])
-@token_required  
+@token_required
+@set_user_id_in_request
+@user_rate_limit("10 per minute")
 def get_status_flow_analytics(current_user):
     """Get status flow data for Sankey diagram"""
     try:

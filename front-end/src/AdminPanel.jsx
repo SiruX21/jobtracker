@@ -409,6 +409,14 @@ function AdminPanel({ darkMode, toggleTheme }) {
     }
   };
 
+  // Helper function to format date for input field
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+  };
+
   // Edit Job Modal functions
   const openEditModal = (job) => {
     setEditingJob({ ...job });
@@ -417,7 +425,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       company_name: job.company_name,
       job_title: job.position_title, // Note: admin API uses position_title, tracker uses job_title
       status: job.status,
-      application_date: job.applied_date, // Note: admin API uses applied_date, tracker uses application_date
+      application_date: formatDateForInput(job.applied_date), // Format date properly
       location: job.location || "",
       job_url: job.job_url || "",
       notes: job.notes || ""
@@ -446,18 +454,19 @@ function AdminPanel({ darkMode, toggleTheme }) {
     try {
       const authToken = Cookies.get("authToken");
       
+      // Use the regular jobs API endpoint, not the admin endpoint
       // Convert field names back to what the API expects
       const jobData = {
         company_name: newJob.company_name,
-        position_title: newJob.job_title, // Convert back to position_title
+        job_title: newJob.job_title, // Use job_title for regular API
         status: newJob.status,
-        applied_date: newJob.application_date, // Convert back to applied_date
+        application_date: newJob.application_date, // Use application_date for regular API
         location: newJob.location,
         job_url: newJob.job_url,
         notes: newJob.notes
       };
       
-      await axios.put(`${API_BASE_URL}/api/admin/jobs/${editingJob.id}`, jobData, {
+      await axios.put(`${API_BASE_URL}/jobs/${editingJob.id}`, jobData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       
