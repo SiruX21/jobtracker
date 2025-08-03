@@ -26,7 +26,6 @@ def ip_rate_limit(limit):
     return decorator
 
 @logos_bp.route("/logos/company/<company_name>", methods=["GET"])
-@ip_rate_limit("60 per minute")
 def get_company_logo(company_name):
     """Get cached company logo image"""
     # --- Input Validation & Sanitization ---
@@ -61,7 +60,6 @@ def get_company_logo(company_name):
         }), 500
 
 @logos_bp.route("/logos/url/<company_name>", methods=["GET"])
-@ip_rate_limit("60 per minute")
 def get_company_logo_url(company_name):
     """Get company logo URL for API responses (returns internal URL)"""
     # --- Input Validation & Sanitization ---
@@ -96,7 +94,6 @@ def get_company_logo_url(company_name):
         }), 500
 
 @logos_bp.route("/logos/search", methods=["GET"])
-@ip_rate_limit("30 per minute")
 def search_companies():
     """Search for companies with autocomplete"""
     try:
@@ -126,7 +123,6 @@ def search_companies():
         }), 500
 
 @logos_bp.route("/logos/batch", methods=["POST"])
-@ip_rate_limit("10 per minute")
 def get_batch_logos():
     """Get multiple company logo URLs in one request"""
     try:
@@ -164,7 +160,6 @@ def get_batch_logos():
         return jsonify({"error": "Failed to get batch logos"}), 500
 
 @logos_bp.route("/logos/validate/<company_name>", methods=["GET"])
-@ip_rate_limit("20 per minute")
 def validate_company_logo(company_name):
     """Get and validate company logo"""
     try:
@@ -186,7 +181,6 @@ def validate_company_logo(company_name):
         }), 500
 
 @logos_bp.route("/logos/cache/clear", methods=["POST"])
-@ip_rate_limit("5 per minute")
 def clear_logo_cache():
     """Clear logo cache (admin endpoint)"""
     try:
@@ -205,7 +199,6 @@ def clear_logo_cache():
         return jsonify({"error": "Failed to clear cache"}), 500
 
 @logos_bp.route("/logos/cache/stats", methods=["GET"])
-@ip_rate_limit("20 per minute")
 def get_cache_stats():
     """Get cache statistics"""
     try:
@@ -217,7 +210,6 @@ def get_cache_stats():
         return jsonify({"error": "Failed to get cache stats"}), 500
 
 @logos_bp.route("/logos/health", methods=["GET"])
-@ip_rate_limit("30 per minute")
 def logo_service_health():
     """Check logo service health"""
     try:
@@ -243,7 +235,6 @@ def logo_service_health():
         }), 500
 
 @logos_bp.route("/logos/config", methods=["GET", "POST"])
-@ip_rate_limit("10 per minute")
 def logo_service_config():
     """Get or set logo service configuration"""
     try:

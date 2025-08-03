@@ -14,6 +14,11 @@ function EditJobModal({
   onDelete // Add delete handler prop
 }) {
   const [showStatusHistory, setShowStatusHistory] = useState(false);
+  
+  const handleCloseStatusHistory = () => {
+    setShowStatusHistory(false);
+  };
+  
   if (!isOpen) return null;
 
   const handleDelete = () => {
@@ -81,7 +86,7 @@ function EditJobModal({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Status
                   </label>
-                  {newJob.id && (
+                  {newJob && (newJob.id || newJob.job_id) && (
                     <button
                       onClick={() => setShowStatusHistory(true)}
                       className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center"
@@ -206,10 +211,11 @@ function EditJobModal({
       {/* Status History Modal */}
       <StatusHistoryModal
         isOpen={showStatusHistory}
-        onClose={() => setShowStatusHistory(false)}
-        jobId={newJob.id}
-        jobTitle={newJob.job_title}
-        companyName={newJob.company_name}
+        onClose={handleCloseStatusHistory}
+        jobId={newJob?.id || newJob?.job_id}
+        jobTitle={newJob?.job_title}
+        companyName={newJob?.company_name}
+        darkMode={darkMode}
       />
     </div>
   );
