@@ -21,86 +21,9 @@ function JobsView({
   openEditModal,
   initialLoading = false // Add initial loading prop
 }) {
-  // Show full loading screen during initial load
-  if (initialLoading || (!jobs && loading)) {
+  // Show full loading screen during initial load or when no jobs data
+  if (initialLoading || (!jobs && loading) || !jobs) {
     return <LoadingScreen type="admin" />;
-  }
-
-  // Show skeleton loading for jobs list
-  if (!jobs) {
-    return (
-      <div className="space-y-6">
-        {/* Skeleton Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="animate-pulse">
-              <div className="h-11 bg-gray-300 dark:bg-gray-600 rounded-lg w-80"></div>
-            </div>
-            <div className="animate-pulse">
-              <div className="h-11 bg-gray-300 dark:bg-gray-600 rounded-lg w-40"></div>
-            </div>
-          </div>
-          <div className="animate-pulse">
-            <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded-lg w-24"></div>
-          </div>
-        </div>
-
-        {/* Skeleton Jobs Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="animate-pulse h-6 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {['Company', 'Position', 'User', 'Status', 'Applied', 'Actions'].map((header, i) => (
-                    <th key={i} className="px-6 py-3">
-                      <div className="animate-pulse h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <tr key={i} className="border-t border-gray-200 dark:border-gray-700">
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse flex items-center">
-                        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded mr-3"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse h-4 bg-gray-200 dark:bg-gray-600 rounded w-32"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse h-4 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse h-6 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse h-4 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="animate-pulse flex space-x-2">
-                        <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
-                        <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading jobs data...</p>
-        </div>
-      </div>
-    );
   }
   return (
     <div className="space-y-6">
@@ -182,16 +105,7 @@ function JobsView({
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {loading ? (
-                <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <FaSync className="animate-spin w-5 h-5 mr-2 text-blue-500" />
-                      <span className="text-gray-500 dark:text-gray-400">Loading jobs...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : jobs.length === 0 ? (
+              {jobs.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-8 text-center">
                     <div className="text-gray-500 dark:text-gray-400">

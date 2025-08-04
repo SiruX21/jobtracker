@@ -39,7 +39,7 @@ function UserDetailModal({
           
           <div className="text-center mt-6">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Loading user details...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading user information...</p>
           </div>
         </div>
       </div>

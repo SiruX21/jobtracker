@@ -4,6 +4,7 @@ import {
   FaExclamationTriangle, FaTimes, FaEye, FaCheck, FaUserShield
 } from 'react-icons/fa';
 import { formatDate } from './utils';
+import LoadingScreen from '../shared/LoadingScreen';
 
 function UsersView({
   users,
@@ -21,8 +22,13 @@ function UsersView({
   setSelectedUser,
   deleteUser,
   setShowCreateAdmin,
-  setError
+  setError,
+  initialLoading = false // Add initial loading prop
 }) {
+  // Show full loading screen during initial load
+  if (initialLoading || (!users.length && loading && !error)) {
+    return <LoadingScreen type="admin" />;
+  }
   return (
     <div className="space-y-6">
       {/* Error Display */}
@@ -146,16 +152,7 @@ function UsersView({
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <FaSync className="animate-spin w-5 h-5 mr-2 text-blue-500" />
-                      <span className="text-gray-500 dark:text-gray-400">Loading users...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
+              {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-8 text-center">
                     <div className="text-gray-500 dark:text-gray-400">

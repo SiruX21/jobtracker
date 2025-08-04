@@ -25,16 +25,9 @@ function SystemView({
     return <LoadingScreen type="admin" />;
   }
 
-  // Show simple loading message if system info is missing but not in loading state
+  // Show loading screen if no system info
   if (!systemInfo) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <FaSync className="animate-spin w-8 h-8 mx-auto mb-4 text-blue-500" />
-          <p className="text-gray-500 dark:text-gray-400">Loading system information...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen type="admin" />;
   }
 
   return (
@@ -44,7 +37,7 @@ function SystemView({
         <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-50 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Processing...</p>
+            <p className="text-gray-600 dark:text-gray-400">Processing system operations...</p>
           </div>
         </div>
       )}

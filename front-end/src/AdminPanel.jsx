@@ -9,6 +9,7 @@ import { getCompanyLogoSync } from './data/companySuggestions';
 import { 
   FaUsers, FaBriefcase, FaChartBar, FaCog, FaExclamationTriangle, FaUserShield, FaExternalLinkAlt
 } from 'react-icons/fa';
+import LoadingScreen from './components/shared/LoadingScreen';
 
 // Import new admin components
 import DashboardView from './components/admin/DashboardView';
@@ -612,14 +613,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading admin panel...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen type="admin" />;
   }
 
   if (error && !dashboardData && !users.length && !jobs.length) {
@@ -713,7 +707,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         </div>
 
         {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && dashboardData && (
+        {activeTab === 'dashboard' && (
           <DashboardView
             dashboardData={dashboardData}
             handleDashboardCardClick={handleDashboardCardClick}
@@ -721,6 +715,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             statusColorMap={statusColorMap}
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
+            loading={loading}
           />
         )}
 
@@ -743,6 +738,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             deleteUser={deleteUser}
             setShowCreateAdmin={setShowCreateAdmin}
             setError={setError}
+            initialLoading={loading && !users.length}
           />
         )}
 
@@ -764,6 +760,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             deleteJob={deleteJob}
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
+            initialLoading={loading && !jobs}
           />
         )}
 
@@ -781,6 +778,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             setEnvironmentVars={setEnvironmentVars}
             updateEnvironmentVar={updateEnvironmentVar}
             deleteEnvironmentVar={deleteEnvironmentVar}
+            initialLoading={loading && !systemInfo}
           />
         )}
 
@@ -788,6 +786,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         {activeTab === 'logos' && (
           <LogoManagementView
             darkMode={darkMode}
+            initialLoading={loading}
           />
         )}
 
@@ -796,6 +795,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
           selectedUser={selectedUser}
           setSelectedUser={setSelectedUser}
           updateUser={updateUser}
+          loading={loading}
         />
 
         <CreateAdminModal
