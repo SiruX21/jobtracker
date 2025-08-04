@@ -172,9 +172,26 @@ def create_job(current_user):
 @limiter.limit("60 per minute")
 def get_jobs(current_user):
     user_id = current_user['id']
+    is_admin = current_user.get('role') == 'admin'
+    
+    # Check if admin wants to see all jobs (optional query parameter)
+    show_all = request.args.get('all', 'false').lower() == 'true'
+    
     try:
         conn, cursor = get_db()
-        cursor.execute("SELECT * FROM job_applications WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+        
+        if is_admin and show_all:
+            # Admin can optionally see all jobs from all users
+            cursor.execute("""
+                SELECT ja.*, u.username as user_name 
+                FROM job_applications ja 
+                LEFT JOIN users u ON ja.user_id = u.id 
+                ORDER BY ja.created_at DESC
+            """)
+        else:
+            # Regular behavior - only user's own jobs
+            cursor.execute("SELECT * FROM job_applications WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+        
         jobs = cursor.fetchall()
         
         # Convert datetime objects to ISO format
@@ -200,9 +217,14 @@ def get_jobs(current_user):
 @limiter.limit("30 per minute")
 def get_job(current_user, job_id):
     user_id = current_user['id']
+    is_admin = current_user.get('role') == 'admin'
     try:
         conn, cursor = get_db()
-        cursor.execute("SELECT * FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
+        # Admin can access any job, regular users can only access their own
+        if is_admin:
+            cursor.execute("SELECT * FROM job_applications WHERE id = ?", (job_id,))
+        else:
+            cursor.execute("SELECT * FROM job_applications WHERE id = ? AND user_id = ?", (job_id, user_id))
         job = cursor.fetchone()
         if job:
             if job.get('application_date'):
@@ -532,10 +554,12 @@ def get_job_status_history(current_user, job_id):
         # Ensure the table exists
         ensure_status_history_table(cursor)
         
-        # Verify user owns this job
-        cursor.execute("""
-            SELECT id FROM job_applications WHERE id = ? AND user_id = ?
-        """, (job_id, current_user['id']))
+        # Verify user owns this job or is admin
+        is_admin = current_user.get('role') == 'admin'
+        if is_admin:
+            cursor.execute("SELECT id FROM job_applications WHERE id = ?", (job_id,))
+        else:
+            cursor.execute("SELECT id FROM job_applications WHERE id = ? AND user_id = ?", (job_id, current_user['id']))
         
         if not cursor.fetchone():
             return jsonify({"error": "Job not found or access denied"}), 404

@@ -7,7 +7,7 @@ import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
 import { 
-  FaUsers, FaBriefcase, FaChartBar, FaCog, FaExclamationTriangle, FaUserShield
+  FaUsers, FaBriefcase, FaChartBar, FaCog, FaExclamationTriangle, FaUserShield, FaExternalLinkAlt
 } from 'react-icons/fa';
 
 // Import new admin components
@@ -15,6 +15,7 @@ import DashboardView from './components/admin/DashboardView';
 import UsersView from './components/admin/UsersView';
 import JobsView from './components/admin/JobsView';
 import SystemView from './components/admin/SystemView';
+import LogoManagementView from './components/admin/LogoManagementView';
 import UserDetailModal from './components/admin/UserDetailModal';
 import CreateAdminModal from './components/admin/CreateAdminModal';
 import AddEnvVarModal from './components/admin/AddEnvVarModal';
@@ -682,6 +683,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
                 { id: 'dashboard', name: 'Dashboard', icon: FaChartBar },
                 { id: 'users', name: 'Users', icon: FaUsers },
                 { id: 'jobs', name: 'Jobs', icon: FaBriefcase },
+                { id: 'logos', name: 'Logos', icon: FaExternalLinkAlt },
                 { id: 'system', name: 'System', icon: FaCog }
               ].map((tab) => (
                 <button
@@ -779,6 +781,13 @@ function AdminPanel({ darkMode, toggleTheme }) {
             setEnvironmentVars={setEnvironmentVars}
             updateEnvironmentVar={updateEnvironmentVar}
             deleteEnvironmentVar={deleteEnvironmentVar}
+          />
+        )}
+
+        {/* Logos Tab */}
+        {activeTab === 'logos' && (
+          <LogoManagementView
+            darkMode={darkMode}
           />
         )}
 

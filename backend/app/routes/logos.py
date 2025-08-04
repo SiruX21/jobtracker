@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, Response, current_app
 from app.services.logo_cache_service import logo_cache
 from app import limiter
+from app.routes.admin import admin_required
 
 logos_bp = Blueprint('logos', __name__)
 
@@ -160,6 +161,7 @@ def validate_company_logo(company_name):
         }), 500
 
 @logos_bp.route("/logos/cache/clear", methods=["POST"])
+@admin_required
 def clear_logo_cache():
     """Clear logo cache (admin endpoint)"""
     try:
@@ -178,8 +180,9 @@ def clear_logo_cache():
         return jsonify({"error": "Failed to clear cache"}), 500
 
 @logos_bp.route("/logos/cache/stats", methods=["GET"])
+@admin_required
 def get_cache_stats():
-    """Get cache statistics"""
+    """Get cache statistics (admin endpoint)"""
     try:
         stats = logo_cache.get_cache_stats()
         return jsonify(stats)
@@ -214,8 +217,9 @@ def logo_service_health():
         }), 500
 
 @logos_bp.route("/logos/config", methods=["GET", "POST"])
+@admin_required
 def logo_service_config():
-    """Get or set logo service configuration"""
+    """Get or set logo service configuration (admin endpoint)"""
     try:
         if request.method == "GET":
             # Get current configuration
