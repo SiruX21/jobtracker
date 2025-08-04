@@ -3,6 +3,7 @@ import {
   FaUsers, FaBriefcase, FaCheck, FaUserShield, FaEye, FaTimes
 } from 'react-icons/fa';
 import { formatDate } from './utils';
+import LoadingScreen from '../shared/LoadingScreen';
 
 function DashboardView({
   dashboardData,
@@ -10,8 +11,64 @@ function DashboardView({
   statusColorMap,
   getCompanyLogoSync,
   setSelectedUser,
-  openEditModal
+  openEditModal,
+  loading = false // Add loading prop
 }) {
+  // Show loading screen if no data and loading
+  if (!dashboardData && loading) {
+    return <LoadingScreen type="admin" />;
+  }
+
+  // Show skeleton if no data but not explicitly loading
+  if (!dashboardData) {
+    return (
+      <div className="space-y-6">
+        {/* Skeleton Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="animate-pulse flex items-center">
+                <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+                <div className="ml-4 flex-1">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-2"></div>
+                  <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-12"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Skeleton Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="animate-pulse h-6 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
+              </div>
+              <div className="p-6">
+                <div className="animate-pulse space-y-4">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-1"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}

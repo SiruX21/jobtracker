@@ -1,13 +1,50 @@
 import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { formatDate } from './utils';
+import LoadingScreen from '../shared/LoadingScreen';
 
 function UserDetailModal({
   selectedUser,
   setSelectedUser,
-  updateUser
+  updateUser,
+  loading = false // Add loading prop
 }) {
   if (!selectedUser) return null;
+
+  // Show loading state within the modal
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
+            </div>
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+              <FaTimes />
+            </button>
+          </div>
+          
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i}>
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1"></div>
+                <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading user details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

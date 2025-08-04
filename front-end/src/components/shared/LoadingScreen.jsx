@@ -13,6 +13,11 @@ function LoadingScreen({ type = 'general' }) {
           title: 'Loading Settings',
           subtitle: 'Retrieving your account preferences and configurations...'
         };
+      case 'admin':
+        return {
+          title: 'Loading Admin Panel',
+          subtitle: 'Fetching system information and administrative data...'
+        };
       case 'logout':
         return {
           title: 'Logging Out',
@@ -100,6 +105,127 @@ function LoadingScreen({ type = 'general' }) {
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Loading Message */}
+          <div className="text-center mt-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{loadingMessage.title}</h3>
+            <p className="text-gray-600 dark:text-gray-400">{loadingMessage.subtitle}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* Skeleton Header */}
+          <div className="mb-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-64"></div>
+            </div>
+          </div>
+          
+          {/* Skeleton Action Buttons */}
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="animate-pulse">
+              <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-lg w-32"></div>
+            </div>
+            <div className="animate-pulse">
+              <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-lg w-28"></div>
+            </div>
+            <div className="animate-pulse">
+              <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-lg w-48"></div>
+            </div>
+          </div>
+          
+          {/* Skeleton System Info Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="animate-pulse flex items-center">
+                    <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded mr-2"></div>
+                    <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="animate-pulse space-y-4">
+                    <div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16 mb-2"></div>
+                      <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-20"></div>
+                    </div>
+                    <div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-2"></div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                        </div>
+                        <div className="flex justify-between">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-28"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-12"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Skeleton Environment Variables Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="animate-pulse flex items-center">
+                <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded mr-2"></div>
+                <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-40"></div>
+                <div className="ml-2 h-5 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="animate-pulse">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-6 py-3">
+                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-8"></div>
+                        </th>
+                        <th className="px-6 py-3">
+                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
+                        </th>
+                        <th className="px-6 py-3">
+                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <tr key={i} className="border-t border-gray-200 dark:border-gray-700">
+                          <td className="px-6 py-4">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32"></div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex space-x-2">
+                              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                              <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Loading Message */}

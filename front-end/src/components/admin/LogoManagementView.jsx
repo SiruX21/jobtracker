@@ -12,8 +12,9 @@ import {
   FaTimesCircle
 } from 'react-icons/fa';
 import { API_BASE_URL } from '../../config';
+import LoadingScreen from '../shared/LoadingScreen';
 
-function LogoManagementView({ darkMode }) {
+function LogoManagementView({ darkMode, initialLoading = false }) {
   const [logoStats, setLogoStats] = useState(null);
   const [logoHealth, setLogoHealth] = useState(null);
   const [logoConfig, setLogoConfig] = useState(null);
@@ -30,6 +31,11 @@ function LogoManagementView({ darkMode }) {
   useEffect(() => {
     loadLogoData();
   }, []);
+
+  // Show full loading screen during initial load
+  if (initialLoading || (!logoStats && !logoHealth && !logoConfig && loading)) {
+    return <LoadingScreen type="admin" />;
+  }
 
   const loadLogoData = async () => {
     setLoading(true);
@@ -270,7 +276,17 @@ function LogoManagementView({ darkMode }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Loading Overlay for operations */}
+      {loading && (
+        <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Processing logo operations...</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
           <FaExternalLinkAlt className="mr-3 text-blue-600" />
@@ -298,7 +314,7 @@ function LogoManagementView({ darkMode }) {
       )}
 
       {/* Logo Service Health */}
-      {logoHealth && (
+      {logoHealth ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             {getHealthStatusIcon(logoHealth.status)}
@@ -332,6 +348,24 @@ function LogoManagementView({ darkMode }) {
               <div className="font-semibold text-gray-900 dark:text-white">
                 {logoHealth.service}
               </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="animate-pulse">
+            <div className="flex items-center mb-4">
+              <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded mr-2"></div>
+              <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-gray-50 dark:bg-gray-700 p-4 rounded">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-2"></div>
+                  <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -534,7 +568,7 @@ function LogoManagementView({ darkMode }) {
       )}
 
       {/* Logo Service Configuration */}
-      {logoConfig && (
+      {logoConfig ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Service Configuration</h3>
           
@@ -569,6 +603,31 @@ function LogoManagementView({ darkMode }) {
                     </div>
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-40 mb-4"></div>
+            
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded">
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 mb-2"></div>
+                <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+              </div>
+
+              <div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32 mb-3"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="p-3 rounded border border-gray-200 dark:border-gray-600">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16 mb-1"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
