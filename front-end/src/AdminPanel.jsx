@@ -28,8 +28,13 @@ import EditJobModal from './components/tracker/EditJobModal';
 function AdminPanel({ darkMode, toggleTheme }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // For initial auth check only
   const [error, setError] = useState('');
+  
+  // Loading states for each section
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [systemLoading, setSystemLoading] = useState(false);
   
   // Dashboard data
   const [dashboardData, setDashboardData] = useState(null);
@@ -197,7 +202,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
 
   const loadUsers = async () => {
     try {
-      setLoading(true);
+      setUsersLoading(true);
       const token = Cookies.get('authToken');
       const params = {
         page: usersPage,
@@ -223,7 +228,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
       setUsers([]);
       setUsersPagination({});
     } finally {
-      setLoading(false);
+      setUsersLoading(false);
     }
   };
 
@@ -452,7 +457,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
   const updateJob = async () => {
     if (!newJob.company_name || !newJob.job_title) return;
 
-    setLoading(true);
+    setJobsLoading(true);
     try {
       const authToken = Cookies.get("authToken");
       
@@ -486,7 +491,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         navigate("/auth");
       }
     } finally {
-      setLoading(false);
+      setJobsLoading(false);
     }
   };
 
@@ -715,7 +720,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             statusColorMap={statusColorMap}
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
-            loading={loading}
+            loading={false}
             darkMode={darkMode}
           />
         )}
@@ -729,7 +734,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             usersFilter={usersFilter}
             usersPagination={usersPagination}
             usersPage={usersPage}
-            loading={loading}
+            loading={usersLoading}
             error={error}
             setUsersSearch={setUsersSearch}
             setUsersFilter={setUsersFilter}
@@ -739,7 +744,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             deleteUser={deleteUser}
             setShowCreateAdmin={setShowCreateAdmin}
             setError={setError}
-            initialLoading={loading && !users.length}
+            initialLoading={usersLoading && !users.length}
             darkMode={darkMode}
           />
         )}
@@ -754,7 +759,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             jobsPage={jobsPage}
             jobStatuses={jobStatuses}
             statusColorMap={statusColorMap}
-            loading={loading}
+            loading={jobsLoading}
             setJobsSearch={setJobsSearch}
             setJobsStatusFilter={setJobsStatusFilter}
             setJobsPage={setJobsPage}
@@ -762,7 +767,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             deleteJob={deleteJob}
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
-            initialLoading={loading && !jobs}
+            initialLoading={jobsLoading && !jobs}
             darkMode={darkMode}
           />
         )}
@@ -773,7 +778,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             systemInfo={systemInfo}
             environmentVars={environmentVars}
             editingEnvVar={editingEnvVar}
-            loading={loading}
+            loading={systemLoading}
             clearSystemCache={clearSystemCache}
             loadSystemInfo={loadSystemInfo}
             setShowEnvEditor={setShowEnvEditor}
@@ -781,7 +786,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             setEnvironmentVars={setEnvironmentVars}
             updateEnvironmentVar={updateEnvironmentVar}
             deleteEnvironmentVar={deleteEnvironmentVar}
-            initialLoading={loading && !systemInfo}
+            initialLoading={systemLoading && !systemInfo}
             darkMode={darkMode}
           />
         )}

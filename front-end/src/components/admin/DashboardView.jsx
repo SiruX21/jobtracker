@@ -3,7 +3,9 @@ import {
   FaUsers, FaBriefcase, FaCheck, FaUserShield, FaEye, FaTimes
 } from 'react-icons/fa';
 import { formatDate } from './utils';
-import LoadingScreen from '../shared/LoadingScreen';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import SkeletonThemeProvider from '../shared/SkeletonThemeProvider';
 
 function DashboardView({
   dashboardData,
@@ -15,9 +17,52 @@ function DashboardView({
   loading = false, // Add loading prop
   darkMode = false // Add darkMode prop
 }) {
-  // Show loading screen if no data 
+  // Show inline loading skeleton if no data 
   if (!dashboardData) {
-    return <LoadingScreen type="admin" darkMode={darkMode} />;
+    return (
+      <SkeletonThemeProvider darkMode={darkMode}>
+        <div className="space-y-6">
+          {/* Skeleton Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center">
+                  <Skeleton height={48} width={48} className="rounded-lg mr-4" />
+                  <div className="flex-1">
+                    <Skeleton height={16} width={80} className="mb-2" />
+                    <Skeleton height={32} width={40} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Skeleton Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <Skeleton height={24} width={128} />
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j} className="flex items-center space-x-3">
+                        <Skeleton height={32} width={32} className="rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton height={16} width="75%" className="mb-1" />
+                          <Skeleton height={12} width="50%" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SkeletonThemeProvider>
+    );
   }
   return (
     <div className="space-y-6">

@@ -4,7 +4,9 @@ import {
   FaEdit
 } from 'react-icons/fa';
 import { formatBytes } from './utils';
-import LoadingScreen from '../shared/LoadingScreen';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import SkeletonThemeProvider from '../shared/SkeletonThemeProvider';
 
 function SystemView({
   systemInfo,
@@ -21,14 +23,104 @@ function SystemView({
   initialLoading = false, // Add this prop to handle initial loading state
   darkMode = false // Add darkMode prop
 }) {
-  // Show full loading screen during initial load
-  if (initialLoading || (!systemInfo && loading)) {
-    return <LoadingScreen type="admin" darkMode={darkMode} />;
-  }
-
-  // Show loading screen if no system info
-  if (!systemInfo) {
-    return <LoadingScreen type="admin" darkMode={darkMode} />;
+  // Show inline loading skeleton during initial load or if no system info
+  if (initialLoading || (!systemInfo && loading) || !systemInfo) {
+    return (
+      <SkeletonThemeProvider darkMode={darkMode}>
+        <div className="space-y-6 relative">
+          {/* Skeleton Action Buttons */}
+          <div className="flex items-center space-x-4">
+            <Skeleton height={40} width={140} className="rounded-lg" />
+            <Skeleton height={40} width={100} className="rounded-lg" />
+          </div>
+          
+          {/* Skeleton System Info Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center">
+                    <Skeleton height={20} width={20} className="rounded mr-2" />
+                    <Skeleton height={24} width={120} />
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Skeleton height={16} width={80} className="mb-2" />
+                      <Skeleton height={24} width={100} />
+                    </div>
+                    <div>
+                      <Skeleton height={16} width={100} className="mb-2" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Skeleton height={16} width={120} />
+                          <Skeleton height={16} width={80} />
+                        </div>
+                        <div className="flex justify-between">
+                          <Skeleton height={16} width={140} />
+                          <Skeleton height={16} width={60} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Skeleton Environment Variables Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Skeleton height={20} width={20} className="rounded mr-2" />
+                  <Skeleton height={24} width={180} />
+                </div>
+                <Skeleton height={32} width={120} className="rounded-lg" />
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left">
+                        <Skeleton height={16} width={40} />
+                      </th>
+                      <th className="px-6 py-3 text-left">
+                        <Skeleton height={16} width={50} />
+                      </th>
+                      <th className="px-6 py-3 text-left">
+                        <Skeleton height={16} width={60} />
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-t border-gray-200 dark:border-gray-700">
+                        <td className="px-6 py-4">
+                          <Skeleton height={16} width={120} />
+                        </td>
+                        <td className="px-6 py-4">
+                          <Skeleton height={16} width={160} />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <Skeleton height={16} width={16} />
+                            <Skeleton height={16} width={16} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SkeletonThemeProvider>
+    );
   }
 
   return (
