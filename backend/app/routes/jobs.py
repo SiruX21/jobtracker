@@ -362,7 +362,7 @@ def delete_job(current_user, job_id):
 @jobs_bp.route("/job-statuses", methods=["GET"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("30 per minute")
+@limiter.limit("30 per minute")
 def get_job_statuses(current_user):
     """Get all available job statuses with their colors"""
     try:
@@ -387,7 +387,7 @@ def get_job_statuses(current_user):
 @jobs_bp.route("/job-statuses", methods=["POST"])
 @token_required
 @set_user_id_in_request
-@user_rate_limit("5 per minute")
+@limiter.limit("5 per minute")
 def create_job_status(current_user):
     """Create a new job status with auto-generated color"""
     data = request.json
