@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Dialog } from '@headlessui/react';
 import { FaTimes, FaEdit, FaSpinner, FaTrash, FaHistory } from 'react-icons/fa';
 import StatusHistoryModal from './StatusHistoryModal';
 
@@ -29,19 +30,17 @@ function EditJobModal({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div 
-        className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</h2>
-            <button 
-              onClick={onClose} 
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel 
+          className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-xl"
+        >
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</Dialog.Title>
+              <button 
+                onClick={onClose} 
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
               title="Close"
             >
@@ -203,9 +202,10 @@ function EditJobModal({
                 )}
               </button>
             </div>
+            </div>
           </div>
           </div>
-        </div>
+        </Dialog.Panel>
       </div>
 
       {/* Status History Modal */}
@@ -217,8 +217,6 @@ function EditJobModal({
         companyName={newJob?.company_name}
         darkMode={darkMode}
       />
-    </div>
+    </Dialog>
   );
-}
-
-export default EditJobModal;
+}export default EditJobModal;

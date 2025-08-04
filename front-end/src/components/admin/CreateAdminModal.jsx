@@ -1,4 +1,5 @@
 import React from 'react';
+import { Dialog } from '@headlessui/react';
 import { FaTimes } from 'react-icons/fa';
 
 function CreateAdminModal({
@@ -8,20 +9,22 @@ function CreateAdminModal({
   setNewAdminData,
   createAdminUser
 }) {
-  if (!showCreateAdmin) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Create Admin User</h3>
-          <button
-            onClick={() => setShowCreateAdmin(false)}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            <FaTimes />
-          </button>
-        </div>
+    <Dialog open={showCreateAdmin} onClose={() => setShowCreateAdmin(false)} className="relative z-50">
+      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+              Create Admin User
+            </Dialog.Title>
+            <button
+              onClick={() => setShowCreateAdmin(false)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+              <FaTimes />
+            </button>
+          </div>
 
         <div className="space-y-4">
           <div>
@@ -78,8 +81,9 @@ function CreateAdminModal({
             </button>
           </div>
         </div>
+        </Dialog.Panel>
       </div>
-    </div>
+    </Dialog>
   );
 }
 

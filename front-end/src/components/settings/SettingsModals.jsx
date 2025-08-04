@@ -1,4 +1,5 @@
 import React from 'react';
+import { Dialog } from '@headlessui/react';
 import { FaTrash, FaTimes, FaEye, FaEyeSlash, FaSave, FaEnvelope } from 'react-icons/fa';
 import PasswordStrengthIndicator from '../PasswordStrengthIndicator';
 

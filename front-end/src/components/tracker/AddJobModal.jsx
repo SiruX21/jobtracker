@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { Dialog } from '@headlessui/react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 
@@ -154,19 +155,22 @@ function AddJobModal({
   ) || [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative">
-        <div className="max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Application</h2>
-              <div className="flex items-center mt-2">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentStep >= step ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
+    <>
+      <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative shadow-xl">
+            <div className="max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+              <div>
+                <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">Add New Application</Dialog.Title>
+                <div className="flex items-center mt-2">
+                  {[1, 2, 3].map((step) => (
+                    <div key={step} className="flex items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        currentStep >= step ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                      }`}>
                       {step}
                     </div>
                     {step < 3 && <div className={`w-8 h-1 ${currentStep > step ? 'bg-blue-500' : 'bg-gray-200'}`}></div>}
@@ -460,9 +464,11 @@ function AddJobModal({
               </div>
             </div>
           )}
+            </div>
           </div>
-        </div>
+        </Dialog.Panel>
       </div>
+    </Dialog>
 
       {/* Company Suggestions Portal */}
       {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top && 
@@ -611,7 +617,7 @@ function AddJobModal({
           document.body
         )
       }
-    </div>
+    </>
   );
 }
 

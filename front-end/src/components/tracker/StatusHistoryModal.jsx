@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from '../../config';
@@ -78,33 +79,30 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={handleClose}>
-      <div 
-        className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                <FaHistory className="mr-3 text-blue-500" />
-                Status History
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {jobTitle} at {companyName}
-              </p>
+    <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
+      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <Dialog.Title className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                  <FaHistory className="mr-3 text-blue-500" />
+                  Status History
+                </Dialog.Title>
+                <Dialog.Description className="text-gray-600 dark:text-gray-400 mt-1">
+                  {jobTitle} at {companyName}
+                </Dialog.Description>
+              </div>
+              <button
+                onClick={handleClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+              >
+                ×
+              </button>
             </div>
-            <button
-              onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
-            >
-              ×
-            </button>
           </div>
-        </div>
 
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           {loading && (
@@ -195,8 +193,9 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
             Close
           </button>
         </div>
+        </Dialog.Panel>
       </div>
-    </div>
+    </Dialog>
   );
 }
 
