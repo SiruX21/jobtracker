@@ -32,9 +32,9 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
     loadLogoData();
   }, []);
 
-  // Show full loading screen during initial load
+  // Show LoadingScreen during initial load
   if (initialLoading || (!logoStats && !logoHealth && !logoConfig && loading)) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
 
   const loadLogoData = async () => {
@@ -276,17 +276,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
   };
 
   return (
-    <div className="space-y-6 relative">
-      {/* Loading Overlay for operations */}
-      {loading && (
-        <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Processing logo operations...</p>
-          </div>
-        </div>
-      )}
-
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
           <FaExternalLinkAlt className="mr-3 text-blue-600" />
@@ -298,7 +288,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
         >
           <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {loading ? 'Loading...' : 'Refresh'}
         </button>
       </div>
 
