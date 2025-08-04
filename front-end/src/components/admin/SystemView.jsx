@@ -18,16 +18,17 @@ function SystemView({
   setEnvironmentVars,
   updateEnvironmentVar,
   deleteEnvironmentVar,
-  initialLoading = false // Add this prop to handle initial loading state
+  initialLoading = false, // Add this prop to handle initial loading state
+  darkMode = false // Add darkMode prop
 }) {
   // Show full loading screen during initial load
   if (initialLoading || (!systemInfo && loading)) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
 
   // Show loading screen if no system info
   if (!systemInfo) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
 
   return (

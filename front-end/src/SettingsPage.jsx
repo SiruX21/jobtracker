@@ -479,7 +479,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     return (
       <>
         <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
-        <LoadingScreen type="settings" />
+        <LoadingScreen type="settings" darkMode={darkMode} />
       </>
     );
   }

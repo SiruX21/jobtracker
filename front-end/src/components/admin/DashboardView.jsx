@@ -12,11 +12,12 @@ function DashboardView({
   getCompanyLogoSync,
   setSelectedUser,
   openEditModal,
-  loading = false // Add loading prop
+  loading = false, // Add loading prop
+  darkMode = false // Add darkMode prop
 }) {
   // Show loading screen if no data 
   if (!dashboardData) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
   return (
     <div className="space-y-6">

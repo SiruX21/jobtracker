@@ -68,7 +68,7 @@ function Header({ darkMode, toggleTheme, isMobile }) {
   const isAuthPage = location.pathname === "/auth";
 
   if (logoutLoading) {
-    return <LoadingScreen type="logout" />;
+    return <LoadingScreen type="logout" darkMode={darkMode} />;
   }
 
   return (

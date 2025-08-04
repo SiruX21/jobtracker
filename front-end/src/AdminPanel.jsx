@@ -613,7 +613,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
   };
 
   if (loading) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
 
   if (error && !dashboardData && !users.length && !jobs.length) {
@@ -716,6 +716,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
             loading={loading}
+            darkMode={darkMode}
           />
         )}
 
@@ -739,6 +740,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             setShowCreateAdmin={setShowCreateAdmin}
             setError={setError}
             initialLoading={loading && !users.length}
+            darkMode={darkMode}
           />
         )}
 
@@ -761,6 +763,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             getCompanyLogoSync={getCompanyLogoSync}
             openEditModal={openEditModal}
             initialLoading={loading && !jobs}
+            darkMode={darkMode}
           />
         )}
 
@@ -779,6 +782,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
             updateEnvironmentVar={updateEnvironmentVar}
             deleteEnvironmentVar={deleteEnvironmentVar}
             initialLoading={loading && !systemInfo}
+            darkMode={darkMode}
           />
         )}
 

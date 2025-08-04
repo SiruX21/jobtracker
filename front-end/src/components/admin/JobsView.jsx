@@ -19,11 +19,12 @@ function JobsView({
   deleteJob,
   getCompanyLogoSync,
   openEditModal,
-  initialLoading = false // Add initial loading prop
+  initialLoading = false, // Add initial loading prop
+  darkMode = false // Add darkMode prop
 }) {
   // Show full loading screen during initial load or when no jobs data
   if (initialLoading || (!jobs && loading) || !jobs) {
-    return <LoadingScreen type="admin" />;
+    return <LoadingScreen type="admin" darkMode={darkMode} />;
   }
   return (
     <div className="space-y-6">
