@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import React, { useRef, useEffect, useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 
@@ -156,10 +156,30 @@ function AddJobModal({
 
   return (
     <>
-      <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative shadow-xl">
+      <Transition.Root show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={onClose}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity" />
+          </Transition.Child>
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] relative shadow-xl border border-gray-200 dark:border-gray-700 transform">
             <div className="max-h-[90vh] overflow-y-auto">
               <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -467,8 +487,10 @@ function AddJobModal({
             </div>
           </div>
         </Dialog.Panel>
-      </div>
-    </Dialog>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition.Root>
 
       {/* Company Suggestions Portal */}
       {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top && 

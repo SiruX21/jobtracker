@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import React, { useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes, FaEdit, FaSpinner, FaTrash, FaHistory } from 'react-icons/fa';
 import StatusHistoryModal from './StatusHistoryModal';
 
@@ -19,8 +19,6 @@ function EditJobModal({
   const handleCloseStatusHistory = () => {
     setShowStatusHistory(false);
   };
-  
-  if (!isOpen) return null;
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this job application? This action cannot be undone.')) {
@@ -30,13 +28,33 @@ function EditJobModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel 
-          className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-xl"
+    <Transition.Root show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
         >
-          <div className="p-6">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity" />
+        </Transition.Child>
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <Dialog.Panel 
+              className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-xl border border-gray-200 dark:border-gray-700 transform"
+            >
+              <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">Edit Application</Dialog.Title>
               <button 
@@ -166,47 +184,49 @@ function EditJobModal({
             </div>
 
             {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
-            {/* Delete Button - Left side */}
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 flex items-center transition-all duration-200"
-            >
-              <FaTrash className="mr-2" />
-              Delete
-            </button>
+            <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
+              {/* Delete Button - Left side */}
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 flex items-center transition-all duration-200"
+              >
+                <FaTrash className="mr-2" />
+                Delete
+              </button>
 
-            {/* Cancel and Update Buttons - Right side */}
-            <div className="flex space-x-3">
-              <button
-                onClick={onClose}
-                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onSubmit}
-                disabled={loading || !newJob.company_name || !newJob.job_title}
-                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
-              >
-                {loading ? (
-                  <>
-                    <FaSpinner className="mr-2 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <FaEdit className="mr-2" />
-                    Update Application
-                  </>
-                )}
-              </button>
-            </div>
+              {/* Cancel and Update Buttons - Right side */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={onClose}
+                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onSubmit}
+                  disabled={loading || !newJob.company_name || !newJob.job_title}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
+                >
+                  {loading ? (
+                    <>
+                      <FaSpinner className="mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <FaEdit className="mr-2" />
+                      Update Application
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-          </div>
+              </div>
         </Dialog.Panel>
-      </div>
+          </Transition.Child>
+        </div>
+      </Dialog>
 
       {/* Status History Modal */}
       <StatusHistoryModal
@@ -217,6 +237,8 @@ function EditJobModal({
         companyName={newJob?.company_name}
         darkMode={darkMode}
       />
-    </Dialog>
+    </Transition.Root>
   );
-}export default EditJobModal;
+}
+
+export default EditJobModal;
