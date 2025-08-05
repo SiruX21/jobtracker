@@ -67,11 +67,11 @@ function SearchAndFilters({
               </label>
               <Listbox value={sortBy} onChange={setSortBy}>
                 <div className="relative">
-                  <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm pr-8" style={{ outline: 'none' }}>
-                    <span className="block truncate text-gray-900 dark:text-gray-100">
+                  <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm min-w-[140px]" style={{ outline: 'none' }}>
+                    <span className="block truncate text-gray-900 dark:text-gray-100 pr-6">
                       {sortOptions.find(option => option.value === sortBy)?.label || '📅 Newest First'}
                     </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
                     </span>
                   </Listbox.Button>
@@ -112,7 +112,7 @@ function SearchAndFilters({
               </Listbox>
             </div>
 
-            {/* Filter Toggle with integrated Clear */}
+            {/* Filter Toggle with Badge */}
             <button
               key={`filters-${showFilters}`}
               onClick={() => setShowFilters(!showFilters)}
@@ -126,22 +126,26 @@ function SearchAndFilters({
                   {[statusFilter !== "all" ? 1 : 0, dateFilter !== "all" ? 1 : 0, companyFilter ? 1 : 0].reduce((a, b) => a + b, 0)}
                 </span>
               )}
-              {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
-                <FaTimes
-                  className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSearchTerm("");
-                    setStatusFilter("all");
-                    setDateFilter("all");
-                    setCompanyFilter("");
-                    setShowFilters(false);
-                    if (setDashboardFilter) setDashboardFilter(null);
-                  }}
-                  title="Clear all filters"
-                />
-              )}
             </button>
+
+            {/* Clear Filters Button - Only show when filters are active */}
+            {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setDateFilter("all");
+                  setCompanyFilter("");
+                  setShowFilters(false);
+                  if (setDashboardFilter) setDashboardFilter(null);
+                }}
+                className="flex items-center h-12 px-3 border border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300"
+                title="Clear all filters"
+                style={{ outline: 'none' }}
+              >
+                <FaTimes className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -160,14 +164,14 @@ function SearchAndFilters({
                 }}
               >
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-8 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
                     <span className="block truncate text-gray-900 dark:text-gray-100">
                       {statusFilter === 'all' 
                         ? 'All Statuses' 
                         : jobStatuses.find(status => status.status_name.toLowerCase() === statusFilter)?.status_name || 'All Statuses'
                       }
                     </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
                     </span>
                   </Listbox.Button>
@@ -241,11 +245,11 @@ function SearchAndFilters({
                 }}
               >
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-8 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
                     <span className="block truncate text-gray-900 dark:text-gray-100">
                       {dateFilterOptions.find(option => option.value === dateFilter)?.label || 'All Time'}
                     </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
                     </span>
                   </Listbox.Button>
