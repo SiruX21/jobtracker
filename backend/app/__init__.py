@@ -198,7 +198,7 @@ def create_tables():
         default_statuses = [
             ('Applied', '#3B82F6', True),      # Blue
             ('Interview', '#10B981', False),   # Green  
-            ('Offered', '#8B5CF6', False),     # Purple
+            ('Offer', '#8B5CF6', False),       # Purple (changed from 'Offered' to 'Offer')
             ('Rejected', '#EF4444', False),    # Red
             ('Reviewing', '#F59E0B', False),   # Amber
             ('OA', '#06B6D4', False),          # Cyan

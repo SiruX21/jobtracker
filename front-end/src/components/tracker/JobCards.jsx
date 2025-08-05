@@ -2,6 +2,21 @@ import React from 'react';
 import { FaMapMarkerAlt, FaCalendar, FaEdit, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { getCompanyLogoSync } from '../../data/companySuggestions';
 
+// Default status colors fallback
+const getDefaultStatusColor = (status) => {
+  const statusColors = {
+    'applied': '#3b82f6',      // blue
+    'interview': '#10b981',    // green
+    'offer': '#8b5cf6',        // purple
+    'rejected': '#ef4444',     // red
+    'ghosted': '#6b7280',      // gray
+    'reviewing': '#f59e0b',    // amber
+    'oa': '#06b6d4',          // cyan
+    'pending': '#f59e0b'       // amber
+  };
+  return statusColors[status.toLowerCase()] || '#6b7280';
+};
+
 function JobCards({ 
   filteredJobs, 
   jobs, 
@@ -11,8 +26,13 @@ function JobCards({
   setSearchTerm, 
   setStatusFilter, 
   setDateFilter, 
-  setCompanyFilter 
+  setCompanyFilter,
+  setDashboardFilter
 }) {
+  // Debug logging
+  console.log('JobCards statusColorMap:', statusColorMap);
+  console.log('JobCards received filteredJobs:', filteredJobs.length, 'jobs');
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
       {filteredJobs.length === 0 ? (
@@ -28,6 +48,7 @@ function JobCards({
                 setStatusFilter("all");
                 setDateFilter("all");
                 setCompanyFilter("");
+                if (setDashboardFilter) setDashboardFilter(null);
               }}
               className="mt-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
@@ -80,10 +101,14 @@ function JobCards({
               
               {/* Status Badge */}
               <span
-                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
                 style={{
-                  backgroundColor: statusColorMap[job.status] || '#6b7280'
+                  backgroundColor: statusColorMap[job.status] || 
+                                   statusColorMap[job.status.toLowerCase()] ||
+                                   statusColorMap[job.status.charAt(0).toUpperCase() + job.status.slice(1).toLowerCase()] ||
+                                   getDefaultStatusColor(job.status)
                 }}
+                title={`Status: ${job.status}, Color from API: ${statusColorMap[job.status] || 'none'}, Fallback: ${getDefaultStatusColor(job.status)}`}
               >
                 {job.status}
               </span>

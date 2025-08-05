@@ -328,22 +328,76 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   const fetchJobStatuses = async () => {
     try {
       const authToken = Cookies.get("authToken");
+      if (!authToken) {
+        console.warn("No auth token found, redirecting to auth");
+        navigate("/auth");
+        return;
+      }
+
+      console.log("Fetching job statuses from:", `${API_BASE_URL}/job-statuses`);
       const response = await axios.get(`${API_BASE_URL}/job-statuses`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       
-      const statuses = Array.isArray(response.data) ? response.data : response.data.statuses;
+      console.log("Raw API response:", response.data);
       
-      if (Array.isArray(statuses)) {
+      // The backend returns: { "statuses": [...] }
+      const statuses = response.data.statuses || [];
+      
+      if (Array.isArray(statuses) && statuses.length > 0) {
         setJobStatuses(statuses);
         const colorMap = {};
         statuses.forEach(status => {
           colorMap[status.status_name] = status.color_code;
         });
         setStatusColorMap(colorMap);
+        console.log('Status color map loaded successfully:', colorMap);
+      } else {
+        console.warn('No statuses found in API response. Expected statuses array, got:', statuses);
+        // Set default statuses if API doesn't return any
+        const defaultStatuses = [
+          { status_name: 'Applied', color_code: '#3B82F6' },
+          { status_name: 'Interview', color_code: '#10B981' },
+          { status_name: 'Offer', color_code: '#8B5CF6' },
+          { status_name: 'Rejected', color_code: '#EF4444' },
+          { status_name: 'Reviewing', color_code: '#F59E0B' },
+          { status_name: 'OA', color_code: '#06B6D4' },
+          { status_name: 'Ghosted', color_code: '#6B7280' }
+        ];
+        setJobStatuses(defaultStatuses);
+        const defaultColorMap = {};
+        defaultStatuses.forEach(status => {
+          defaultColorMap[status.status_name] = status.color_code;
+        });
+        setStatusColorMap(defaultColorMap);
+        console.log('Using default status colors:', defaultColorMap);
       }
     } catch (error) {
       console.error("Error fetching job statuses:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      // Set default statuses as fallback
+      const defaultStatuses = [
+        { status_name: 'Applied', color_code: '#3B82F6' },
+        { status_name: 'Interview', color_code: '#10B981' },
+        { status_name: 'Offer', color_code: '#8B5CF6' },
+        { status_name: 'Rejected', color_code: '#EF4444' },
+        { status_name: 'Reviewing', color_code: '#F59E0B' },
+        { status_name: 'OA', color_code: '#06B6D4' },
+        { status_name: 'Ghosted', color_code: '#6B7280' }
+      ];
+      setJobStatuses(defaultStatuses);
+      const defaultColorMap = {};
+      defaultStatuses.forEach(status => {
+        defaultColorMap[status.status_name] = status.color_code;
+      });
+      setStatusColorMap(defaultColorMap);
+      console.log('Using fallback status colors due to API error:', defaultColorMap);
+      
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
         navigate("/auth");
@@ -751,6 +805,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             jobStatuses={jobStatuses}
             filteredJobs={filteredJobs}
             jobs={jobs}
+            setDashboardFilter={setDashboardFilter}
           />
           
           <JobCards 
@@ -763,6 +818,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             setStatusFilter={setStatusFilter}
             setDateFilter={setDateFilter}
             setCompanyFilter={setCompanyFilter}
+            setDashboardFilter={setDashboardFilter}
           />
           
           <AddJobModal 
