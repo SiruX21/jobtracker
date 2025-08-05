@@ -1,5 +1,5 @@
-import React from 'react';
-import { Dialog } from '@headlessui/react';
+import React, { Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes } from 'react-icons/fa';
 
 function CreateAdminModal({
@@ -10,10 +10,30 @@ function CreateAdminModal({
   createAdminUser
 }) {
   return (
-    <Dialog open={showCreateAdmin} onClose={() => setShowCreateAdmin(false)} className="relative z-50">
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
+    <Transition.Root show={showCreateAdmin} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={() => setShowCreateAdmin(false)}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+        </Transition.Child>
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95 translate-y-4"
+            enterTo="opacity-100 scale-100 translate-y-0"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100 translate-y-0"
+            leaveTo="opacity-0 scale-95 translate-y-4"
+          >
+            <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-700 transform">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
               Create Admin User
@@ -82,8 +102,10 @@ function CreateAdminModal({
           </div>
         </div>
         </Dialog.Panel>
-      </div>
-    </Dialog>
+          </Transition.Child>
+        </div>
+      </Dialog>
+    </Transition.Root>
   );
 }
 

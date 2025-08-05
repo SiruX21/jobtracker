@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes } from 'react-icons/fa';
 
 function AddEnvVarModal({
@@ -8,13 +9,33 @@ function AddEnvVarModal({
   setNewEnvVar,
   addEnvironmentVar
 }) {
-  if (!showEnvEditor) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Add Environment Variable</h3>
+    <Transition.Root show={showEnvEditor} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={() => setShowEnvEditor(false)}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+        </Transition.Child>
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95 translate-y-4"
+            enterTo="opacity-100 scale-100 translate-y-0"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100 translate-y-0"
+            leaveTo="opacity-0 scale-95 translate-y-4"
+          >
+            <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-200 dark:border-gray-700 transform shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">Add Environment Variable</Dialog.Title>
           <button
             onClick={() => setShowEnvEditor(false)}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -67,8 +88,11 @@ function AddEnvVarModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition.Root>
   );
 }
 
