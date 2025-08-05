@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { FaTimes } from 'react-icons/fa';
+import { Dialog, Transition, Switch, Listbox } from '@headlessui/react';
+import { FaTimes, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { formatDate } from './utils';
 import LoadingScreen from '../shared/LoadingScreen';
 
@@ -141,28 +141,87 @@ function UserDetailModal({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Role
               </label>
-              <select
+              <Listbox
                 value={selectedUser.role}
-                onChange={(e) => setSelectedUser({ ...selectedUser, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                         focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(value) => setSelectedUser({ ...selectedUser, role: value })}
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
+                <div className="relative">
+                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white">
+                    <span className="block truncate">{selectedUser.role === 'admin' ? 'Admin' : 'User'}</span>
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                      <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
+                    </span>
+                  </Listbox.Button>
+                  <Transition
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Listbox.Option
+                        value="user"
+                        className={({ active }) =>
+                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                            active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          }`
+                        }
+                      >
+                        {({ selected }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                              User
+                            </span>
+                            {selected && (
+                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <FaCheck className="h-3 w-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                      <Listbox.Option
+                        value="admin"
+                        className={({ active }) =>
+                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                            active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          }`
+                        }
+                      >
+                        {({ selected }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                              Admin
+                            </span>
+                            {selected && (
+                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <FaCheck className="h-3 w-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    </Listbox.Options>
+                  </Transition>
+                </div>
+              </Listbox>
             </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="emailVerified"
-                checked={selectedUser.email_verified}
-                onChange={(e) => setSelectedUser({ ...selectedUser, email_verified: e.target.checked })}
-                className="mr-2"
-              />
-              <label htmlFor="emailVerified" className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="flex items-center justify-between">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
                 Email Verified
               </label>
+              <Switch
+                checked={selectedUser.email_verified}
+                onChange={(checked) => setSelectedUser({ ...selectedUser, email_verified: checked })}
+                className="group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600 dark:bg-gray-700 dark:data-[checked]:bg-blue-600"
+              >
+                <span className="sr-only">Toggle email verification</span>
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    selectedUser.email_verified ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </Switch>
             </div>
             <div className="flex space-x-3">
               <button

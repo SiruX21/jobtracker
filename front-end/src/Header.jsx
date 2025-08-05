@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield, FaFileAlt, FaBars, FaTimes } from "react-icons/fa";
+import { Switch } from '@headlessui/react';
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
@@ -156,12 +157,33 @@ function Header({ darkMode, toggleTheme, isMobile }) {
             )}
             {/* Theme Toggle - only show if toggleTheme function is provided */}
             {toggleTheme && (
-              <button
-                onClick={toggleTheme}
-                className="flex items-center bg-blue-500 dark:bg-blue-700 text-white px-3 py-2 rounded-full hover:bg-blue-600 dark:hover:bg-blue-800 transition-all duration-200 ease-in-out transform hover:scale-105"
+              <Switch
+                checked={darkMode}
+                onChange={toggleTheme}
+                className="group relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-blue-500 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[checked]:bg-blue-600"
               >
-                {darkMode ? <FaSun /> : <FaMoon />}
-              </button>
+                <span className="sr-only">Toggle theme</span>
+                <span
+                  className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    darkMode ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                >
+                  <span
+                    className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity duration-200 ease-in ${
+                      darkMode ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    <FaMoon className="h-3 w-3 text-blue-500" />
+                  </span>
+                  <span
+                    className={`absolute inset-0 flex h-full w-full items-center justify-center transition-opacity duration-200 ease-out ${
+                      darkMode ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <FaSun className="h-3 w-3 text-blue-500" />
+                  </span>
+                </span>
+              </Switch>
             )}
           </nav>
         )}
@@ -226,16 +248,27 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               )}
               {/* Theme Toggle */}
               {toggleTheme && (
-                <button
-                  onClick={() => {
-                    toggleTheme();
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
-                >
-                  {darkMode ? <FaSun className="mr-3" /> : <FaMoon className="mr-3" />}
-                  {darkMode ? 'Light Mode' : 'Dark Mode'}
-                </button>
+                <div className="flex items-center justify-between py-3 px-4">
+                  <div className="flex items-center">
+                    {darkMode ? <FaSun className="mr-3 text-white" /> : <FaMoon className="mr-3 text-white" />}
+                    <span className="text-white">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </div>
+                  <Switch
+                    checked={darkMode}
+                    onChange={() => {
+                      toggleTheme();
+                      setShowMobileMenu(false);
+                    }}
+                    className="group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-blue-300 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 data-[checked]:bg-blue-500"
+                  >
+                    <span className="sr-only">Toggle theme</span>
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        darkMode ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </Switch>
+                </div>
               )}
             </nav>
           </div>

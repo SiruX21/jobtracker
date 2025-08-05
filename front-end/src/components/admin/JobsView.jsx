@@ -1,5 +1,6 @@
-import React from 'react';
-import { FaSearch, FaFilter, FaSync, FaTrash, FaTimes } from 'react-icons/fa';
+import React, { Fragment } from 'react';
+import { FaSearch, FaFilter, FaSync, FaTrash, FaTimes, FaChevronDown, FaCheck } from 'react-icons/fa';
+import { Listbox, Transition } from '@headlessui/react';
 import { formatDate } from './utils';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -131,20 +132,74 @@ function JobsView({
           </div>
           <div className="relative">
             <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <select
-              value={jobsStatusFilter}
-              onChange={(e) => setJobsStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
-            >
-              <option value="">All Status</option>
-              {jobStatuses.map(status => (
-                <option key={status.status_name} value={status.status_name}>
-                  {status.status_name}
-                </option>
-              ))}
-            </select>
+            <Listbox value={jobsStatusFilter} onChange={setJobsStatusFilter}>
+              <div className="relative">
+                <Listbox.Button className="pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none relative cursor-default text-left w-full">
+                  <span className="block truncate">
+                    {jobsStatusFilter === '' ? 'All Status' : jobStatuses.find(status => status.status_name === jobsStatusFilter)?.status_name || 'All Status'}
+                  </span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
+                  </span>
+                </Listbox.Button>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Listbox.Option
+                      value=""
+                      className={({ active }) =>
+                        `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                          active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                        }`
+                      }
+                    >
+                      {({ selected }) => (
+                        <>
+                          <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                            All Status
+                          </span>
+                          {selected && (
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                              <FaCheck className="h-3 w-3" aria-hidden="true" />
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </Listbox.Option>
+                    {jobStatuses.map(status => (
+                      <Listbox.Option
+                        key={status.status_name}
+                        value={status.status_name}
+                        className={({ active }) =>
+                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                            active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          }`
+                        }
+                      >
+                        {({ selected }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                              {status.status_name}
+                            </span>
+                            {selected && (
+                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <FaCheck className="h-3 w-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
           </div>
           <button
             onClick={() => {

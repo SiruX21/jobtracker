@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import {
   FaUsers, FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaSync,
-  FaExclamationTriangle, FaTimes, FaEye, FaCheck, FaUserShield
+  FaExclamationTriangle, FaTimes, FaEye, FaCheck, FaUserShield,
+  FaChevronDown
 } from 'react-icons/fa';
+import { Listbox, Transition } from '@headlessui/react';
 import { formatDate } from './utils';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -28,6 +30,14 @@ function UsersView({
   initialLoading = false, // Add initial loading prop
   darkMode = false // Add darkMode prop
 }) {
+  const userFilterOptions = [
+    { value: 'all', label: 'All Users' },
+    { value: 'verified', label: 'Verified Only' },
+    { value: 'unverified', label: 'Unverified Only' },
+    { value: 'admin', label: 'Admins Only' },
+    { value: 'user', label: 'Users Only' }
+  ];
+
   // Show inline loading skeleton during initial load
   if (initialLoading || (!users.length && loading && !error)) {
     return (
@@ -148,20 +158,54 @@ function UsersView({
           
           {/* Filter Dropdown */}
           <div className="relative">
-            <select
-              value={usersFilter}
-              onChange={(e) => setUsersFilter(e.target.value)}
-              className="appearance-none pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            >
-              <option value="all">All Users</option>
-              <option value="verified">Verified Only</option>
-              <option value="unverified">Unverified Only</option>
-              <option value="admin">Admins Only</option>
-              <option value="user">Users Only</option>
-            </select>
             <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Listbox value={usersFilter} onChange={setUsersFilter}>
+              <div className="relative">
+                <Listbox.Button className="appearance-none pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg 
+                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors cursor-default relative text-left w-full">
+                  <span className="block truncate">
+                    {userFilterOptions.find(option => option.value === usersFilter)?.label || 'All Users'}
+                  </span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
+                  </span>
+                </Listbox.Button>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    {userFilterOptions.map((option) => (
+                      <Listbox.Option
+                        key={option.value}
+                        value={option.value}
+                        className={({ active }) =>
+                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                            active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          }`
+                        }
+                      >
+                        {({ selected }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                              {option.label}
+                            </span>
+                            {selected && (
+                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <FaCheck className="h-3 w-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
           </div>
           
           <button
