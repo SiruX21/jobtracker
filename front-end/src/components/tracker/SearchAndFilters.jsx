@@ -67,8 +67,8 @@ function SearchAndFilters({
               </label>
               <Listbox value={sortBy} onChange={setSortBy}>
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white h-12 text-sm hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300">
-                    <span className="block truncate">
+                  <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm pr-8" style={{ outline: 'none' }}>
+                    <span className="block truncate text-gray-900 dark:text-gray-100">
                       {sortOptions.find(option => option.value === sortBy)?.label || '📅 Newest First'}
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -81,14 +81,14 @@ function SearchAndFilters({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Listbox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
                       {sortOptions.map((option) => (
                         <Listbox.Option
                           key={option.value}
                           value={option.value}
                           className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                              active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                            `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                              active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                             }`
                           }
                         >
@@ -98,7 +98,7 @@ function SearchAndFilters({
                                 {option.label}
                               </span>
                               {selected && (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
                                   <FaCheck className="h-3 w-3" aria-hidden="true" />
                                 </span>
                               )}
@@ -160,8 +160,8 @@ function SearchAndFilters({
                 }}
               >
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white">
-                    <span className="block truncate">
+                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-8 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                    <span className="block truncate text-gray-900 dark:text-gray-100">
                       {statusFilter === 'all' 
                         ? 'All Statuses' 
                         : jobStatuses.find(status => status.status_name.toLowerCase() === statusFilter)?.status_name || 'All Statuses'
@@ -177,12 +177,12 @@ function SearchAndFilters({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Listbox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
                       <Listbox.Option
                         value="all"
                         className={({ active }) =>
-                          `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                            active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                          `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                            active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                           }`
                         }
                       >
@@ -192,7 +192,7 @@ function SearchAndFilters({
                               All Statuses
                             </span>
                             {selected && (
-                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
                                 <FaCheck className="h-3 w-3" aria-hidden="true" />
                               </span>
                             )}
@@ -204,8 +204,8 @@ function SearchAndFilters({
                           key={status.status_name}
                           value={status.status_name.toLowerCase()}
                           className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                              active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                            `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                              active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                             }`
                           }
                         >
@@ -215,7 +215,7 @@ function SearchAndFilters({
                                 {status.status_name}
                               </span>
                               {selected && (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
                                   <FaCheck className="h-3 w-3" aria-hidden="true" />
                                 </span>
                               )}
@@ -241,8 +241,8 @@ function SearchAndFilters({
                 }}
               >
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white">
-                    <span className="block truncate">
+                  <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-8 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                    <span className="block truncate text-gray-900 dark:text-gray-100">
                       {dateFilterOptions.find(option => option.value === dateFilter)?.label || 'All Time'}
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -255,14 +255,14 @@ function SearchAndFilters({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Listbox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
                       {dateFilterOptions.map((option) => (
                         <Listbox.Option
                           key={option.value}
                           value={option.value}
                           className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                              active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
+                            `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                              active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                             }`
                           }
                         >
@@ -272,7 +272,7 @@ function SearchAndFilters({
                                 {option.label}
                               </span>
                               {selected && (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">
                                   <FaCheck className="h-3 w-3" aria-hidden="true" />
                                 </span>
                               )}
