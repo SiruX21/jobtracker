@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { FaSearch, FaFilter, FaTimes, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
 
@@ -40,13 +40,12 @@ function SearchAndFilters({
     <Transition
       appear
       show={true}
-      as={Fragment}
+      as="div"
       enter="transition-opacity duration-500"
       enterFrom="opacity-0"
       enterTo="opacity-100"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8"
     >
-      {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Search */}
           <div className="flex-1 max-w-md">
@@ -313,7 +312,6 @@ function SearchAndFilters({
             </div>
           </div>
         )}
-      </div>
 
       {/* Results Count and Sort Info */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
