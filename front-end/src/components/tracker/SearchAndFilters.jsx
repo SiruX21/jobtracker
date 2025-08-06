@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { FaSearch, FaFilter, FaTimes, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
 
