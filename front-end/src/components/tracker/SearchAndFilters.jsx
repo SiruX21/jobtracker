@@ -66,7 +66,7 @@ function SearchAndFilters({
                 Sort by:
               </label>
               <Listbox value={sortBy} onChange={setSortBy}>
-                <div className="relative">
+                <div className="relative w-full">
                   <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm min-w-[140px] w-full" style={{ outline: 'none' }}>
                     <span className="block truncate text-gray-900 dark:text-gray-100 pr-6">
                       {sortOptions.find(option => option.value === sortBy)?.label || '📅 Newest First'}
@@ -81,13 +81,13 @@ function SearchAndFilters({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-50 mt-1 max-h-60 min-w-full w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
+                    <Listbox.Options className="absolute left-0 right-0 z-50 mt-1 max-h-60 w-full min-w-[140px] overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
                       {sortOptions.map((option) => (
                         <Listbox.Option
                           key={option.value}
                           value={option.value}
                           className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-3 pr-9 min-w-full w-full ${
+                            `relative cursor-default select-none py-2 pl-3 pr-9 w-full ${
                               active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                             }`
                           }
