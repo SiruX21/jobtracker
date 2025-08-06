@@ -67,7 +67,7 @@ function SearchAndFilters({
               </label>
               <Listbox value={sortBy} onChange={setSortBy}>
                 <div className="relative">
-                  <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm min-w-[140px]" style={{ outline: 'none' }}>
+                  <Listbox.Button className="relative cursor-default rounded-lg bg-white dark:bg-gray-700 px-3 py-2 text-left border border-gray-300 dark:border-gray-600 focus:outline-none hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100 transition-all duration-300 h-12 text-sm min-w-[140px] w-full" style={{ outline: 'none' }}>
                     <span className="block truncate text-gray-900 dark:text-gray-100 pr-6">
                       {sortOptions.find(option => option.value === sortBy)?.label || '📅 Newest First'}
                     </span>
@@ -81,13 +81,13 @@ function SearchAndFilters({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
+                    <Listbox.Options className="absolute z-50 mt-1 max-h-60 min-w-full w-full overflow-auto rounded-lg bg-white dark:bg-gray-700 py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-300 dark:border-gray-600">
                       {sortOptions.map((option) => (
                         <Listbox.Option
                           key={option.value}
                           value={option.value}
                           className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                            `relative cursor-default select-none py-2 pl-3 pr-9 min-w-full w-full ${
                               active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
                             }`
                           }
@@ -115,9 +115,9 @@ function SearchAndFilters({
             {/* Filter Toggle with Badge */}
             <button
               key={`filters-${showFilters}`}
-              onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center h-12 px-4 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 ${showFilters ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''}`}
               style={{ outline: 'none' }}
+              onClick={() => setShowFilters(!showFilters)}
             >
               <FaFilter className="mr-2" />
               Filters
@@ -126,26 +126,25 @@ function SearchAndFilters({
                   {[statusFilter !== "all" ? 1 : 0, dateFilter !== "all" ? 1 : 0, companyFilter ? 1 : 0].reduce((a, b) => a + b, 0)}
                 </span>
               )}
+              {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
+                <span
+                  onClick={e => {
+                    e.stopPropagation();
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                    setDateFilter("all");
+                    setCompanyFilter("");
+                    setShowFilters(false);
+                    if (setDashboardFilter) setDashboardFilter(null);
+                  }}
+                  className="ml-2 flex items-center cursor-pointer border border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 px-2 py-1"
+                  title="Clear all filters"
+                  style={{ outline: 'none' }}
+                >
+                  <FaTimes className="h-3 w-3" />
+                </span>
+              )}
             </button>
-
-            {/* Clear Filters Button - Only show when filters are active */}
-            {(statusFilter !== "all" || dateFilter !== "all" || companyFilter || searchTerm) && (
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setStatusFilter("all");
-                  setDateFilter("all");
-                  setCompanyFilter("");
-                  setShowFilters(false);
-                  if (setDashboardFilter) setDashboardFilter(null);
-                }}
-                className="flex items-center h-12 px-3 border border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300"
-                title="Clear all filters"
-                style={{ outline: 'none' }}
-              >
-                <FaTimes className="h-3 w-3" />
-              </button>
-            )}
           </div>
         </div>
 
