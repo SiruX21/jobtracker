@@ -1,4 +1,4 @@
-import hashlib
+import bcrypt
 import jwt
 import datetime
 import secrets
@@ -8,10 +8,10 @@ from app.services.email_service import send_verification_email, send_password_re
 from app.utils.password_validator import PasswordValidator
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def verify_password(stored_password, provided_password):
-    return stored_password == hashlib.sha256(provided_password.encode()).hexdigest()
+    return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password.encode('utf-8'))
 
 def generate_auth_token(user_id, secret_key):
     try:
@@ -271,7 +271,7 @@ def initiate_email_change(user_id, current_password):
         if not user:
             return {"error": "User not found", "code": 404}
         
-        if not verify_password(current_password, user['password_hash']):
+        if not verify_password(user['password_hash'], current_password):
             return {"error": "Invalid current password", "code": 400}
         
         # Generate confirmation token for current email

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
+import bcrypt
 from functools import wraps
 from app import get_db, limiter
 from app.config import Config
@@ -326,18 +327,23 @@ def change_password():
         return jsonify({"message": "Password must be at least 6 characters long"}), 400
     
     try:
-        import bcrypt
         conn, cursor = get_db()
         
-        # Verify current password
-        if not bcrypt.checkpw(current_password.encode('utf-8'), current_user['password'].encode('utf-8')):
+        # Ensure we're getting the password hash from database consistently
+        cursor.execute("SELECT password_hash FROM users WHERE id = ?", (current_user['id'],))
+        user_data = cursor.fetchone()
+        if not user_data:
+            return jsonify({"message": "User not found"}), 404
+            
+        stored_password_hash = user_data['password_hash']
+        if not bcrypt.checkpw(current_password.encode('utf-8'), stored_password_hash.encode('utf-8')):
             return jsonify({"message": "Current password is incorrect"}), 400
         
         # Hash new password
         new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        # Update password in database
-        cursor.execute("UPDATE users SET password = ? WHERE id = ?", (new_password_hash, current_user['id']))
+        # Update password in database - use password_hash column consistently
+        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_password_hash, current_user['id']))
         conn.commit()
         
         return jsonify({"message": "Password changed successfully"}), 200
@@ -394,11 +400,18 @@ def delete_account():
         return jsonify({"message": "Password is required to delete account"}), 400
     
     try:
-        import bcrypt
         conn, cursor = get_db()
         
+        # Get the current password hash from database consistently
+        cursor.execute("SELECT password_hash FROM users WHERE id = ?", (current_user['id'],))
+        user_data = cursor.fetchone()
+        if not user_data:
+            return jsonify({"message": "User not found"}), 404
+            
+        stored_password_hash = user_data['password_hash']
+        
         # Verify password
-        if not bcrypt.checkpw(password.encode('utf-8'), current_user['password'].encode('utf-8')):
+        if not bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
             return jsonify({"message": "Password is incorrect"}), 400
         
         # Delete user's job applications first (due to foreign key constraint)

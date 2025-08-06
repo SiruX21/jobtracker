@@ -47,5 +47,5 @@ def send_verification_email(user_email, token):
 
 
 def hash_password(password):
-    import hashlib
-    return hashlib.sha256(password.encode()).hexdigest()
+    import bcrypt
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
