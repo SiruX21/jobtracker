@@ -66,13 +66,13 @@ function JobCards({
           >
             {/* Company Logo Header */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 p-4 flex items-center justify-between relative">
-              {/* Quick Delete Icon - positioned at top-right */}
+              {/* Quick Delete Icon - positioned at top-right corner */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteJob(jobs.findIndex(j => j.id === job.id));
                 }}
-                className="absolute top-1 right-1 p-1.5 text-gray-500 dark:text-gray-400 rounded-full hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-70 hover:opacity-100 z-10"
+                className="absolute top-0 right-0 p-2 text-gray-500 dark:text-gray-400 rounded-full hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-70 hover:opacity-100 z-10"
                 title="Delete application"
               >
                 <FaTrash className="w-3.5 h-3.5" />
