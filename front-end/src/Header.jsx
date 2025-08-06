@@ -193,34 +193,29 @@ function Header({ darkMode, toggleTheme, isMobile }) {
       <Transition appear show={isMobile && showMobileMenu} as={Fragment}>
         {/* Overlay */}
         <Transition.Child
-          as={Fragment}
+          as="div"
           enter="transition-opacity duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
           leave="transition-opacity duration-200"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
-        >
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setShowMobileMenu(false)}
-          />
-        </Transition.Child>
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setShowMobileMenu(false)}
+        />
         {/* Panel */}
         <Transition.Child
-          as={Fragment}
+          as="div"
           enter="transition-transform transition-opacity duration-300"
           enterFrom="opacity-0 -translate-y-4"
           enterTo="opacity-100 translate-y-0"
           leave="transition-transform transition-opacity duration-200"
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 -translate-y-4"
+          className="fixed left-0 right-0 bg-blue-800 dark:bg-blue-900 w-full shadow-lg z-50"
+          style={{ marginTop: '72px' }}
+          onClick={e => e.stopPropagation()}
         >
-          <div 
-            className="fixed left-0 right-0 bg-blue-800 dark:bg-blue-900 w-full shadow-lg z-50"
-            style={{ marginTop: '72px' }}
-            onClick={e => e.stopPropagation()}
-          >
             <nav className="py-4 px-4 space-y-3">
               {authToken && (
                 <button
@@ -292,7 +287,6 @@ function Header({ darkMode, toggleTheme, isMobile }) {
                 </div>
               )}
             </nav>
-          </div>
         </Transition.Child>
       </Transition>
     </>
