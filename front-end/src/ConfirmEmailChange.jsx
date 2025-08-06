@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from './config';
 
 function ConfirmEmailChange() {
@@ -26,7 +26,7 @@ function ConfirmEmailChange() {
         if (response.data.success) {
           setStatus('success');
           setMessage('Email change request confirmed! Please check your new email address for the verification link.');
-          toast.success('✅ Email change confirmed! Check your new email for verification.');
+          showToast.success('✅ Email change confirmed! Check your new email for verification.');
         } else {
           setStatus('error');
           setMessage(response.data.message || 'Failed to confirm email change.');
@@ -35,7 +35,7 @@ function ConfirmEmailChange() {
         setStatus('error');
         const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to confirm email change';
         setMessage(errorMessage);
-        toast.error(`❌ ${errorMessage}`);
+        showToast.error(`❌ ${errorMessage}`);
       }
     };
 

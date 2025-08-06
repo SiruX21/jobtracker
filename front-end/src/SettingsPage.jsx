@@ -51,9 +51,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const [developerMode, setDeveloperMode] = useState(() => 
     localStorage.getItem('developerMode') === 'true'
   );
-  const [notifications, setNotifications] = useState(() => 
-    localStorage.getItem('notifications') !== 'false'
-  );
   const [autoRefresh, setAutoRefresh] = useState(() => 
     localStorage.getItem('autoRefresh') !== 'false'
   );
@@ -83,7 +80,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const [expandedSections, setExpandedSections] = useState({
     accountInfo: true,
     dangerZone: false,
-    notificationSettings: true,
     visualSettings: false,
     cacheInfo: false,
     storageInfo: false,
@@ -97,21 +93,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       ...prev,
       [section]: !prev[section]
     }));
-  };
-
-  // Conditional toast helper - only show if notifications are enabled
-  const localShowToast = (type, message, options = {}) => {
-    if (notifications) {
-      if (type === 'success') {
-        showToast.success(message, options);
-      } else if (type === 'error') {
-        showToast.error(message, options);
-      } else if (type === 'info') {
-        showToast.info(message, options);
-      } else if (type === 'warning') {
-        showToast.warning(message, options);
-      }
-    }
   };
 
   const formatBytes = (bytes) => {
@@ -130,7 +111,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     const data = {
       settings: {
         developerMode,
-        notifications,
         autoRefresh,
         dataRetention,
         toastPosition,
@@ -150,7 +130,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    localShowToast('success', '📁 Data exported successfully');
+    showToast.success('📁 Data exported successfully');
   };
 
   // Check authentication and load user data
@@ -229,7 +209,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     } catch (error) {
       console.error('Error loading user profile:', error);
       console.error('Error response:', error.response); // Debug log
-      localShowToast('error', 'Failed to load user profile');
+      showToast.error('Failed to load user profile');
     }
   };
 
@@ -310,12 +290,12 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     e.preventDefault();
     
     if (!passwordValidation || !passwordValidation.valid) {
-      localShowToast('error', 'Please ensure your password meets all security requirements.');
+      showToast.error('Please ensure your password meets all security requirements.');
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      localShowToast('error', 'New passwords do not match');
+      showToast.error('New passwords do not match');
       return;
     }
     
@@ -333,9 +313,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordChangeModal(false);
-      localShowToast('success', 'Password changed successfully');
+      showToast.success('Password changed successfully');
     } catch (error) {
-      localShowToast('error', error.response?.data?.message || 'Failed to change password');
+      showToast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -343,7 +323,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword.trim()) {
-      localShowToast('error', '❌ Please enter your password to confirm deletion');
+      showToast.error('❌ Please enter your password to confirm deletion');
       return;
     }
 
@@ -365,7 +345,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         window.location.href = '/';
       }, 2000);
     } catch (error) {
-      localShowToast('error', `❌ ${error.response?.data?.message || 'Failed to delete account'}`);
+      showToast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
       setDeletePassword('');
     } finally {
       setDeleteLoading(false);
@@ -375,7 +355,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const handleEmailChange = async () => {
     if (!emailChangePassword.trim()) {
-      localShowToast('error', '❌ Please enter your current password to confirm email change');
+      showToast.error('❌ Please enter your current password to confirm email change');
       return;
     }
 
@@ -389,11 +369,11 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
-      localShowToast('success', '📧 Confirmation email sent to your current email address. Please check your inbox.');
+      showToast.success('📧 Confirmation email sent to your current email address. Please check your inbox.');
       setEmailChangePassword('');
       setShowEmailChangeModal(false);
     } catch (error) {
-      localShowToast('error', `❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
+      showToast.error(`❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
       setEmailChangePassword('');
     } finally {
       setEmailChangeLoading(false);
@@ -407,32 +387,20 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         localStorage.setItem('developerMode', value.toString());
         if (value) {
           loadDeveloperInfo();
-          localShowToast('success', '🔧 Developer mode enabled - Advanced tools are now available');
+          showToast.success('🔧 Developer mode enabled - Advanced tools are now available');
         } else {
-          localShowToast('info', '🔧 Developer mode disabled');
-        }
-        break;
-      case 'notifications':
-        setNotifications(value);
-        localStorage.setItem('notifications', value.toString());
-        // Dispatch event to notify App.jsx of the change
-        window.dispatchEvent(new CustomEvent('notificationSettingsChanged'));
-        // Always show this toast regardless of setting since it's about the setting itself
-        if (value) {
-          showToast.success(`🔔 Notifications enabled`);
-        } else {
-          showToast.info(`🔔 Notifications disabled`);
+          showToast.info('🔧 Developer mode disabled');
         }
         break;
       case 'autoRefresh':
         setAutoRefresh(value);
         localStorage.setItem('autoRefresh', value.toString());
-        localShowToast('success', `🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
+        showToast.success(`🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'dataRetention':
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
-        localShowToast('success', `📅 Data retention set to ${value} days`);
+        showToast.success(`📅 Data retention set to ${value} days`);
         break;
       case 'toastPosition':
         setToastPosition(value);
@@ -443,7 +411,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          localShowToast('success', `📍 Toast position changed to ${value.replace('-', ' ')}`, {
+          showToast.success(`📍 Toast position changed to ${value.replace('-', ' ')}`, {
             position: value,
             theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
           });
@@ -458,7 +426,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          localShowToast('success', `🎨 Toast theme changed to ${value}`, {
+          showToast.success(`🎨 Toast theme changed to ${value}`, {
             position: toastPosition,
             theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
           });
@@ -472,7 +440,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     localStorage.removeItem('jobTracker_cache_expiry');
     localStorage.removeItem('jobTracker_cache_version');
     loadDeveloperInfo();
-    localShowToast('success', '🗑️ Cache cleared successfully');
+    showToast.success('🗑️ Cache cleared successfully');
   };
 
   if (initialLoading) {
@@ -535,7 +503,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                   <PreferencesSection
                     toggleTheme={toggleTheme}
                     darkMode={darkMode}
-                    notifications={notifications}
                     autoRefresh={autoRefresh}
                     dataRetention={dataRetention}
                     handleSettingChange={handleSettingChange}
@@ -554,7 +521,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     expandedSections={expandedSections}
                     toggleSection={toggleSection}
                     darkMode={darkMode}
-                    notifications={notifications}
                     showToast={showToast}
                     isMobile={isMobile}
                   />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { toast } from 'react-toastify';
+import { showToast } from './utils/toast';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
@@ -529,11 +529,11 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       cacheUtils.set(updatedJobs);
       setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
       
-      toast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`);
+      showToast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`);
       
     } catch (error) {
       console.error("Error deleting job:", error);
-      toast.error("Failed to delete job application. Please try again.");
+      showToast.error("Failed to delete job application. Please try again.");
       
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
@@ -704,7 +704,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         await fetchJobs();
       } catch (error) {
         console.error('Error initializing data:', error);
-        toast.error('Failed to load data');
+        showToast.error('Failed to load data');
       } finally {
         setInitialLoading(false);
       }
@@ -787,7 +787,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             getStatColorClass={getStatColorClass}
           />
           
-          <AddApplicationButton onOpenModal={openAddModal} />
+          <div className="mb-6">
+            <AddApplicationButton onOpenModal={openAddModal} />
+          </div>
           
           <SearchAndFilters 
             searchTerm={searchTerm}

@@ -5,7 +5,6 @@ import { Switch, Listbox, Transition } from '@headlessui/react';
 function PreferencesSection({ 
   toggleTheme, 
   darkMode, 
-  notifications, 
   autoRefresh, 
   dataRetention, 
   handleSettingChange, 
@@ -27,37 +26,6 @@ function PreferencesSection({
       </h2>
       
       <div className="space-y-6">
-        {/* Theme */}
-        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white">Theme</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Choose your preferred theme</p>
-          </div>
-          <button
-            onClick={toggleTheme}
-            className={`flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 ease-in-out transform hover:scale-105 ${isMobile ? 'w-full justify-center' : ''}`}
-          >
-            <FaPalette className="mr-2" />
-            {darkMode ? 'Dark' : 'Light'} Mode
-          </button>
-        </div>
-
-        {/* Notifications */}
-        <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white">Notifications</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Enable browser notifications</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={notifications}
-              onChange={(e) => handleSettingChange('notifications', e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 dark:border-gray-600 peer-checked:bg-blue-600 group-hover:scale-105 transition-transform duration-200"></div>
-          </label>
-        </div>
 
         {/* Auto Refresh */}
         <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'}`}>
@@ -153,7 +121,6 @@ function PreferencesSection({
             <button
               onClick={() => {
                 // Reset all preferences to defaults
-                handleSettingChange('notifications', true);
                 handleSettingChange('autoRefresh', true);
                 handleSettingChange('dataRetention', '30');
                 showToast('success', '🔄 Preferences reset to defaults');

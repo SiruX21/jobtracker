@@ -44,7 +44,7 @@ function SearchAndFilters({
       enter="transition-opacity duration-500"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 mb-4"
     >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Search */}
@@ -314,8 +314,8 @@ function SearchAndFilters({
         )}
 
       {/* Results Count and Sort Info */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-gray-600 dark:text-gray-400">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           Showing {filteredJobs.length} of {jobs.length} applications
           {searchTerm && ` for "${searchTerm}"`}
         </p>

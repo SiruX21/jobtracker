@@ -17,7 +17,6 @@ function AccessibilitySection({
   expandedSections, 
   toggleSection,
   darkMode,
-  notifications,
   showToast,
   isMobile 
 }) {
@@ -167,12 +166,6 @@ function AccessibilitySection({
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
-                if (!notifications) {
-                  // Show a special message when notifications are disabled
-                  alert('Notifications are currently disabled. Enable notifications in the Preferences tab to see the test notification.');
-                  return;
-                }
-                
                 // Apply settings immediately before showing test toast
                 window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
                   detail: { position: toastPosition, theme: toastTheme } 
