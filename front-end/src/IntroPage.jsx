@@ -57,12 +57,21 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
     setResendLoading(true);
     setResendSuccess("");
     try {
-      // ...existing resend logic...
+      const response = await axios.post(`${config.API_BASE_URL}/auth/resend-verification`, {
+        email: formData.email
+      });
+      setResendSuccess("Verification email sent successfully!");
     } catch (err) {
-      // ...existing error handling...
+      setError(err.response?.data?.error || "Failed to resend verification email");
     } finally {
       setResendLoading(false);
     }
+  };
+
+  // Email validation helper function
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   // Handle form submission
@@ -129,15 +138,15 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
       <Transition
         appear
         show={true}
-        as={Fragment}
+        as="div"
         enter="transition-all duration-700 ease-out"
         enterFrom="opacity-0 translate-y-8 scale-95"
         enterTo="opacity-100 translate-y-0 scale-100"
         leave="transition-all duration-500 ease-in"
         leaveFrom="opacity-100 translate-y-0 scale-100"
         leaveTo="opacity-0 translate-y-8 scale-95"
+        className="mt-8 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out hover:shadow-3xl hover:scale-105 animate-slideInUp"
       >
-        <div className="mt-8 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out hover:shadow-3xl hover:scale-105 animate-slideInUp">
           {/* Header with Fade-in */}
           <div className="text-center mb-6 animate-fadeIn">
             <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -303,6 +312,7 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
               </div>
             )}
           </form>
+
           {/* Toggle Section with Fade Animation */}
           <div className="mt-6 text-center animate-fadeInUp">
             <div className="relative">
@@ -337,10 +347,9 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
               )}
             </div>
           </div>
-        </div>
-      </Transition>
-    </div>
-  );
+        </Transition>
+      </div>
+    );
 }
 
 export default IntroPage;
