@@ -640,14 +640,21 @@ function AdminPanel({ darkMode, toggleTheme }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
+    <Transition
+      appear
+      show={true}
+      as={React.Fragment}
+      enter="transition-opacity duration-500"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
                 <FaUserShield className="mr-3 text-red-600" />
                 Admin Panel
@@ -836,6 +843,7 @@ function AdminPanel({ darkMode, toggleTheme }) {
         />
       </div>
     </div>
+    </Transition>
   );
 }
 

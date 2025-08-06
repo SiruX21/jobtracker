@@ -37,9 +37,16 @@ function SearchAndFilters({
   ];
 
   return (
-    <>
+    <Transition
+      appear
+      show={true}
+      as={Fragment}
+      enter="transition-opacity duration-500"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+    >
       {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8 animate-fadeIn">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Search */}
           <div className="flex-1 max-w-md">
@@ -315,7 +322,7 @@ function SearchAndFilters({
           {searchTerm && ` for "${searchTerm}"`}
         </p>
       </div>
-    </>
+    </Transition>
   );
 }
 

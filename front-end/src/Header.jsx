@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield, FaFileAlt, FaBars, FaTimes } from "react-icons/fa";
-import { Switch } from '@headlessui/react';
+import { Switch, Transition } from '@headlessui/react';
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
@@ -190,15 +190,36 @@ function Header({ darkMode, toggleTheme, isMobile }) {
       </header>
 
       {/* Mobile Navigation Menu - show on mobile only */}
-      {isMobile && showMobileMenu && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ease-in-out"
-          onClick={() => setShowMobileMenu(false)}
+      <Transition appear show={isMobile && showMobileMenu} as={Fragment}>
+        {/* Overlay */}
+        <Transition.Child
+          as={Fragment}
+          enter="transition-opacity duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition-opacity duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
         >
           <div 
-            className="bg-blue-800 dark:bg-blue-900 w-full shadow-lg transform transition-transform duration-300 ease-in-out"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowMobileMenu(false)}
+          />
+        </Transition.Child>
+        {/* Panel */}
+        <Transition.Child
+          as={Fragment}
+          enter="transition-transform transition-opacity duration-300"
+          enterFrom="opacity-0 -translate-y-4"
+          enterTo="opacity-100 translate-y-0"
+          leave="transition-transform transition-opacity duration-200"
+          leaveFrom="opacity-100 translate-y-0"
+          leaveTo="opacity-0 -translate-y-4"
+        >
+          <div 
+            className="fixed left-0 right-0 bg-blue-800 dark:bg-blue-900 w-full shadow-lg z-50"
             style={{ marginTop: '72px' }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <nav className="py-4 px-4 space-y-3">
               {authToken && (
@@ -272,8 +293,8 @@ function Header({ darkMode, toggleTheme, isMobile }) {
               )}
             </nav>
           </div>
-        </div>
-      )}
+        </Transition.Child>
+      </Transition>
     </>
   );
 }
