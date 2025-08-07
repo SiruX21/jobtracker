@@ -31,7 +31,7 @@ class Config:
     BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:5000')
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://job.siru.dev').split(',')
     
     # Domain Configuration (for production)
     DOMAIN = os.getenv('DOMAIN', 'localhost')
@@ -45,25 +45,51 @@ class Config:
     @classmethod
     def get_frontend_url(cls):
         """Get the correct frontend URL based on environment"""
-        if cls.ENVIRONMENT == 'production':
-            return cls.FRONTEND_DOMAIN
+        # Check if we're running in production by looking at environment variables
+        if (cls.ENVIRONMENT == 'production' or 
+            'siru.dev' in os.getenv('FRONTEND_URL', '') or
+            'siru.dev' in os.getenv('DOMAIN', '')):
+            return cls.FRONTEND_DOMAIN or os.getenv('FRONTEND_URL', 'https://job.siru.dev')
         return cls.FRONTEND_URL
     
     @classmethod
     def get_backend_url(cls):
         """Get the correct backend URL based on environment"""
-        if cls.ENVIRONMENT == 'production':
-            return cls.BACKEND_DOMAIN
+        # Check if we're running in production by looking at environment variables
+        if (cls.ENVIRONMENT == 'production' or 
+            'siru.dev' in os.getenv('BACKEND_URL', '') or
+            'siru.dev' in os.getenv('DOMAIN', '')):
+            return cls.BACKEND_DOMAIN or os.getenv('BACKEND_URL', 'https://api.siru.dev')
         return cls.BACKEND_URL
     
     @classmethod
     def get_cors_origins(cls):
         """Get the list of allowed CORS origins"""
-        origins = cls.CORS_ORIGINS.copy()
-        # Always include the current frontend URL
+        # Start with base origins from environment
+        origins = []
+        
+        # Add CORS_ORIGINS from environment
+        if hasattr(cls, 'CORS_ORIGINS') and cls.CORS_ORIGINS:
+            origins.extend(cls.CORS_ORIGINS)
+        
+        # Always add development URLs for local testing
+        dev_origins = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173']
+        for origin in dev_origins:
+            if origin not in origins:
+                origins.append(origin)
+        
+        # Always add production URLs
+        prod_origins = ['https://job.siru.dev', 'https://api.siru.dev']
+        for origin in prod_origins:
+            if origin not in origins:
+                origins.append(origin)
+                
+        # Add current frontend URL if not already included
         frontend_url = cls.get_frontend_url()
-        if frontend_url not in origins:
+        if frontend_url and frontend_url not in origins:
             origins.append(frontend_url)
+            
+        print(f"Final CORS origins: {origins}")  # Debug logging
         return origins
 
 class DevelopmentConfig(Config):

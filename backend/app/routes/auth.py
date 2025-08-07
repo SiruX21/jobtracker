@@ -15,6 +15,16 @@ auth_bp = Blueprint('auth', __name__)
 
 # Remove the create_cors_response function since Flask-CORS handles CORS globally
 
+# Test endpoint for CORS verification
+@auth_bp.route("/test", methods=["GET", "POST", "OPTIONS"])
+def test_cors():
+    """Test endpoint to verify CORS is working"""
+    return jsonify({
+        "message": "CORS test successful", 
+        "method": request.method,
+        "origin": request.headers.get('Origin', 'No origin header')
+    }), 200
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
