@@ -1,3 +1,11 @@
+@auth_bp.after_request
+def add_cors_headers(response):
+    frontend_url = Config.get_frontend_url()
+    response.headers['Access-Control-Allow-Origin'] = frontend_url
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    return response
 from flask import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
@@ -119,14 +127,22 @@ def login():
     # --- End Validation ---
 
     result = login_user(email, password, current_app.config['SECRET_KEY'])
-    
+
+    frontend_url = Config.get_frontend_url()
+
     if "error" in result:
-        return jsonify({"error": result["error"]}), result["code"]
-    
-    return jsonify({
+        response = jsonify({"error": result["error"]})
+        response.headers.add('Access-Control-Allow-Origin', frontend_url)
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, result["code"]
+
+    response = jsonify({
         "token": result["token"],
         "user": result["user"]
-    }), 200
+    })
+    response.headers.add('Access-Control-Allow-Origin', frontend_url)
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response, 200
 
 @auth_bp.route("/verify-email", methods=["GET"])
 @limiter.limit("10 per minute")

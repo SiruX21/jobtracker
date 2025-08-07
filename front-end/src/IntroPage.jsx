@@ -42,34 +42,70 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const switchToLogin = () => {
     setIsLogin(true);
     setFormData({ ...formData, confirmPassword: "" }); // Clear confirm password
-    setError("");
-    setResendSuccess("");
-  };
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
 
-  const switchToSignup = () => {
-    setIsLogin(false);
-    setError("");
-    setResendSuccess("");
-  };
+      {/* Feature Cards Section with Headless UI Fade-In Animation */}
+      <Transition
+        appear
+        show={true}
+        as="div"
+        enter="transition-opacity duration-700 ease-out"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        className="w-full flex flex-col items-center justify-center mt-12"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
+            <div className="mb-4 flex justify-center">
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-400"><circle cx="12" cy="12" r="10" strokeWidth="2" /><path strokeWidth="2" d="M12 8v4l3 3" /></svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-white">Track Applications</h3>
+            <p className="text-gray-200">Keep track of every application with detailed status updates and notes.</p>
+          </div>
+          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
+            <div className="mb-4 flex justify-center">
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-cyan-400"><path strokeWidth="2" d="M4 17l6-6 4 4 6-6" /></svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-white">Visual Dashboard</h3>
+            <p className="text-gray-200">See your progress at a glance with beautiful charts and statistics.</p>
+          </div>
+          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
+            <div className="mb-4 flex justify-center">
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-indigo-400"><path strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-white">Stay Organized</h3>
+            <p className="text-gray-200">Never lose track of deadlines, interviews, or follow-ups again.</p>
+          </div>
+        </div>
+      </Transition>
 
-  const handleResendVerification = async () => {
-    if (resendLoading) return;
-    setResendLoading(true);
-    setResendSuccess("");
-    try {
-      const response = await axios.post(`${config.API_BASE_URL}/auth/resend-verification`, {
-        email: formData.email
-      });
-      setResendSuccess("Verification email sent successfully!");
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to resend verification email");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  // Email validation helper function
-  const isValidEmail = (email) => {
+      {/* Existing login/signup card and logic */}
+      <Transition
+        appear
+        show={true}
+        as="div"
+        enter="transition-all duration-700 ease-out"
+        enterFrom="opacity-0 translate-y-8 scale-95"
+        enterTo="opacity-100 translate-y-0 scale-100"
+        leave="transition-all duration-500 ease-in"
+        leaveFrom="opacity-100 translate-y-0 scale-100"
+        leaveTo="opacity-0 translate-y-8 scale-95"
+        className="mt-8 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out hover:shadow-3xl hover:scale-105 animate-slideInUp"
+      >
+          {/* Header with Fade-in */}
+          <div className="text-center mb-6 animate-fadeIn">
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {isLogin ? "Welcome Back" : "Join Us"}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              {isLogin ? "Sign in to your account" : "Create your new account"}
+            </p>
+          </div>
+          ...existing code...
+      </Transition>
+    </div>
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
