@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Transition } from '@headlessui/react';
 import Cookies from 'js-cookie';
 import Header from './Header';
 import { 
@@ -94,7 +95,15 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
         </div>
 
         {/* Hero Section */}
-        <div className={`max-w-4xl mx-auto text-center animate-slideInUp relative z-10 ${isMobile ? 'px-4' : ''}`}>
+        <Transition
+          appear
+          show={true}
+          as="div"
+          enter="transition-all duration-1000 ease-out"
+          enterFrom="opacity-0 translate-y-8 scale-95"
+          enterTo="opacity-100 translate-y-0 scale-100"
+          className={`max-w-4xl mx-auto text-center relative z-10 ${isMobile ? 'px-4' : ''}`}
+        >
           {/* Logo/Icon */}
           <div className="mb-8">
             <div className={`mb-4 ${isMobile ? 'text-6xl' : 'text-8xl'}`}><FaClipboard className="mx-auto text-blue-200" /></div>
@@ -104,7 +113,15 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
           </div>
 
           {/* Main Description */}
-          <div className="mb-12 animate-fadeIn delay-300">
+          <Transition
+            appear
+            show={true}
+            as="div"
+            enter="transition-all duration-1000 ease-out delay-300"
+            enterFrom="opacity-0 translate-y-4"
+            enterTo="opacity-100 translate-y-0"
+            className="mb-12"
+          >
             <h2 className={`font-bold text-blue-100 dark:text-blue-100 mb-6 ${isMobile ? 'text-xl' : 'text-3xl'}`}>
               Take Control of Your Job Search Journey
             </h2>
@@ -112,10 +129,18 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
               Stay organized, track your applications, and never miss an opportunity. 
               JobTracker helps you manage your job applications with ease and style.
             </p>
-          </div>
+          </Transition>
 
           {/* Features Grid */}
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'} gap-8 mb-12 animate-slideInUp delay-500`}>
+          <Transition
+            appear
+            show={true}
+            as="div"
+            enter="transition-all duration-1000 ease-out delay-500"
+            enterFrom="opacity-0 translate-y-8"
+            enterTo="opacity-100 translate-y-0"
+            className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'} gap-8 mb-12`}
+          >
             <div className="bg-blue-800/30 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-400/20 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <div className="flex items-center justify-center text-4xl mb-4"><FaCrosshairs className="text-blue-300" /></div>
               <h3 className="text-xl font-bold text-blue-100 dark:text-blue-100 mb-2">Track Applications</h3>
@@ -137,10 +162,18 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
                 Never lose track of deadlines, interviews, or follow-ups again.
               </p>
             </div>
-          </div>
+          </Transition>
 
           {/* Call to Action Buttons */}
-          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} gap-6 justify-center items-center animate-slideInUp delay-700`}>
+          <Transition
+            appear
+            show={true}
+            as="div"
+            enter="transition-all duration-1000 ease-out delay-700"
+            enterFrom="opacity-0 translate-y-8"
+            enterTo="opacity-100 translate-y-0"
+            className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} gap-6 justify-center items-center`}
+          >
             {isAuthenticated ? (
               <button
                 onClick={() => navigate('/tracker')}
@@ -165,18 +198,26 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
                 </button>
               </>
             )}
-          </div>
+          </Transition>
 
           {/* Additional Info */}
-          <div className="mt-12 animate-fadeIn delay-900">
+          <Transition
+            appear
+            show={true}
+            as="div"
+            enter="transition-all duration-1000 ease-out delay-900"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            className="mt-12"
+          >
             <p className="text-blue-300 dark:text-blue-300 text-sm">
               {isAuthenticated 
                 ? "Welcome back! Ready to manage your job applications?" 
                 : "Join thousands of job seekers who have organized their search with JobTracker"
               }
             </p>
-          </div>
-        </div>
+          </Transition>
+        </Transition>
       </div>
     </div>
   );

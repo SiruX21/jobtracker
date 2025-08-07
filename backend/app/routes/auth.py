@@ -1,11 +1,3 @@
-@auth_bp.after_request
-def add_cors_headers(response):
-    frontend_url = Config.get_frontend_url()
-    response.headers['Access-Control-Allow-Origin'] = frontend_url
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    return response
 from flask import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
@@ -19,15 +11,9 @@ from app.utils.password_validator import PasswordValidator
 
 auth_bp = Blueprint('auth', __name__)
 
-def create_cors_response():
-    """Create a CORS response with configurable origins"""
-    response = jsonify()
-    frontend_url = Config.get_frontend_url()
-    response.headers.add('Access-Control-Allow-Origin', frontend_url)
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
+# Remove the after_request decorator since Flask-CORS handles CORS globally
+
+# Remove the create_cors_response function since Flask-CORS handles CORS globally
 
 def token_required(f):
     @wraps(f)
@@ -66,13 +52,9 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-@auth_bp.route("/register", methods=["POST", "OPTIONS"])
+@auth_bp.route("/register", methods=["POST"])
 @limiter.limit("3 per minute")
 def register():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -103,13 +85,9 @@ def register():
     
     return jsonify({"message": result["message"]}), 201
 
-@auth_bp.route("/login", methods=["POST", "OPTIONS"])
+@auth_bp.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -128,21 +106,13 @@ def login():
 
     result = login_user(email, password, current_app.config['SECRET_KEY'])
 
-    frontend_url = Config.get_frontend_url()
-
     if "error" in result:
-        response = jsonify({"error": result["error"]})
-        response.headers.add('Access-Control-Allow-Origin', frontend_url)
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, result["code"]
+        return jsonify({"error": result["error"]}), result["code"]
 
-    response = jsonify({
+    return jsonify({
         "token": result["token"],
         "user": result["user"]
-    })
-    response.headers.add('Access-Control-Allow-Origin', frontend_url)
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response, 200
+    }), 200
 
 @auth_bp.route("/verify-email", methods=["GET"])
 @limiter.limit("10 per minute")
@@ -182,13 +152,9 @@ def resend_verification():
     
     return jsonify({"message": result["message"]}), 200
 
-@auth_bp.route("/forgot-password", methods=["POST", "OPTIONS"])
+@auth_bp.route("/forgot-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def forgot_password():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -209,13 +175,9 @@ def forgot_password():
     
     return jsonify({"message": result["message"]}), 200
 
-@auth_bp.route("/reset-password", methods=["POST", "OPTIONS"])
+@auth_bp.route("/reset-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def reset_password_route():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -236,12 +198,8 @@ def reset_password_route():
     
     return jsonify({"message": result["message"]}), 200
 
-@auth_bp.route("/profile", methods=["GET", "OPTIONS"])
+@auth_bp.route("/profile", methods=["GET"])
 def get_profile():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     # For GET requests, require authentication
     token = None
     if 'Authorization' in request.headers:
@@ -293,13 +251,9 @@ def get_profile():
         print(f"Error in get_profile: {e}")
         return jsonify({"message": "Failed to load profile"}), 500
 
-@auth_bp.route("/change-password", methods=["PUT", "OPTIONS"])
+@auth_bp.route("/change-password", methods=["PUT"])
 @limiter.limit("5 per minute")
 def change_password():
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     # For PUT requests, require authentication
     token = None
     if 'Authorization' in request.headers:
@@ -371,13 +325,9 @@ def change_password():
         print(f"Unexpected error during password change: {e}")
         return jsonify({"message": "Failed to change password"}), 500
 
-@auth_bp.route('/delete-account', methods=['DELETE', 'OPTIONS'])
+@auth_bp.route('/delete-account', methods=['DELETE'])
 @limiter.limit("3 per minute")
 def delete_account():
-    if request.method == 'OPTIONS':
-        response = create_cors_response()
-        return response
-    
     token = None
     if 'Authorization' in request.headers:
         auth_header = request.headers['Authorization']
@@ -804,13 +754,10 @@ def verify_new_email_route():
     </html>
     """
 
-@auth_bp.route('/validate-password', methods=['POST', 'OPTIONS'])
+@auth_bp.route('/validate-password', methods=['POST'])
 @limiter.limit("10 per minute")
 def validate_password_endpoint():
     """Validate password strength"""
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
     try:
         data = request.get_json()
         password = data.get('password', '')
@@ -822,17 +769,8 @@ def validate_password_endpoint():
             "details": validation_details
         })
         
-        # Add CORS headers
-        frontend_url = Config.get_frontend_url()
-        response.headers.add('Access-Control-Allow-Origin', frontend_url)
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        
         return response
         
     except Exception as e:
         print(f"Error validating password: {e}")
-        response = jsonify({"error": "Internal server error"})
-        frontend_url = Config.get_frontend_url()
-        response.headers.add('Access-Control-Allow-Origin', frontend_url)
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, 500
+        return jsonify({"error": "Internal server error"}), 500

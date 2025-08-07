@@ -77,7 +77,7 @@ class ProductionConfig(Config):
     DEBUG = False
     # In production, these would be set via environment variables
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://job.siru.dev')
-    BACKEND_URL = os.getenv('BACKEND_URL', 'https://api.job.siru.dev')
+    BACKEND_URL = os.getenv('BACKEND_URL', 'https://api.siru.dev')
 
 class TestingConfig(Config):
     """Testing configuration"""

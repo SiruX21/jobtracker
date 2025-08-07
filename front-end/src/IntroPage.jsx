@@ -135,41 +135,6 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
       <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
 
-      {/* Feature Cards Section with Headless UI Fade-In Animation */}
-      <Transition
-        appear
-        show={true}
-        as="div"
-        enter="transition-opacity duration-700 ease-out"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        className="w-full flex flex-col items-center justify-center mt-12"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
-          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
-            <div className="mb-4 flex justify-center">
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-400"><circle cx="12" cy="12" r="10" strokeWidth="2" /><path strokeWidth="2" d="M12 8v4l3 3" /></svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-white">Track Applications</h3>
-            <p className="text-gray-200">Keep track of every application with detailed status updates and notes.</p>
-          </div>
-          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
-            <div className="mb-4 flex justify-center">
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-cyan-400"><path strokeWidth="2" d="M4 17l6-6 4 4 6-6" /></svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-white">Visual Dashboard</h3>
-            <p className="text-gray-200">See your progress at a glance with beautiful charts and statistics.</p>
-          </div>
-          <div className="bg-white/10 dark:bg-gray-900/30 rounded-2xl shadow-lg p-8 text-center border border-white/20 dark:border-gray-800">
-            <div className="mb-4 flex justify-center">
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-indigo-400"><path strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-white">Stay Organized</h3>
-            <p className="text-gray-200">Never lose track of deadlines, interviews, or follow-ups again.</p>
-          </div>
-        </div>
-      </Transition>
-
       {/* Login/Signup Form */}
       <Transition
         appear
