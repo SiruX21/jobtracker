@@ -53,8 +53,12 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
       setRainIcons(newIcons);
     };
 
-    // Generate icons only once for continuous animation
-    generateRainIcons();
+    // Generate icons after the call-to-action buttons appear (700ms delay + 500ms buffer)
+    const rainTimer = setTimeout(() => {
+      generateRainIcons();
+    }, 1200);
+
+    return () => clearTimeout(rainTimer);
   }, []);
 
   return (
