@@ -98,12 +98,21 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
+    print(f"[LOGIN] Request received from {request.remote_addr}", flush=True)
+    print(f"[LOGIN] Request headers: {dict(request.headers)}", flush=True)
+    print(f"[LOGIN] Request content type: {request.content_type}", flush=True)
+    
     data = request.json
+    print(f"[LOGIN] Raw request data: {data}", flush=True)
     
     # --- Input Validation & Sanitization ---
     errors = {}
     email = data.get("username") or data.get("email")  # Support both username and email
     password = data.get("password")
+
+    print(f"[LOGIN] Extracted email: {email}", flush=True)
+    print(f"[LOGIN] Password provided: {'Yes' if password else 'No'}", flush=True)
+    print(f"[LOGIN] Password length: {len(password) if password else 0}", flush=True)
 
     if not email or not isinstance(email, str) or len(email) > 100:
         errors['email'] = "Email/username is required and must be under 100 characters."
@@ -111,14 +120,19 @@ def login():
         errors['password'] = "Password is required."
 
     if errors:
+        print(f"[LOGIN] Validation errors: {errors}", flush=True)
         return jsonify({"error": "Validation failed", "details": errors}), 400
     # --- End Validation ---
 
+    print(f"[LOGIN] Calling login_user with email: {email}", flush=True)
     result = login_user(email, password, current_app.config['SECRET_KEY'])
+    print(f"[LOGIN] login_user result: {result}", flush=True)
 
     if "error" in result:
+        print(f"[LOGIN] Login failed with error: {result['error']}, code: {result.get('code', 500)}", flush=True)
         return jsonify({"error": result["error"]}), result["code"]
 
+    print(f"[LOGIN] Login successful for email: {email}", flush=True)
     return jsonify({
         "token": result["token"],
         "user": result["user"]

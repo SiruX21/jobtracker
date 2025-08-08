@@ -165,6 +165,26 @@ def create_tables():
         except mariadb.Error:
             # Column already exists
             pass
+
+        # Add email change columns if they don't exist
+        email_change_columns = [
+            ("reset_token", "VARCHAR(255)"),
+            ("reset_token_expires", "TIMESTAMP NULL"),
+            ("new_email", "VARCHAR(255)"),
+            ("email_change_token", "VARCHAR(255)"),
+            ("email_change_token_expires", "TIMESTAMP NULL"),
+            ("new_email_token", "VARCHAR(255)"),
+            ("new_email_token_expires", "TIMESTAMP NULL"),
+            ("last_verification_sent", "DATETIME NULL")
+        ]
+        
+        for column_name, column_type in email_change_columns:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_type}")
+                print(f"Added column {column_name} to users table")
+            except mariadb.Error:
+                # Column already exists
+                pass
             
         print("Users table checked/created successfully.")
 
