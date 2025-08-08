@@ -836,6 +836,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
           onClose={closeEditModal}
           newJob={newJob}
           setNewJob={setNewJob}
+          editingJob={editingJob}
           jobStatuses={jobStatuses}
           onSubmit={updateJob}
           loading={loading}

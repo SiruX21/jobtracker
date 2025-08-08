@@ -851,6 +851,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             onClose={closeEditModal}
             newJob={newJob}
             setNewJob={setNewJob}
+            editingJob={editingJob}
             jobStatuses={jobStatuses}
             onSubmit={addOrUpdateJob}
             loading={loading}

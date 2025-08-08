@@ -8,6 +8,7 @@ function EditJobModal({
   onClose, 
   newJob, 
   setNewJob, 
+  editingJob,
   jobStatuses, 
   onSubmit, 
   loading,
@@ -284,7 +285,7 @@ function EditJobModal({
       <StatusHistoryModal
         isOpen={showStatusHistory}
         onClose={handleCloseStatusHistory}
-        jobId={newJob?.id || newJob?.job_id}
+        jobId={editingJob?.id}
         jobTitle={newJob?.job_title}
         companyName={newJob?.company_name}
         darkMode={darkMode}
