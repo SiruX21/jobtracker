@@ -173,7 +173,7 @@ function AccessibilitySection({
                 
                 // Small delay to ensure settings are applied
                 setTimeout(() => {
-                  showToast('success', "🎉 This is a test notification!");
+                  showToast.success("🎉 This is a test notification!");
                 }, 100);
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}

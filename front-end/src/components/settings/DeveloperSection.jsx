@@ -33,7 +33,7 @@ function DeveloperSection({
         localStorage.removeItem(key);
       }
     });
-    showToast('success', '🗑️ Logo cache cleared successfully');
+    showToast.success('🗑️ Logo cache cleared successfully');
   };
 
   return (
