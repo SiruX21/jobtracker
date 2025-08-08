@@ -20,6 +20,11 @@ function AccessibilitySection({
   showToast,
   isMobile 
 }) {
+  // Debug: Check if showToast is properly defined
+  React.useEffect(() => {
+    console.log('AccessibilitySection showToast:', showToast);
+  }, [showToast]);
+
   const toastPositionOptions = [
     { value: 'top-left', label: 'Top Left' },
     { value: 'top-center', label: 'Top Center' },
@@ -163,9 +168,13 @@ function AccessibilitySection({
           </div>
 
           {/* Test Toast Button */}
+                    {/* Test Toast Button */}
+                    {/* Test Toast Button */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
+                console.log('Test notification clicked', { showToast, position: toastPosition, theme: toastTheme }); // Debug
+                
                 // Apply settings immediately before showing test toast
                 window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
                   detail: { position: toastPosition, theme: toastTheme } 
@@ -173,7 +182,12 @@ function AccessibilitySection({
                 
                 // Small delay to ensure settings are applied
                 setTimeout(() => {
-                  showToast.success("🎉 This is a test notification!");
+                  console.log('Showing test toast'); // Debug
+                  if (showToast && showToast.success) {
+                    showToast.success("🎉 This is a test notification!");
+                  } else {
+                    console.error('showToast is not properly defined:', showToast);
+                  }
                 }, 100);
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}

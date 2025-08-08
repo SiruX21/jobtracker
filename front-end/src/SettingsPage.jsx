@@ -147,9 +147,6 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         setIsAuthenticated(true);
         await loadUserProfile();
         await checkAdminStatus();
-        if (developerMode && isAdmin) {
-          loadDeveloperInfo();
-        }
       } catch (error) {
         console.error('Error initializing settings:', error);
       } finally {
@@ -158,7 +155,14 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     };
 
     initializeSettings();
-  }, [navigate, developerMode, isAdmin]);
+  }, [navigate]);
+
+  // Separate effect to load developer info when needed
+  useEffect(() => {
+    if (developerMode && isAdmin) {
+      loadDeveloperInfo();
+    }
+  }, [developerMode, isAdmin]);
 
   // Handle escape key for modals
   useEffect(() => {
