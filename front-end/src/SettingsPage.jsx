@@ -41,7 +41,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   
   // Email change
   const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
   const [emailChangePassword, setEmailChangePassword] = useState('');
+  const [emailChangeStep, setEmailChangeStep] = useState('request');
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
   
   // Password change modal
@@ -174,7 +176,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }
         if (showEmailChangeModal) {
           setShowEmailChangeModal(false);
+          setNewEmail('');
           setEmailChangePassword('');
+          setEmailChangeStep('request');
         }
         if (showPasswordChangeModal) {
           setShowPasswordChangeModal(false);
@@ -358,8 +362,18 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   };
 
   const handleEmailChange = async () => {
+    if (!newEmail.trim()) {
+      showToast.error('❌ Please enter a new email address');
+      return;
+    }
+    
     if (!emailChangePassword.trim()) {
       showToast.error('❌ Please enter your current password to confirm email change');
+      return;
+    }
+
+    if (newEmail === user?.email) {
+      showToast.error('❌ New email must be different from current email');
       return;
     }
 
@@ -368,14 +382,14 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     try {
       const authToken = Cookies.get("authToken");
       const response = await axios.post(`${API_BASE_URL}/api/auth/initiate-email-change`, {
+        new_email: newEmail,
         current_password: emailChangePassword
       }, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
-      showToast.success('📧 Confirmation email sent to your current email address. Please check your inbox.');
-      setEmailChangePassword('');
-      setShowEmailChangeModal(false);
+      showToast.success('📧 Confirmation emails sent to both your current and new email addresses. Please check both inboxes.');
+      setEmailChangeStep('pending');
     } catch (error) {
       showToast.error(`❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
       setEmailChangePassword('');
@@ -564,10 +578,15 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         // Email change modal props
         showEmailChangeModal={showEmailChangeModal}
         setShowEmailChangeModal={setShowEmailChangeModal}
+        newEmail={newEmail}
+        setNewEmail={setNewEmail}
         emailChangePassword={emailChangePassword}
         setEmailChangePassword={setEmailChangePassword}
+        emailChangeStep={emailChangeStep}
+        setEmailChangeStep={setEmailChangeStep}
         emailChangeLoading={emailChangeLoading}
         handleEmailChange={handleEmailChange}
+        user={user}
         
         // Password change modal props
         showPasswordChangeModal={showPasswordChangeModal}
