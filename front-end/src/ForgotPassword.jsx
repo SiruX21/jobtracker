@@ -3,13 +3,15 @@ import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from './utils/toast';
-import { API_BASE_URL } from './config';
+import config from './config';
 import Header from './Header';
 
 function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   // Validate email
   const isValidEmail = (email) => {
@@ -19,29 +21,31 @@ function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setMessage('');
 
     // Validate email
     if (!email) {
-      showToast.error('Please enter your email address.');
+      setError('Please enter your email address.');
       return;
     }
 
     if (!isValidEmail(email)) {
-      showToast.error('Please enter a valid email address.');
+      setError('Please enter a valid email address.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, {
+      const response = await axios.post(`${config.API_BASE_URL}/auth/forgot-password`, {
         email: email
       });
 
-      showToast.success(response.data.message);
+      setMessage(response.data.message);
       setEmail(''); // Clear the form
     } catch (err) {
-      showToast.error(err.response?.data?.error || 'Failed to send reset email. Please try again.');
+      setError(err.response?.data?.error || 'Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +126,7 @@ function ForgotPassword({ darkMode, toggleTheme, isMobile }) {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setError('');
+                  setMessage('');
                 }}
                 required
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200 ease-in-out transform focus:scale-105 hover:shadow-md"
