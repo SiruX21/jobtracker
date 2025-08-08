@@ -7,11 +7,95 @@ from app import get_db
 from app.services.email_service import send_verification_email, send_password_reset_email
 from app.utils.password_validator import PasswordValidator
 
+
 def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
+
+def _is_bcrypt_hash(candidate: str) -> bool:
+    try:
+        if not candidate:
+            return False
+        if isinstance(candidate, (bytes, bytearray)):
+            candidate = candidate.decode('utf-8', errors='ignore')
+        return candidate.startswith("$2a$") or candidate.startswith("$2b$") or candidate.startswith("$2y$")
+    except Exception:
+        return False
+
+
 def verify_password(stored_password, provided_password):
-    return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password.encode('utf-8'))
+    """Safely verify a plaintext password against a stored hash.
+    Returns False if the stored hash is missing or invalid (e.g., legacy/plaintext),
+    preventing crashes like `ValueError: Invalid salt`.
+    """
+    try:
+        if not stored_password or not provided_password:
+            return False
+
+        # Normalize stored hash to string for quick validation
+        if isinstance(stored_password, (bytes, bytearray)):
+            stored_password_str = stored_password.decode('utf-8', errors='ignore')
+        else:
+            stored_password_str = str(stored_password)
+
+        # Bcrypt hashes should start with $2a$, $2b$, or $2y$
+        if not _is_bcrypt_hash(stored_password_str):
+            # Not a valid bcrypt hash format
+            return False
+
+        # Prepare bytes for bcrypt
+        stored_hash_bytes = stored_password_str.encode('utf-8')
+        provided_bytes = (
+            provided_password.encode('utf-8')
+            if isinstance(provided_password, str)
+            else bytes(provided_password)
+        )
+
+        return bcrypt.checkpw(provided_bytes, stored_hash_bytes)
+
+    except (ValueError, TypeError) as e:
+        # Invalid salt or bad format – treat as invalid credentials, not server error
+        print(f"Password verification failed due to invalid hash format: {e}")
+        return False
+
+
+def verify_and_migrate_password(user_id: int, stored_password, provided_password) -> bool:
+    """Verify password. If stored password is legacy/plaintext and matches the provided
+    password exactly, migrate it to a bcrypt hash.
+    Returns True if credentials are valid after optional migration, else False.
+    """
+    try:
+        if not stored_password or not provided_password:
+            return False
+
+        # Normalize to string for checks
+        stored_password_str = (
+            stored_password.decode('utf-8', errors='ignore')
+            if isinstance(stored_password, (bytes, bytearray))
+            else str(stored_password)
+        )
+
+        if _is_bcrypt_hash(stored_password_str):
+            # Standard bcrypt verification
+            return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password_str.encode('utf-8'))
+
+        # Legacy path: treat stored value as plaintext
+        if stored_password_str == provided_password:
+            # Migrate to bcrypt
+            try:
+                new_hash = hash_password(provided_password)
+                conn, cursor = get_db()
+                cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
+            except Exception as ex:
+                print(f"Failed to migrate legacy password for user {user_id}: {ex}")
+                # Even if migration fails, consider the password valid for this attempt
+            return True
+
+        return False
+    except Exception as e:
+        print(f"verify_and_migrate_password error: {e}")
+        return False
+
 
 def generate_auth_token(user_id, secret_key):
     try:
@@ -25,8 +109,10 @@ def generate_auth_token(user_id, secret_key):
         print(f"Error generating token: {e}")
         return None
 
+
 def generate_verification_token():
     return secrets.token_urlsafe(32)
+
 
 def register_user(username, email, password):
     """Register a new user with email verification"""
@@ -75,6 +161,7 @@ def register_user(username, email, password):
         print(f"Database error during registration: {e}")
         return {"error": "Registration failed", "code": 500}
 
+
 def login_user(email, password, secret_key):
     """Login user with email verification check"""
     conn, cursor = get_db()
@@ -86,7 +173,8 @@ def login_user(email, password, secret_key):
         if not user:
             return {"error": "Invalid credentials", "code": 401}
         
-        if not verify_password(user['password_hash'], password):
+        # Verify and migrate legacy passwords if necessary
+        if not verify_and_migrate_password(user['id'], user['password_hash'], password):
             return {"error": "Invalid credentials", "code": 401}
         
         if not user['email_verified']:
@@ -102,6 +190,7 @@ def login_user(email, password, secret_key):
     except mariadb.Error as e:
         print(f"Database error during login: {e}")
         return {"error": "Login failed", "code": 500}
+
 
 def verify_email_token(token):
     """Verify email using verification token"""
@@ -131,6 +220,7 @@ def verify_email_token(token):
     except mariadb.Error as e:
         print(f"Database error during email verification: {e}")
         return {"error": "Verification failed", "code": 500}
+
 
 def resend_verification_email(email):
     """Resend verification email"""
@@ -181,6 +271,7 @@ def resend_verification_email(email):
         print(f"Database error during resend verification: {e}", flush=True)
         return {"error": "Failed to resend verification email", "code": 500}
 
+
 def request_password_reset(email):
     """Request a password reset for a user"""
     conn, cursor = get_db()
@@ -216,6 +307,7 @@ def request_password_reset(email):
     except Exception as e:
         print(f"Error sending password reset email: {e}")
         return {"error": "Failed to send password reset email", "code": 500}
+
 
 def reset_password(token, new_password):
     """Reset password using a valid reset token"""
@@ -259,6 +351,7 @@ def reset_password(token, new_password):
         print(f"Database error during password reset: {e}")
         return {"error": "Failed to reset password", "code": 500}
 
+
 def initiate_email_change(user_id, current_password):
     """Step 1: Initiate email change by sending confirmation to current email"""
     conn, cursor = get_db()
@@ -294,6 +387,7 @@ def initiate_email_change(user_id, current_password):
     except mariadb.Error as e:
         print(f"Database error during email change initiation: {e}")
         return {"error": "Failed to initiate email change", "code": 500}
+
 
 def confirm_email_change_request(token, new_email):
     """Step 2: Confirm email change request and send verification to new email"""
@@ -343,6 +437,7 @@ def confirm_email_change_request(token, new_email):
     except mariadb.Error as e:
         print(f"Database error during email change confirmation: {e}")
         return {"error": "Failed to confirm email change", "code": 500}
+
 
 def verify_new_email(token):
     """Step 3: Verify new email and complete the email change"""

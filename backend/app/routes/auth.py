@@ -5,7 +5,7 @@ import bcrypt
 from functools import wraps
 from app import get_db, limiter
 from app.config import Config
-from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email
+from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email, verify_password
 from app.utils.password_validator import PasswordValidator
 
 
@@ -316,7 +316,7 @@ def change_password():
             return jsonify({"message": "User not found"}), 404
             
         stored_password_hash = user_data['password_hash']
-        if not bcrypt.checkpw(current_password.encode('utf-8'), stored_password_hash.encode('utf-8')):
+        if not verify_password(stored_password_hash, current_password):
             return jsonify({"message": "Current password is incorrect"}), 400
         
         # Hash new password
@@ -386,8 +386,8 @@ def delete_account():
             
         stored_password_hash = user_data['password_hash']
         
-        # Verify password
-        if not bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
+        # Verify password using safe helper
+        if not verify_password(stored_password_hash, password):
             return jsonify({"message": "Password is incorrect"}), 400
         
         # Delete user's job applications first (due to foreign key constraint)
