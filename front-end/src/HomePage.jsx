@@ -56,7 +56,7 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
     // Generate icons after the call-to-action buttons appear (700ms delay + 500ms buffer)
     const rainTimer = setTimeout(() => {
       generateRainIcons();
-    }, 1200);
+    }, 950);
 
     return () => clearTimeout(rainTimer);
   }, []);
