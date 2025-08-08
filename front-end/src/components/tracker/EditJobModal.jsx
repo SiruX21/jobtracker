@@ -103,16 +103,14 @@ function EditJobModal({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Status
                   </label>
-                  {newJob && (newJob.id || newJob.job_id) && (
-                    <button
-                      onClick={() => setShowStatusHistory(true)}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center"
-                      type="button"
-                    >
-                      <FaHistory className="mr-1" />
-                      View History
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowStatusHistory(true)}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center"
+                    type="button"
+                  >
+                    <FaHistory className="mr-1" />
+                    View History
+                  </button>
                 </div>
                 <Listbox value={newJob.status || ''} onChange={(value) => setNewJob({ ...newJob, status: value })}>
                   <div className="relative">
