@@ -7,6 +7,7 @@ import Cookies from "js-cookie"; // For managing cookies
 import config from "./config"; // Import the global config
 import PasswordStrengthIndicator from "./components/PasswordStrengthIndicator";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for password visibility toggle
+import { showToast } from "./utils/toast";
 
 function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const [searchParams] = useSearchParams();
@@ -15,7 +16,6 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const [error, setError] = useState("");
   // Remove resendCooldown, rely on backend
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState(null);
@@ -35,7 +35,6 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError(""); // Clear error when user types
-    setResendSuccess("");
   };
 
   // Function to switch between login and signup modes
@@ -43,26 +42,23 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
     setIsLogin(true);
     setFormData({ ...formData, confirmPassword: "" }); // Clear confirm password
     setError("");
-    setResendSuccess("");
   };
 
   const switchToSignup = () => {
     setIsLogin(false);
     setError("");
-    setResendSuccess("");
   };
 
   const handleResendVerification = async () => {
     if (resendLoading) return;
     setResendLoading(true);
-    setResendSuccess("");
     try {
       const response = await axios.post(`${config.API_BASE_URL}/auth/resend-verification`, {
         email: formData.email
       });
-      setResendSuccess("Verification email sent successfully!");
+      showToast.success("Verification email sent successfully!");
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to resend verification email");
+      showToast.error(err.response?.data?.error || "Failed to resend verification email");
     } finally {
       setResendLoading(false);
     }
@@ -119,12 +115,8 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
           username: formData.email, // Use email as username
           password: formData.password
         });
+        showToast.success("Registration successful! Please check your email for verification instructions.");
         switchToLogin();
-        setError("Registration successful! Please check your email for verification.");
-        // Show success message briefly
-        setTimeout(() => {
-          setError("");
-        }, 3000);
       }
     } catch (err) {
       setError(err.response?.data?.error || "An error occurred");
@@ -159,22 +151,9 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
         </div>
 
         {/* Error Message with Slide Down Animation */}
-        {error && !error.toLowerCase().includes("verify your email") && (
+        {error && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg animate-slideDown">
             <p className="text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Success Message for Registration */}
-        {error && error.toLowerCase().includes("registration successful") && (
-          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 rounded-lg animate-slideDown">
-            <div className="flex items-center space-x-2">
-              <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <p className="text-sm font-medium">Registration Successful!</p>
-            </div>
-            <p className="text-sm mt-1">Please check your email for verification instructions.</p>
           </div>
         )}
 
@@ -197,14 +176,6 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
                 {resendLoading ? "Sending..." : "Resend"}
               </button>
             </div>
-            {resendSuccess && (
-              <div className="mt-2 flex items-center space-x-1">
-                <svg className="h-3 w-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <p className="text-green-600 dark:text-green-400 text-xs">{resendSuccess}</p>
-              </div>
-            )}
           </div>
         )}
 

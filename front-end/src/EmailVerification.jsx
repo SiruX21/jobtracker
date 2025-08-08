@@ -3,7 +3,7 @@ import { Transition } from '@headlessui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from './utils/toast';
-import { API_BASE_URL } from './config';
+import config from './config';
 import Header from './Header';
 import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
 
@@ -11,37 +11,35 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
-  const [hasVerified, setHasVerified] = useState(false); // Prevent duplicate calls
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (!token) {
       setStatus('error');
-      showToast('error', 'Invalid verification link. No token provided.');
+      showToast.error('Invalid verification link. No token provided.');
       return;
     }
-    if (hasVerified) return;
+
     const verifyEmail = async () => {
-      if (hasVerified) return;
-      setHasVerified(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/auth/verify-email?token=${token}`);
+        const response = await axios.get(`${config.API_BASE_URL}/auth/verify-email?token=${token}`);
         if (response.status === 200) {
           setStatus('success');
-          showToast('success', '✅ Email verified successfully! Redirecting to login...');
+          showToast.success('✅ Email verified successfully! Redirecting to login...');
           setTimeout(() => { navigate('/auth'); }, 3000);
         }
       } catch (error) {
         setStatus('error');
         if (error.response?.data?.error) {
-          showToast('error', error.response.data.error);
+          showToast.error(error.response.data.error);
         } else {
-          showToast('error', 'Failed to verify email. Please try again or contact support.');
+          showToast.error('Failed to verify email. Please try again or contact support.');
         }
       }
     };
+
     verifyEmail();
-  }, [searchParams, hasVerified, navigate]);
+  }, [searchParams, navigate]); // Remove hasVerified dependency
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out">
