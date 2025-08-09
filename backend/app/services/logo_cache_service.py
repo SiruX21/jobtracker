@@ -20,9 +20,17 @@ class LogoCacheService:
         self.cache_ttl = 30 * 24 * 60 * 60  # 30 days for images
         self.search_cache_ttl = 24 * 60 * 60  # 1 day for search results
         self.autocomplete_cache_ttl = 6 * 60 * 60  # 6 hours for autocomplete
-        self.service_config = 'brandfetch'  # Default to Brandfetch as primary
+        self.service_config = 'auto'  # Default to auto to try Brandfetch first
         self.connect_redis()
         self.load_service_config()  # Load saved configuration
+        
+        # Debug environment variables
+        print(f"🔧 LogoCacheService init:")
+        print(f"   - Brandfetch API key: {'✅ SET' if self.brandfetch_api_key else '❌ NOT SET'}")
+        print(f"   - Logo.dev token: {'✅ SET' if self.logo_dev_token else '❌ NOT SET'}")
+        print(f"   - Service config: {self.service_config}")
+        print(f"   - Should use Brandfetch: {self.should_use_brandfetch()}")
+        print(f"   - Should use Logo.dev: {self.should_use_logodev()}")
     
     def connect_redis(self):
         """Connect to Redis server"""
