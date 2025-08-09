@@ -3,7 +3,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 import { fetchCompanySuggestions } from '../../services/companyService';
-import { debugError } from '../../utils/debug';
+import { logoService } from '../../services/logoService';
+import { debugError, debugLog } from '../../utils/debug';
 
 function AddJobModal({ 
   isOpen, 
@@ -39,16 +40,39 @@ function AddJobModal({
   const [statusSearchTerm, setStatusSearchTerm] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
+  // Load company logo when company name changes
+  useEffect(() => {
+    const loadCompanyLogo = async () => {
+      if (newJob.company_name && !selectedCompanyLogo) {
+        try {
+          const logoUrl = await logoService.getCompanyLogo(newJob.company_name);
+          setSelectedCompanyLogo(logoUrl);
+        } catch (error) {
+          debugError('Error loading company logo:', error);
+          // Set to null so fallback will be used
+          setSelectedCompanyLogo(null);
+        }
+      }
+    };
+
+    loadCompanyLogo();
+  }, [newJob.company_name, selectedCompanyLogo]);
+
   // Handle company search
   const handleCompanySearch = async (query) => {
+    debugLog('handleCompanySearch called with query:', query);
+    
     if (query.length < 2) {
+      debugLog('Query too short, clearing suggestions');
       setAutocompleteSuggestions([]);
       return;
     }
     
+    debugLog('Starting company search for:', query);
     setSearchLoading(true);
     try {
       const suggestions = await fetchCompanySuggestions(query);
+      debugLog('Company suggestions received:', suggestions);
       setAutocompleteSuggestions(suggestions);
     } catch (error) {
       debugError('Error fetching company suggestions:', error);
@@ -60,6 +84,14 @@ function AddJobModal({
 
   // Update dropdown positions when suggestions are shown
   useEffect(() => {
+    debugLog('Position effect triggered:', {
+      hasSearchTerm: !!companySearchTerm,
+      searchTermLength: companySearchTerm?.length,
+      hasSuggestions: !!autocompleteSuggestions?.length,
+      suggestionsCount: autocompleteSuggestions?.length,
+      hasInputRef: !!companyInputRef.current
+    });
+    
     if (companySearchTerm && autocompleteSuggestions?.length > 0 && companyInputRef.current) {
       const updatePosition = () => {
         const rect = companyInputRef.current.getBoundingClientRect();
@@ -71,14 +103,17 @@ function AddJobModal({
         // Position dropdown at bottom if there's space, otherwise at top
         const shouldPositionAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
         
-        setCompanyDropdownPosition({
+        const position = {
           top: shouldPositionAbove 
             ? rect.top + window.scrollY - dropdownHeight
             : rect.bottom + window.scrollY + 4,
           left: rect.left + window.scrollX,
           width: rect.width,
           maxHeight: shouldPositionAbove ? spaceAbove - 10 : spaceBelow - 10
-        });
+        };
+        
+        debugLog('Setting dropdown position:', position);
+        setCompanyDropdownPosition(position);
       };
       
       updatePosition();
@@ -251,11 +286,11 @@ function AddJobModal({
                   {newJob.company_name && (
                     <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-600">
                       <img 
-                        src={selectedCompanyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`}
+                        src={selectedCompanyLogo || logoService.getFallbackLogo(newJob.company_name)}
                         alt={newJob.company_name}
                         className="w-8 h-8 object-contain"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=6b7280&color=ffffff&size=32&bold=true`;
+                          e.target.src = logoService.getFallbackLogo(newJob.company_name);
                         }}
                       />
                     </div>
@@ -481,11 +516,11 @@ function AddJobModal({
                   {newJob.company_name && (
                     <div className="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
                       <img 
-                        src={selectedCompanyLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`}
+                        src={selectedCompanyLogo || logoService.getFallbackLogo(newJob.company_name)}
                         alt={newJob.company_name}
                         className="w-12 h-12 object-contain"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newJob.company_name)}&background=6b7280&color=ffffff&size=48&bold=true`;
+                          e.target.src = logoService.getFallbackLogo(newJob.company_name);
                         }}
                       />
                     </div>
@@ -530,8 +565,18 @@ function AddJobModal({
       </Transition.Root>
 
       {/* Company Suggestions Portal */}
-      {companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top && 
-        createPortal(
+      {(() => {
+        const shouldShow = companySearchTerm && companySearchTerm.length > 0 && autocompleteSuggestions && autocompleteSuggestions.length > 0 && companyDropdownPosition.top;
+        debugLog('Portal render check:', {
+          companySearchTerm,
+          searchTermLength: companySearchTerm?.length,
+          autocompleteSuggestions,
+          suggestionsLength: autocompleteSuggestions?.length,
+          hasPosition: !!companyDropdownPosition.top,
+          shouldShow
+        });
+        
+        return shouldShow ? createPortal(
           <div 
             data-company-dropdown
             className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg overflow-y-auto shadow-2xl"
@@ -574,7 +619,7 @@ function AddJobModal({
                     alt={suggestion.name}
                     className="w-6 h-6 object-contain"
                     onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(suggestion.name)}&background=3b82f6&color=ffffff&size=24&bold=true`;
+                      e.target.src = logoService.getFallbackLogo(suggestion.name);
                     }}
                   />
                 </div>
@@ -588,8 +633,8 @@ function AddJobModal({
             ))}
           </div>,
           document.body
-        )
-      }
+        ) : null;
+      })()}
 
       {/* Job Title Suggestions Portal */}
       {jobTitleSearchTerm && jobTitleSearchTerm.length > 0 && jobTitleSuggestions && jobTitleSuggestions.length > 0 && jobTitleDropdownPosition.top &&
