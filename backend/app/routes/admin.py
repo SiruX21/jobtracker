@@ -89,7 +89,10 @@ def admin_required(f):
             return jsonify({"message": "Authentication failed"}), 500
 
         return f(*args, **kwargs)
-    return decorated@admin_bp.route("/admin/dashboard", methods=["GET"])
+    return decorated
+
+
+@admin_bp.route("/admin/dashboard", methods=["GET"])
 @admin_required
 @limiter.limit("30 per minute")
 def admin_dashboard():
