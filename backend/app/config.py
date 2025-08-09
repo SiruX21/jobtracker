@@ -45,6 +45,7 @@ class Config:
     
     # Logo service configuration
     LOGO_DEV_API_TOKEN = os.getenv('LOGO_DEV_API_TOKEN')
+    BRANDFETCH_API_KEY = os.getenv('BRANDFETCH_API_KEY')
     
     @classmethod
     def is_development(cls):
