@@ -19,7 +19,7 @@ function SearchAndFilters({
   filteredJobs,
   jobs,
   setDashboardFilter,
-  compact = false
+  compact = true
 }) {
   const sortOptions = [
     { value: 'date_desc', label: '📅 Newest First' },
