@@ -1,4 +1,5 @@
 import os
+import logging
 
 class Config:
     """Application configuration"""
@@ -41,6 +42,66 @@ class Config:
     # Environment
     ENVIRONMENT = os.getenv('ENVIRONMENT')
     DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+    
+    # Logo service configuration
+    LOGO_DEV_API_TOKEN = os.getenv('LOGO_DEV_API_TOKEN')
+    
+    @classmethod
+    def is_development(cls):
+        """Check if running in development mode"""
+        return cls.ENVIRONMENT == 'development' or cls.DEBUG
+    
+    @classmethod
+    def get_logger(cls, name):
+        """Get a properly configured logger based on environment"""
+        logger = logging.getLogger(name)
+        
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            
+            if cls.is_development():
+                # Verbose logging in development
+                formatter = logging.Formatter(
+                    '[%(asctime)s] %(levelname)s in %(name)s: %(message)s'
+                )
+                logger.setLevel(logging.DEBUG)
+            else:
+                # Minimal logging in production
+                formatter = logging.Formatter(
+                    '[%(asctime)s] %(levelname)s: %(message)s'
+                )
+                logger.setLevel(logging.WARNING)
+            
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        
+        return logger
+    
+    @classmethod
+    def log_debug(cls, message, logger_name='app'):
+        """Log debug messages only in development"""
+        if cls.is_development():
+            logger = cls.get_logger(logger_name)
+            logger.debug(message)
+    
+    @classmethod
+    def log_info(cls, message, logger_name='app'):
+        """Log info messages only in development"""
+        if cls.is_development():
+            logger = cls.get_logger(logger_name)
+            logger.info(message)
+    
+    @classmethod
+    def log_warning(cls, message, logger_name='app'):
+        """Log warning messages in all environments"""
+        logger = cls.get_logger(logger_name)
+        logger.warning(message)
+    
+    @classmethod
+    def log_error(cls, message, logger_name='app'):
+        """Log error messages in all environments"""
+        logger = cls.get_logger(logger_name)
+        logger.error(message)
     
     @classmethod
     def get_frontend_url(cls):

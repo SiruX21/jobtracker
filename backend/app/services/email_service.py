@@ -1,13 +1,9 @@
 import smtplib
 import os
 from email.message import EmailMessage
-from ..config import Config
-
-import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.config import Config
-import os
 
 def send_verification_email(user_email, token):
     """Send email verification token to user"""
@@ -16,13 +12,11 @@ def send_verification_email(user_email, token):
     smtp_username = os.getenv('MAIL_USERNAME')
     smtp_password = os.getenv('MAIL_PASSWORD')
     
-    print(f"[EMAIL CONFIG] MAIL_SERVER: {smtp_server}", flush=True)
-    print(f"[EMAIL CONFIG] MAIL_PORT: {smtp_port}", flush=True)
-    print(f"[EMAIL CONFIG] MAIL_USERNAME: {smtp_username}", flush=True)
-    print(f"[EMAIL CONFIG] MAIL_PASSWORD: {'***' if smtp_password else 'None'}", flush=True)
+    Config.log_debug(f"Email config - Server: {smtp_server}, Port: {smtp_port}, Username: {smtp_username}", 'email')
+    Config.log_debug(f"Password configured: {'Yes' if smtp_password else 'No'}", 'email')
     
     if not all([smtp_server, smtp_username, smtp_password]):
-        print("Email configuration missing", flush=True)
+        Config.log_error("Email configuration missing", 'email')
         return False
     
     # Get frontend URL from environment or default to localhost
@@ -348,11 +342,11 @@ def send_password_reset_email(user_email, token):
         server.sendmail(smtp_username, user_email, text)
         server.quit()
         
-        print(f"Password reset email sent to {user_email}")
+        Config.log_info(f"Password reset email sent to {user_email}", 'email')
         return True
         
     except Exception as e:
-        print(f"Failed to send password reset email: {e}")
+        Config.log_error(f"Failed to send password reset email: {e}", 'email')
         return False
 
 def send_email_change_confirmation(user_email, token):

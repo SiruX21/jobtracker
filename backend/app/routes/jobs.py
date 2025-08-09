@@ -648,8 +648,10 @@ def get_status_flow_analytics(current_user):
         }), 200
         
     except mariadb.Error as e:
-        print(f"Database error getting status flow analytics: {e}")
+        from app.config import Config
+        Config.log_error(f"Database error getting status flow analytics: {e}", 'jobs')
         return jsonify({"error": "Failed to get analytics data"}), 500
     except Exception as e:
-        print(f"Unexpected error getting status flow analytics: {e}")
+        from app.config import Config
+        Config.log_error(f"Unexpected error getting status flow analytics: {e}", 'jobs')
         return jsonify({"error": "An unexpected error occurred"}), 500

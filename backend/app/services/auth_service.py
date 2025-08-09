@@ -64,14 +64,13 @@ def verify_and_migrate_password(user_id: int, stored_password, provided_password
     password exactly, migrate it to a bcrypt hash.
     Returns True if credentials are valid after optional migration, else False.
     """
-    print(f"[VERIFY_MIGRATE] Called for user_id: {user_id}", flush=True)
-    print(f"[VERIFY_MIGRATE] Stored password type: {type(stored_password)}", flush=True)
-    print(f"[VERIFY_MIGRATE] Stored password length: {len(stored_password) if stored_password else 0}", flush=True)
-    print(f"[VERIFY_MIGRATE] Provided password length: {len(provided_password) if provided_password else 0}", flush=True)
+    from app.config import Config
+    
+    Config.log_debug(f"Verifying password for user_id: {user_id}", 'auth')
     
     try:
         if not stored_password or not provided_password:
-            print(f"[VERIFY_MIGRATE] Missing password data", flush=True)
+            Config.log_debug("Missing password data", 'auth')
             return False
 
         # Normalize to string for checks
@@ -81,49 +80,51 @@ def verify_and_migrate_password(user_id: int, stored_password, provided_password
             else str(stored_password)
         )
         
-        print(f"[VERIFY_MIGRATE] Stored password (first 20 chars): {stored_password_str[:20]}...", flush=True)
-        print(f"[VERIFY_MIGRATE] Is bcrypt hash: {_is_bcrypt_hash(stored_password_str)}", flush=True)
+        Config.log_debug(f"Is bcrypt hash: {_is_bcrypt_hash(stored_password_str)}", 'auth')
 
         if _is_bcrypt_hash(stored_password_str):
             # Standard bcrypt verification
-            print(f"[VERIFY_MIGRATE] Using bcrypt verification", flush=True)
+            Config.log_debug("Using bcrypt verification", 'auth')
             result = bcrypt.checkpw(provided_password.encode('utf-8'), stored_password_str.encode('utf-8'))
-            print(f"[VERIFY_MIGRATE] Bcrypt verification result: {result}", flush=True)
+            Config.log_debug(f"Bcrypt verification result: {result}", 'auth')
             return result
 
         # Legacy path: treat stored value as plaintext
-        print(f"[VERIFY_MIGRATE] Using legacy plaintext comparison", flush=True)
+        Config.log_debug("Using legacy plaintext comparison", 'auth')
         if stored_password_str == provided_password:
-            print(f"[VERIFY_MIGRATE] Legacy password match! Migrating to bcrypt", flush=True)
+            Config.log_info(f"Legacy password match! Migrating to bcrypt for user {user_id}", 'auth')
             # Migrate to bcrypt
             try:
                 new_hash = hash_password(provided_password)
-                print(f"[VERIFY_MIGRATE] Generated new hash: {new_hash[:50]}...", flush=True)
                 conn, cursor = get_db()
                 cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
-                print(f"[VERIFY_MIGRATE] Password migrated successfully for user {user_id}", flush=True)
+                Config.log_info(f"Password migrated successfully for user {user_id}", 'auth')
             except Exception as ex:
-                print(f"[VERIFY_MIGRATE] Failed to migrate legacy password for user {user_id}: {ex}", flush=True)
+                Config.log_error(f"Failed to migrate legacy password for user {user_id}: {ex}", 'auth')
                 # Even if migration fails, consider the password valid for this attempt
             return True
 
-        print(f"[VERIFY_MIGRATE] Legacy password does not match", flush=True)
+        Config.log_debug("Legacy password does not match", 'auth')
         return False
     except Exception as e:
-        print(f"[VERIFY_MIGRATE] verify_and_migrate_password error: {e}", flush=True)
+        Config.log_error(f"verify_and_migrate_password error: {e}", 'auth')
         return False
 
 
 def generate_auth_token(user_id, secret_key):
+    from app.config import Config
+    
     try:
         payload = {
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
             'iat': datetime.datetime.utcnow(),
             'sub': user_id
         }
-        return jwt.encode(payload, secret_key, algorithm='HS256')
+        token = jwt.encode(payload, secret_key, algorithm='HS256')
+        Config.log_debug(f"Generated auth token for user {user_id}", 'auth')
+        return token
     except Exception as e:
-        print(f"Error generating token: {e}")
+        Config.log_error(f"Error generating token: {e}", 'auth')
         return None
 
 
@@ -133,6 +134,8 @@ def generate_verification_token():
 
 def register_user(username, email, password):
     """Register a new user with email verification"""
+    from app.config import Config
+    
     conn, cursor = get_db()
     
     # Validate password strength
@@ -171,61 +174,62 @@ def register_user(username, email, password):
 
         # Send verification email
         send_verification_email(email, verification_token)
-
+        
+        Config.log_info(f"User registered successfully: {email}", 'auth')
         return {"success": True, "user_id": user_id, "message": "Registration successful. Please check your email to verify your account."}
 
     except mariadb.Error as e:
-        print(f"Database error during registration: {e}")
+        Config.log_error(f"Database error during registration: {e}", 'auth')
         return {"error": "Registration failed", "code": 500}
 
 
 def login_user(email, password, secret_key):
     """Login user with email verification check"""
-    print(f"[AUTH_SERVICE] login_user called with email: {email}", flush=True)
-    print(f"[AUTH_SERVICE] Password provided: {'Yes' if password else 'No'}", flush=True)
-    print(f"[AUTH_SERVICE] Password length: {len(password) if password else 0}", flush=True)
+    from app.config import Config
+    
+    Config.log_debug(f"Login attempt for email: {email}", 'auth')
     
     conn, cursor = get_db()
     
     try:
-        print(f"[AUTH_SERVICE] Querying database for email: {email}", flush=True)
+        Config.log_debug(f"Querying database for email: {email}", 'auth')
         cursor.execute("SELECT id, password_hash, email_verified FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         
         if not user:
-            print(f"[AUTH_SERVICE] No user found with email: {email}", flush=True)
+            Config.log_warning(f"Login attempt for non-existent user: {email}", 'auth')
             return {"error": "Invalid credentials", "code": 401}
         
-        print(f"[AUTH_SERVICE] User found - ID: {user['id']}, email_verified: {user['email_verified']}", flush=True)
-        print(f"[AUTH_SERVICE] Stored password hash: {user['password_hash'][:50]}..." if user['password_hash'] else "No hash stored", flush=True)
-        print(f"[AUTH_SERVICE] Password hash type: {type(user['password_hash'])}", flush=True)
-        print(f"[AUTH_SERVICE] Password hash length: {len(user['password_hash']) if user['password_hash'] else 0}", flush=True)
+        Config.log_debug(f"User found - ID: {user['id']}, email_verified: {user['email_verified']}", 'auth')
         
         # Verify and migrate legacy passwords if necessary
-        print(f"[AUTH_SERVICE] Calling verify_and_migrate_password", flush=True)
+        Config.log_debug("Calling verify_and_migrate_password", 'auth')
         password_valid = verify_and_migrate_password(user['id'], user['password_hash'], password)
-        print(f"[AUTH_SERVICE] Password verification result: {password_valid}", flush=True)
+        Config.log_debug(f"Password verification result: {password_valid}", 'auth')
         
         if not password_valid:
-            print(f"[AUTH_SERVICE] Password verification failed for user: {email}", flush=True)
+            Config.log_warning(f"Failed login attempt for user: {email}", 'auth')
             return {"error": "Invalid credentials", "code": 401}
         
         if not user['email_verified']:
-            print(f"[AUTH_SERVICE] Email not verified for user: {email}", flush=True)
+            Config.log_info(f"Login attempt with unverified email: {email}", 'auth')
             return {"error": "Please verify your email before logging in", "code": 403}
         
         # Generate auth token
-        print(f"[AUTH_SERVICE] Generating auth token for user: {user['id']}", flush=True)
+        Config.log_debug(f"Generating auth token for user: {user['id']}", 'auth')
         token = generate_auth_token(user['id'], secret_key)
         if not token:
-            print(f"[AUTH_SERVICE] Failed to generate token for user: {user['id']}", flush=True)
+            Config.log_error(f"Failed to generate token for user: {user['id']}", 'auth')
             return {"error": "Failed to generate token", "code": 500}
         
-        print(f"[AUTH_SERVICE] Login successful for user: {email}", flush=True)
+        Config.log_info(f"Login successful for user: {email}", 'auth')
         return {"success": True, "token": token, "user": {"id": user['id'], "email_verified": user['email_verified']}}
         
     except mariadb.Error as e:
-        print(f"[AUTH_SERVICE] Database error during login: {e}", flush=True)
+        Config.log_error(f"Database error during login: {e}", 'auth')
+        return {"error": "Login failed", "code": 500}
+    except Exception as e:
+        Config.log_error(f"Unexpected error during login: {e}", 'auth')
         return {"error": "Login failed", "code": 500}
 
 

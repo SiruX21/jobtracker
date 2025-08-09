@@ -176,7 +176,8 @@ def clear_logo_cache():
             return jsonify({"message": "All logo cache cleared"})
             
     except Exception as e:
-        print(f"Error clearing cache: {e}")
+        from app.config import Config
+        Config.log_error(f"Error clearing cache: {e}", 'logos')
         return jsonify({"error": "Failed to clear cache"}), 500
 
 @logos_bp.route("/logos/cache/stats", methods=["GET"])
@@ -188,7 +189,8 @@ def get_cache_stats():
         return jsonify(stats)
         
     except Exception as e:
-        print(f"Error getting cache stats: {e}")
+        from app.config import Config
+        Config.log_error(f"Error getting cache stats: {e}", 'logos')
         return jsonify({"error": "Failed to get cache stats"}), 500
 
 @logos_bp.route("/logos/health", methods=["GET"])

@@ -28,15 +28,25 @@ def test_cors():
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        from app.utils.security import SecurityUtils
+        
         token = None
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
                 token = auth_header.split(" ")[1]
             except IndexError:
+                SecurityUtils.log_security_event(
+                    'MALFORMED_TOKEN',
+                    details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+                )
                 return jsonify({"message": "Bearer token malformed"}), 401
 
         if not token:
+            SecurityUtils.log_security_event(
+                'MISSING_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token is missing!"}), 401
 
         try:
@@ -45,18 +55,36 @@ def token_required(f):
             cursor.execute("SELECT * FROM users WHERE id = ?", (data['sub'],))
             current_user = cursor.fetchone()
             if not current_user:
+                SecurityUtils.log_security_event(
+                    'INVALID_TOKEN_USER_NOT_FOUND',
+                    user_id=data.get('sub'),
+                    details=f"IP: {request.remote_addr}"
+                )
                 return jsonify({"message": "Token is invalid or user not found"}), 401
             if not current_user['email_verified']:
+                SecurityUtils.log_security_event(
+                    'UNVERIFIED_EMAIL_ACCESS_ATTEMPT',
+                    user_id=current_user['id'],
+                    details=f"IP: {request.remote_addr}, Email: {current_user['email']}"
+                )
                 return jsonify({"message": "Email not verified"}), 403
         except jwt.ExpiredSignatureError:
+            SecurityUtils.log_security_event(
+                'EXPIRED_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token has expired!"}), 401
         except jwt.InvalidTokenError:
+            SecurityUtils.log_security_event(
+                'INVALID_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token is invalid!"}), 401
         except mariadb.Error as e:
-            print(f"Database error during token verification: {e}")
+            Config.log_error(f"Database error during token verification: {e}", 'auth')
             return jsonify({"message": "Authentication failed"}), 500
         except Exception as e:
-            print(f"Unexpected error during token verification: {e}")
+            Config.log_error(f"Unexpected error during token verification: {e}", 'auth')
             return jsonify({"message": "Authentication failed"}), 500
 
         return f(current_user, *args, **kwargs)
@@ -65,6 +93,8 @@ def token_required(f):
 @auth_bp.route("/register", methods=["POST"])
 @limiter.limit("3 per minute")
 def register():
+    from app.utils.security import SecurityUtils
+    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -73,18 +103,20 @@ def register():
     email = data.get("email") or data.get("username")  # Support email as username
     password = data.get("password")
 
-    if not username or not isinstance(username, str) or len(username) < 3 or len(username) > 50:
-        errors['username'] = "Username is required and must be 3-50 characters."
-    if not email or not isinstance(email, str) or len(email) > 100:
-        errors['email'] = "Email is required and must be under 100 characters."
-    else:
-        import re
-        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-            errors['email'] = "Invalid email format."
+    if not SecurityUtils.validate_username(username):
+        errors['username'] = "Username must be 3-50 characters and contain only letters, numbers, underscores, and hyphens."
+    
+    if not SecurityUtils.validate_email(email):
+        errors['email'] = "Invalid email format."
+    
     if not password or not isinstance(password, str) or len(password) < 6:
         errors['password'] = "Password is required and must be at least 6 characters."
 
     if errors:
+        SecurityUtils.log_security_event(
+            'INVALID_REGISTRATION_ATTEMPT',
+            details=f"Email: {SecurityUtils.sanitize_log_data(email or 'None')}, Errors: {list(errors.keys())}"
+        )
         return jsonify({"error": "Validation failed", "details": errors}), 400
     # --- End Validation ---
 
@@ -98,21 +130,19 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
-    print(f"[LOGIN] Request received from {request.remote_addr}", flush=True)
-    print(f"[LOGIN] Request headers: {dict(request.headers)}", flush=True)
-    print(f"[LOGIN] Request content type: {request.content_type}", flush=True)
+    from app.config import Config
+    
+    Config.log_debug(f"Login request received from {request.remote_addr}", 'auth')
     
     data = request.json
-    print(f"[LOGIN] Raw request data: {data}", flush=True)
+    Config.log_debug(f"Login request data keys: {list(data.keys()) if data else 'None'}", 'auth')
     
     # --- Input Validation & Sanitization ---
     errors = {}
     email = data.get("username") or data.get("email")  # Support both username and email
     password = data.get("password")
 
-    print(f"[LOGIN] Extracted email: {email}", flush=True)
-    print(f"[LOGIN] Password provided: {'Yes' if password else 'No'}", flush=True)
-    print(f"[LOGIN] Password length: {len(password) if password else 0}", flush=True)
+    Config.log_debug(f"Extracted email: {email}", 'auth')
 
     if not email or not isinstance(email, str) or len(email) > 100:
         errors['email'] = "Email/username is required and must be under 100 characters."
@@ -120,19 +150,19 @@ def login():
         errors['password'] = "Password is required."
 
     if errors:
-        print(f"[LOGIN] Validation errors: {errors}", flush=True)
+        Config.log_debug(f"Validation errors: {errors}", 'auth')
         return jsonify({"error": "Validation failed", "details": errors}), 400
     # --- End Validation ---
 
-    print(f"[LOGIN] Calling login_user with email: {email}", flush=True)
+    Config.log_debug(f"Calling login_user with email: {email}", 'auth')
     result = login_user(email, password, current_app.config['SECRET_KEY'])
-    print(f"[LOGIN] login_user result: {result}", flush=True)
+    Config.log_debug(f"login_user result: {'success' if 'success' in result else 'error'}", 'auth')
 
     if "error" in result:
-        print(f"[LOGIN] Login failed with error: {result['error']}, code: {result.get('code', 500)}", flush=True)
+        Config.log_debug(f"Login failed with error: {result['error']}, code: {result.get('code', 500)}", 'auth')
         return jsonify({"error": result["error"]}), result["code"]
 
-    print(f"[LOGIN] Login successful for email: {email}", flush=True)
+    Config.log_info(f"Login successful for email: {email}", 'auth')
     return jsonify({
         "token": result["token"],
         "user": result["user"]
@@ -179,29 +209,31 @@ def resend_verification():
 @auth_bp.route("/forgot-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def forgot_password():
+    from app.utils.security import SecurityUtils
+    
     data = request.json
     
     # --- Input Validation & Sanitization ---
     email = data.get("email")
     
-    if not email or not isinstance(email, str) or len(email) > 100:
+    if not SecurityUtils.validate_email(email):
+        SecurityUtils.log_security_event(
+            'INVALID_PASSWORD_RESET_ATTEMPT',
+            details=f"Invalid email format: {SecurityUtils.sanitize_log_data(email or 'None')}"
+        )
         return jsonify({"error": "Valid email is required"}), 400
-    
-    import re
-    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
-        return jsonify({"error": "Invalid email format"}), 400
     # --- End Validation ---
-    
+
     result = request_password_reset(email)
     
     if "error" in result:
         return jsonify({"error": result["error"]}), result["code"]
     
-    return jsonify({"message": result["message"]}), 200
-
-@auth_bp.route("/reset-password", methods=["POST"])
+    return jsonify({"message": result["message"]}), 200@auth_bp.route("/reset-password", methods=["POST"])
 @limiter.limit("3 per minute")
 def reset_password_route():
+    from app.utils.security import SecurityUtils
+    
     data = request.json
     
     # --- Input Validation & Sanitization ---
@@ -209,9 +241,17 @@ def reset_password_route():
     new_password = data.get("password")
     
     if not token or not isinstance(token, str) or len(token) > 500:
+        SecurityUtils.log_security_event(
+            'INVALID_RESET_TOKEN',
+            details=f"IP: {request.remote_addr}, Token length: {len(token) if token else 0}"
+        )
         return jsonify({"error": "Valid reset token is required"}), 400
     
     if not new_password or not isinstance(new_password, str) or len(new_password) < 6:
+        SecurityUtils.log_security_event(
+            'WEAK_PASSWORD_RESET_ATTEMPT',
+            details=f"IP: {request.remote_addr}, Password length: {len(new_password) if new_password else 0}"
+        )
         return jsonify({"error": "Password must be at least 6 characters long"}), 400
     # --- End Validation ---
     
@@ -220,6 +260,11 @@ def reset_password_route():
     if "error" in result:
         return jsonify({"error": result["error"]}), result["code"]
     
+    SecurityUtils.log_security_event(
+        'PASSWORD_RESET_SUCCESS',
+        details=f"IP: {request.remote_addr}",
+        severity='INFO'
+    )
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/profile", methods=["GET"])
@@ -272,7 +317,7 @@ def get_profile():
             "email_verified": current_user.get('email_verified', False)
         }), 200
     except Exception as e:
-        print(f"Error in get_profile: {e}")
+        Config.log_error(f"Error in get_profile: {e}", 'auth')
         return jsonify({"message": "Failed to load profile"}), 500
 
 @auth_bp.route("/change-password", methods=["PUT"])
@@ -796,5 +841,5 @@ def validate_password_endpoint():
         return response
         
     except Exception as e:
-        print(f"Error validating password: {e}")
+        Config.log_error(f"Error validating password: {e}", 'auth')
         return jsonify({"error": "Internal server error"}), 500

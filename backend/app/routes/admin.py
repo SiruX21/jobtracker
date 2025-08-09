@@ -14,15 +14,25 @@ admin_bp = Blueprint('admin', __name__)
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        from app.utils.security import SecurityUtils
+        
         token = None
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
                 token = auth_header.split(" ")[1]
             except IndexError:
+                SecurityUtils.log_security_event(
+                    'ADMIN_MALFORMED_TOKEN',
+                    details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+                )
                 return jsonify({"message": "Bearer token malformed"}), 401
 
         if not token:
+            SecurityUtils.log_security_event(
+                'ADMIN_MISSING_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token is missing!"}), 401
 
         try:
@@ -32,39 +42,65 @@ def admin_required(f):
             current_user = cursor.fetchone()
             
             if not current_user:
+                SecurityUtils.log_security_event(
+                    'ADMIN_INVALID_TOKEN_USER_NOT_FOUND',
+                    user_id=data.get('sub'),
+                    details=f"IP: {request.remote_addr}"
+                )
                 return jsonify({"message": "Token is invalid or user not found"}), 401
             if not current_user['email_verified']:
+                SecurityUtils.log_security_event(
+                    'ADMIN_UNVERIFIED_EMAIL_ACCESS_ATTEMPT',
+                    user_id=current_user['id'],
+                    details=f"IP: {request.remote_addr}, Email: {current_user['email']}"
+                )
                 return jsonify({"message": "Email not verified"}), 403
             if current_user['role'] != 'admin':
+                SecurityUtils.log_security_event(
+                    'UNAUTHORIZED_ADMIN_ACCESS_ATTEMPT',
+                    user_id=current_user['id'],
+                    details=f"IP: {request.remote_addr}, Email: {current_user['email']}, Role: {current_user['role']}"
+                )
                 return jsonify({"message": "Admin access required"}), 403
-                
+            
+            # Log successful admin access for security auditing
+            Config.log_info(f"Admin access granted to {current_user['email']} for {request.endpoint} from {request.remote_addr}", 'admin')
+            
             # Pass current user to the route
             request.current_user = current_user
             
         except jwt.ExpiredSignatureError:
+            SecurityUtils.log_security_event(
+                'ADMIN_EXPIRED_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token has expired!"}), 401
         except jwt.InvalidTokenError:
+            SecurityUtils.log_security_event(
+                'ADMIN_INVALID_TOKEN',
+                details=f"IP: {request.remote_addr}, Endpoint: {request.endpoint}"
+            )
             return jsonify({"message": "Token is invalid!"}), 401
         except mariadb.Error as e:
-            print(f"Database error during admin verification: {e}")
+            Config.log_error(f"Database error during admin verification: {e}", 'admin')
             return jsonify({"message": "Authentication failed"}), 500
         except Exception as e:
-            print(f"Unexpected error during admin verification: {e}")
+            Config.log_error(f"Unexpected error during admin verification: {e}", 'admin')
             return jsonify({"message": "Authentication failed"}), 500
 
         return f(*args, **kwargs)
-    return decorated
-
-@admin_bp.route("/admin/dashboard", methods=["GET"])
+    return decorated@admin_bp.route("/admin/dashboard", methods=["GET"])
 @admin_required
 @limiter.limit("30 per minute")
 def admin_dashboard():
     """Get admin dashboard data"""
+    from app.config import Config
+    
     try:
         conn, cursor = get_db()
         current_user = request.current_user
         
-        print(f"Admin dashboard accessed by user: {current_user['email']}")
+        Config.log_info(f"Admin dashboard accessed by user: {current_user['email']}", 'admin')
         
         # Get total users
         cursor.execute("SELECT COUNT(*) as total FROM users")
@@ -106,7 +142,7 @@ def admin_dashboard():
         """)
         recent_jobs = cursor.fetchall()
         
-        print(f"Dashboard data - Users: {total_users}, Jobs: {total_jobs}")
+        Config.log_debug(f"Dashboard data - Users: {total_users}, Jobs: {total_jobs}", 'admin')
         
         return jsonify({
             "statistics": {
@@ -127,10 +163,10 @@ def admin_dashboard():
         })
         
     except mariadb.Error as e:
-        print(f"Database error in admin dashboard: {e}")
+        Config.log_error(f"Database error in admin dashboard: {e}", 'admin')
         return jsonify({"error": "Database error"}), 500
     except Exception as e:
-        print(f"Error in admin dashboard: {e}")
+        Config.log_error(f"Error in admin dashboard: {e}", 'admin')
         return jsonify({"error": "Failed to load dashboard"}), 500
 
 @admin_bp.route("/admin/users", methods=["GET"])
@@ -353,7 +389,7 @@ def create_admin_user():
     except mariadb.IntegrityError:
         return jsonify({"error": "Username or email already exists"}), 400
     except Exception as e:
-        print(f"Error creating admin user: {e}")
+        Config.log_error(f"Error creating admin user: {e}", 'admin')
         return jsonify({"error": "Failed to create admin user"}), 500
 
 @admin_bp.route("/admin/system/info", methods=["GET"])
@@ -376,7 +412,7 @@ def get_system_info():
             from app.services.logo_cache_service import logo_cache
             cache_stats = logo_cache.get_cache_stats()
         except Exception as cache_error:
-            print(f"Cache service error: {cache_error}")
+            Config.log_warning(f"Cache service error: {cache_error}", 'admin')
             cache_stats = {"error": f"Cache service error: {str(cache_error)}"}
         
         return jsonify({
@@ -392,7 +428,7 @@ def get_system_info():
         })
         
     except Exception as e:
-        print(f"Error getting system info: {e}")
+        Config.log_error(f"Error getting system info: {e}", 'admin')
         return jsonify({"error": "Failed to get system info"}), 500
 
 @admin_bp.route('/admin/system/clear-cache', methods=['POST'])
@@ -411,29 +447,29 @@ def clear_system_cache():
 @admin_required
 def get_environment_variables():
     """Get environment variables (sensitive ones hidden)"""
+    from app.utils.security import SecurityUtils
+    
     try:
         import os
         
-        # Define sensitive variables that should be hidden
-        sensitive_vars = {
-            'SECRET_KEY', 'DB_PASSWORD', 'MAIL_PASSWORD', 'JWT_SECRET_KEY',
-            'API_KEY', 'TOKEN', 'PASSWORD', 'PRIVATE_KEY', 'CERT'
-        }
-        
         env_vars = {}
+        sensitive_count = 0
+        
         for key, value in os.environ.items():
             # Check if this is a sensitive variable
-            if any(sensitive in key.upper() for sensitive in sensitive_vars):
+            if SecurityUtils.is_sensitive_env_var(key):
                 # Show that it exists but hide the value
                 env_vars[key] = '***HIDDEN***'
+                sensitive_count += 1
             else:
                 env_vars[key] = value
         
         return jsonify({
             'environment_variables': env_vars,
-            'sensitive_count': len([k for k in os.environ.keys() if any(sensitive in k.upper() for sensitive in sensitive_vars)])
+            'sensitive_count': sensitive_count
         })
     except Exception as e:
+        Config.log_error(f"Error getting environment variables: {e}", 'admin')
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/admin/system/environment', methods=['PUT'])
@@ -458,20 +494,28 @@ def update_environment_variable():
 @admin_required
 def delete_environment_variable(key):
     """Delete an environment variable"""
+    from app.utils.security import SecurityUtils
+    
     try:
         import os
         
         # Protect critical variables
-        protected_vars = {'PATH', 'HOME', 'USER', 'DB_HOST', 'DB_PASSWORD', 'SECRET_KEY'}
-        if key.upper() in protected_vars:
+        if SecurityUtils.is_protected_env_var(key):
+            SecurityUtils.log_security_event(
+                'PROTECTED_ENV_DELETE_ATTEMPT',
+                user_id=request.current_user.get('id'),
+                details=f"Attempted to delete protected variable: {key}"
+            )
             return jsonify({'error': 'Cannot delete protected environment variable'}), 403
         
         if key in os.environ:
             del os.environ[key]
+            Config.log_info(f'Environment variable {key} deleted by admin user {request.current_user.get("email")}', 'admin')
             return jsonify({'message': f'Environment variable {key} deleted successfully'})
         else:
             return jsonify({'error': 'Environment variable not found'}), 404
     except Exception as e:
+        Config.log_error(f"Error deleting environment variable: {e}", 'admin')
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route("/admin/system/reset-passwords", methods=["POST"])
@@ -498,7 +542,7 @@ def reset_passwords():
         })
         
     except Exception as e:
-        print(f"Error resetting passwords: {e}")
+        Config.log_error(f"Error resetting passwords: {e}", 'admin')
         return jsonify({"error": "Failed to reset passwords"}), 500
 
 # Job Status Management Endpoints (Admin Access)
