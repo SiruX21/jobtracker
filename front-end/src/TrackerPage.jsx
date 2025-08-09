@@ -841,7 +841,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             setJobTitleSearchTerm={setJobTitleSearchTerm}
             jobTitleSuggestions={jobTitleSuggestions}
             autocompleteSuggestions={autocompleteSuggestions}
+            setAutocompleteSuggestions={setAutocompleteSuggestions}
             searchLoading={searchLoading}
+            setSearchLoading={setSearchLoading}
             companyLogoLoading={companyLogoLoading}
             autoLogos={autoLogos}
             darkMode={darkMode}

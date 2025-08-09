@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 import { fetchCompanySuggestions } from '../../services/companyService';
+import { debugError } from '../../utils/debug';
 
 function AddJobModal({ 
   isOpen, 
@@ -50,7 +51,7 @@ function AddJobModal({
       const suggestions = await fetchCompanySuggestions(query);
       setAutocompleteSuggestions(suggestions);
     } catch (error) {
-      console.error('Error fetching company suggestions:', error);
+      debugError('Error fetching company suggestions:', error);
       setAutocompleteSuggestions([]);
     } finally {
       setSearchLoading(false);
