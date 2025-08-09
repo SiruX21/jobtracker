@@ -4,7 +4,7 @@ const isProduction = import.meta.env.PROD;
 
 // API Configuration - Use environment variables with fallbacks
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (isDevelopment ? "http://localhost:5000" : "https://api.yourdomainhere.com");
+  (isDevelopment ? "http://localhost:5000" : "https://api.siru.dev");
 
 // App Configuration
 export const APP_NAME = import.meta.env.VITE_APP_NAME || "Job Tracker";
