@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
+import { fetchCompanySuggestions } from '../../services/companyService';
 
 function AddJobModal({ 
   isOpen, 
@@ -35,15 +36,45 @@ function AddJobModal({
   const [statusSearchTerm, setStatusSearchTerm] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
+  // Handle company search
+  const handleCompanySearch = async (query) => {
+    if (query.length < 2) {
+      setAutocompleteSuggestions([]);
+      return;
+    }
+    
+    setSearchLoading(true);
+    try {
+      const suggestions = await fetchCompanySuggestions(query);
+      setAutocompleteSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error fetching company suggestions:', error);
+      setAutocompleteSuggestions([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   // Update dropdown positions when suggestions are shown
   useEffect(() => {
     if (companySearchTerm && autocompleteSuggestions?.length > 0 && companyInputRef.current) {
       const updatePosition = () => {
         const rect = companyInputRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const dropdownHeight = 200; // Max height of dropdown
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        // Position dropdown at bottom if there's space, otherwise at top
+        const shouldPositionAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+        
         setCompanyDropdownPosition({
-          top: rect.bottom + window.scrollY,
+          top: shouldPositionAbove 
+            ? rect.top + window.scrollY - dropdownHeight
+            : rect.bottom + window.scrollY + 4,
           left: rect.left + window.scrollX,
-          width: rect.width
+          width: rect.width,
+          maxHeight: shouldPositionAbove ? spaceAbove - 10 : spaceBelow - 10
         });
       };
       
@@ -237,6 +268,9 @@ function AddJobModal({
                         const value = e.target.value;
                         setCompanySearchTerm(value);
                         setNewJob({ ...newJob, company_name: value });
+                        
+                        // Trigger company search
+                        handleCompanySearch(value);
                         
                         // Clear the selected logo when manually typing (not selecting from dropdown)
                         if (value !== newJob.company_name) {
@@ -497,11 +531,12 @@ function AddJobModal({
         createPortal(
           <div 
             data-company-dropdown
-            className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto shadow-2xl"
+            className="fixed bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg overflow-y-auto shadow-2xl"
             style={{
-              top: companyDropdownPosition.top + 4,
+              top: companyDropdownPosition.top,
               left: companyDropdownPosition.left,
               width: companyDropdownPosition.width,
+              maxHeight: companyDropdownPosition.maxHeight || 200,
               zIndex: 10000
             }}
           >
