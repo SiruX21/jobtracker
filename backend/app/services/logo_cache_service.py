@@ -182,8 +182,6 @@ class LogoCacheService:
                     'metadata': {}
                 }
                 
-        return None
-                
         except Exception as e:
             print(f"Error getting image from cache: {e}")
             return None
