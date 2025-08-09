@@ -59,7 +59,10 @@ class LogoCacheService:
     def get_logo_data(self, company_name):
         """Get logo image data with caching and API search fallback"""
         if not company_name:
+            print(f"❌ get_logo_data: No company name provided")
             return None, None
+        
+        print(f"🔍 get_logo_data: Searching for logo for '{company_name}'")
         
         cache_key = self.get_cache_key(company_name)
         meta_key = self.get_metadata_key(company_name)
@@ -67,17 +70,20 @@ class LogoCacheService:
         # Step 1: Try to get cached image from Redis
         cached_data = self.get_image_from_cache(cache_key, meta_key)
         if cached_data:
-            print(f"Logo image found in cache for {company_name}")
+            print(f"✅ get_logo_data: Logo found in CACHE for '{company_name}' (source: {cached_data.get('metadata', {}).get('source', 'unknown')})")
             return cached_data['image_data'], cached_data['content_type']
+        
+        print(f"🔄 get_logo_data: No cache hit for '{company_name}', trying APIs...")
         
         # Step 2: Try Brandfetch API first for exact company search
         search_result = self.search_brandfetch_api(company_name)
         if search_result:
             logo_url = search_result.get('url')
             if logo_url:
+                print(f"🎯 get_logo_data: Found logo via BRANDFETCH API for '{company_name}': {logo_url}")
                 image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='brandfetch_api')
                 if image_data:
-                    print(f"Logo image downloaded via Brandfetch API for {company_name}")
+                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}'")
                     return image_data, content_type
         
         # Step 3: Fallback to logo.dev search API if Brandfetch fails
@@ -85,19 +91,21 @@ class LogoCacheService:
         if search_result:
             logo_url = search_result.get('url')
             if logo_url:
+                print(f"🎯 get_logo_data: Found logo via LOGO.DEV API for '{company_name}': {logo_url}")
                 image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='logodev_api')
                 if image_data:
-                    print(f"Logo image downloaded via Logo.dev API search for {company_name}")
+                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from LOGO.DEV for '{company_name}'")
                     return image_data, content_type
         
         # Step 4: If API search fails, generate URL using domain pattern
         logo_url = self.generate_logo_url(company_name)
+        print(f"🔗 get_logo_data: Trying GENERATED URL for '{company_name}': {logo_url}")
         image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='generated')
         if image_data:
-            print(f"Logo image downloaded via pattern generation for {company_name}")
+            print(f"✅ get_logo_data: Successfully downloaded and cached logo from GENERATED URL for '{company_name}'")
             return image_data, content_type
         
-        print(f"No logo image found for {company_name}")
+        print(f"❌ get_logo_data: No logo found for '{company_name}' from any source")
         return None, None
     
     def download_and_cache_image(self, logo_url, cache_key, meta_key, company_name, source='generated'):
@@ -518,30 +526,39 @@ class LogoCacheService:
     def search_companies(self, query, limit=10):
         """Search for companies using Brandfetch API with fallback to logo.dev"""
         if not query or len(query) < 2:
+            print(f"❌ search_companies: Query too short or empty: '{query}'")
             return []
+        
+        print(f"🔍 search_companies: Searching for companies with query: '{query}' (limit: {limit})")
         
         # Check cache first
         cache_key = f"autocomplete:{query.lower()}"
         cached_results = self.get_autocomplete_from_cache(cache_key)
         if cached_results:
+            print(f"✅ search_companies: Found {len(cached_results)} cached results for '{query}'")
             return cached_results
         
         try:
             # Try Brandfetch API first (primary option)
             if self.should_use_brandfetch():
+                print(f"🎯 search_companies: Trying BRANDFETCH API for '{query}'")
                 try:
                     results = self.search_brandfetch_autocomplete(query, limit)
                     if results:
+                        print(f"✅ search_companies: BRANDFETCH returned {len(results)} results for '{query}'")
                         # Cache the results
                         self.cache_autocomplete(cache_key, results)
                         return results
                     else:
-                        print(f"No Brandfetch autocomplete results for query: {query}")
+                        print(f"⚠️ search_companies: BRANDFETCH returned no results for '{query}'")
                 except Exception as e:
-                    print(f"Brandfetch API failed: {e}")
+                    print(f"❌ search_companies: BRANDFETCH API failed for '{query}': {e}")
+            else:
+                print(f"⚠️ search_companies: BRANDFETCH not available (config: {self.service_config}, has_key: {bool(self.brandfetch_api_key)})")
             
             # Fallback to logo.dev API
             if self.should_use_logodev():
+                print(f"🔄 search_companies: Trying LOGO.DEV API fallback for '{query}'")
                 try:
                     url = f"https://img.logo.dev/search"
                     params = {
@@ -567,26 +584,34 @@ class LogoCacheService:
                             }
                             results.append(company_data)
                         
+                        print(f"✅ search_companies: LOGO.DEV returned {len(results)} results for '{query}'")
                         # Cache the results
                         self.cache_autocomplete(cache_key, results)
                         return results
                     else:
-                        print(f"Logo.dev search API failed with status {response.status_code}: {response.text}")
+                        print(f"❌ search_companies: LOGO.DEV API failed with status {response.status_code} for '{query}'")
                 except Exception as e:
-                    print(f"Logo.dev API failed: {e}")
+                    print(f"❌ search_companies: LOGO.DEV API failed for '{query}': {e}")
+            else:
+                print(f"⚠️ search_companies: LOGO.DEV not available (config: {self.service_config}, has_token: {bool(self.logo_dev_token)})")
             
             # Final fallback: Use local company database
-            return self.fallback_search(query, limit)
+            print(f"🔄 search_companies: Using LOCAL FALLBACK for '{query}'")
+            fallback_results = self.fallback_search(query, limit)
+            print(f"✅ search_companies: LOCAL FALLBACK returned {len(fallback_results)} results for '{query}'")
+            return fallback_results
                 
         except Exception as e:
-            print(f"Error in search_companies: {e}")
+            print(f"❌ search_companies: Unexpected error for '{query}': {e}")
             return self.fallback_search(query, limit)
 
     def search_brandfetch_autocomplete(self, query, limit=10):
         """Search Brandfetch API for company autocomplete suggestions"""
         if not self.brandfetch_api_key:
-            print("No Brandfetch API key available for autocomplete")
+            print(f"❌ search_brandfetch_autocomplete: No Brandfetch API key available for '{query}'")
             return []
+        
+        print(f"🎯 search_brandfetch_autocomplete: Searching Brandfetch for '{query}' (limit: {limit})")
         
         try:
             headers = {
@@ -595,18 +620,27 @@ class LogoCacheService:
             }
             
             # Use Brandfetch search endpoint
+            url = f"{self.brandfetch_search_url}/{query}"
+            print(f"🌐 search_brandfetch_autocomplete: Making request to: {url}")
+            
             response = requests.get(
-                f"{self.brandfetch_search_url}/{query}",
+                url,
                 headers=headers,
                 timeout=5
             )
             
+            print(f"📡 search_brandfetch_autocomplete: Response status: {response.status_code}")
+            
             if response.status_code == 200:
                 search_data = response.json()
+                print(f"📊 search_brandfetch_autocomplete: Raw response data: {len(search_data)} brands found")
                 results = []
                 
                 # Process the results
                 for brand in search_data[:limit]:  # Limit results
+                    brand_name = brand.get('name', query.title())
+                    print(f"🏢 search_brandfetch_autocomplete: Processing brand: {brand_name}")
+                    
                     # Get the best logo URL
                     logo_url = None
                     if 'logos' in brand and brand['logos']:
@@ -625,10 +659,12 @@ class LogoCacheService:
                     if not logo_url and 'icon' in brand:
                         logo_url = brand['icon']
                     
+                    print(f"🖼️ search_brandfetch_autocomplete: Logo URL for {brand_name}: {logo_url}")
+                    
                     company_data = {
-                        'name': brand.get('name', query.title()),
+                        'name': brand_name,
                         'domain': brand.get('domain', ''),
-                        'logo_url': f"/api/logos/company/{brand.get('name', query.title())}" if brand.get('name') else None,
+                        'logo_url': f"/api/logos/company/{brand_name}" if brand_name else None,
                         'description': brand.get('description', ''),
                         'industry': brand.get('industry', ''),
                         'confidence': 0.85,  # High confidence for Brandfetch
@@ -637,14 +673,14 @@ class LogoCacheService:
                     }
                     results.append(company_data)
                 
-                print(f"Brandfetch autocomplete found {len(results)} results for '{query}'")
+                print(f"✅ search_brandfetch_autocomplete: Successfully processed {len(results)} brands for '{query}'")
                 return results
             else:
-                print(f"Brandfetch autocomplete failed with status {response.status_code}: {response.text}")
+                print(f"❌ search_brandfetch_autocomplete: API failed with status {response.status_code}: {response.text}")
                 return []
                 
         except Exception as e:
-            print(f"Error in Brandfetch autocomplete search: {e}")
+            print(f"❌ search_brandfetch_autocomplete: Exception occurred for '{query}': {e}")
             return []
 
     def should_use_brandfetch(self):
