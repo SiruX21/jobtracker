@@ -21,7 +21,9 @@ function AddJobModal({
   setJobTitleSearchTerm,
   jobTitleSuggestions,
   autocompleteSuggestions,
+  setAutocompleteSuggestions,
   searchLoading,
+  setSearchLoading,
   companyLogoLoading,
   autoLogos,
   darkMode

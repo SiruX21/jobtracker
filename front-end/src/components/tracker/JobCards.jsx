@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaCalendar, FaEdit, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { getCompanyLogoSync } from '../../data/companySuggestions';
+import { debugLog } from '../../utils/debug';
 
 // Default status colors fallback
 const getDefaultStatusColor = (status) => {
@@ -30,8 +31,8 @@ function JobCards({
   setDashboardFilter
 }) {
   // Debug logging
-  console.log('JobCards statusColorMap:', statusColorMap);
-  console.log('JobCards received filteredJobs:', filteredJobs.length, 'jobs');
+  debugLog('JobCards statusColorMap:', statusColorMap);
+  debugLog('JobCards received filteredJobs:', filteredJobs.length, 'jobs');
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">

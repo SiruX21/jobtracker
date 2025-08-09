@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { showToast } from './utils/toast';
+import { debugLog, debugWarn } from './utils/debug';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
@@ -329,17 +330,17 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
     try {
       const authToken = Cookies.get("authToken");
       if (!authToken) {
-        console.warn("No auth token found, redirecting to auth");
+        debugWarn("No auth token found, redirecting to auth");
         navigate("/auth");
         return;
       }
 
-      console.log("Fetching job statuses from:", `${API_BASE_URL}/job-statuses`);
+      debugLog("Fetching job statuses from:", `${API_BASE_URL}/job-statuses`);
       const response = await axios.get(`${API_BASE_URL}/job-statuses`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       
-      console.log("Raw API response:", response.data);
+      debugLog("Raw API response:", response.data);
       
       // The backend returns: { "statuses": [...] }
       const statuses = response.data.statuses || [];
@@ -351,9 +352,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           colorMap[status.status_name] = status.color_code;
         });
         setStatusColorMap(colorMap);
-        console.log('Status color map loaded successfully:', colorMap);
+        debugLog('Status color map loaded successfully:', colorMap);
       } else {
-        console.warn('No statuses found in API response. Expected statuses array, got:', statuses);
+        debugWarn('No statuses found in API response. Expected statuses array, got:', statuses);
         // Set default statuses if API doesn't return any
         const defaultStatuses = [
           { status_name: 'Applied', color_code: '#3B82F6' },
@@ -370,7 +371,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           defaultColorMap[status.status_name] = status.color_code;
         });
         setStatusColorMap(defaultColorMap);
-        console.log('Using default status colors:', defaultColorMap);
+        debugLog('Using default status colors:', defaultColorMap);
       }
     } catch (error) {
       console.error("Error fetching job statuses:", error);
@@ -396,7 +397,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         defaultColorMap[status.status_name] = status.color_code;
       });
       setStatusColorMap(defaultColorMap);
-      console.log('Using fallback status colors due to API error:', defaultColorMap);
+      debugLog('Using fallback status colors due to API error:', defaultColorMap);
       
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
@@ -716,7 +717,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (cacheStatus.isFromCache && !cacheUtils.isValid()) {
-        console.log('Cache expired, refreshing...');
+        debugLog('Cache expired, refreshing...');
         fetchJobs(true);
       }
     }, 30000);

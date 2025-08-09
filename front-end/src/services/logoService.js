@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config';
+import { debugLog } from '../utils/debug';
 
 class LogoService {
   constructor() {
@@ -307,7 +308,7 @@ class LogoService {
 
     try {
       await this.getBatchLogos(companyNames);
-      console.log(`Preloaded ${companyNames.length} company logos`);
+      debugLog(`Preloaded ${companyNames.length} company logos`);
     } catch (error) {
       console.error('Error preloading logos:', error);
     }

@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { showToast, showCriticalToast } from './utils/toast';
+import { debugLog } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
@@ -141,11 +142,11 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       try {
         const authToken = Cookies.get("authToken");
         if (!authToken) {
-          console.log('No auth token found, redirecting to auth'); // Debug log
+          debugLog('No auth token found, redirecting to auth'); // Debug log
           navigate('/auth');
           return;
         }
-        console.log('Auth token found, loading profile'); // Debug log
+        debugLog('Auth token found, loading profile'); // Debug log
         setIsAuthenticated(true);
         await loadUserProfile();
         await checkAdminStatus();
@@ -206,13 +207,13 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   const loadUserProfile = async () => {
     try {
       const authToken = Cookies.get("authToken");
-      console.log('Auth token:', authToken); // Debug log
-      console.log('API URL:', `${API_BASE_URL}/auth/profile`); // Debug log
+      debugLog('Auth token:', authToken); // Debug log
+      debugLog('API URL:', `${API_BASE_URL}/auth/profile`); // Debug log
       
       const response = await axios.get(`${API_BASE_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
-      console.log('Profile response:', response.data); // Debug log
+      debugLog('Profile response:', response.data); // Debug log
       setUser(response.data);
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -225,20 +226,20 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        console.log('No auth token found for admin check');
+        debugLog('No auth token found for admin check');
         return;
       }
 
-      console.log('Checking admin status with token:', token.substring(0, 20) + '...');
+      debugLog('Checking admin status with token:', token.substring(0, 20) + '...');
       const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log('Admin check successful:', response.status);
+      debugLog('Admin check successful:', response.status);
       // If we get here without an error, user is admin
       setIsAdmin(true);
     } catch (error) {
-      console.log('Admin check failed:', error.response?.status, error.response?.data);
+      debugLog('Admin check failed:', error.response?.status, error.response?.data);
       setIsAdmin(false);
     }
   };

@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from '../../config';
+import { debugLog } from '../../utils/debug';
 import { FaHistory, FaClock, FaArrowRight, FaUser } from 'react-icons/fa';
 
 function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, darkMode }) {
@@ -12,10 +13,10 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
 
   useEffect(() => {
     if (isOpen && jobId) {
-      console.log('Fetching status history for job ID:', jobId);
+      debugLog('Fetching status history for job ID:', jobId);
       fetchStatusHistory();
     } else if (isOpen && !jobId) {
-      console.log('StatusHistoryModal opened but no jobId provided');
+      debugLog('StatusHistoryModal opened but no jobId provided');
       setError('Job ID is missing. Cannot load status history.');
     }
   }, [isOpen, jobId]);
@@ -29,12 +30,12 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
         throw new Error('No authentication token found');
       }
       
-      console.log('Making API call to:', `${API_BASE_URL}/status-history/${jobId}`);
+      debugLog('Making API call to:', `${API_BASE_URL}/status-history/${jobId}`);
       const response = await axios.get(`${API_BASE_URL}/status-history/${jobId}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       
-      console.log('Status history response:', response.data);
+      debugLog('Status history response:', response.data);
       
       // Sort history by date (most recent first)
       const sortedHistory = response.data.sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at));

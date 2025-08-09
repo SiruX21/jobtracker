@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { showToast } from '../../utils/toast';
+import { debugWarn } from '../../utils/debug';
 import { 
   FaExternalLinkAlt, 
   FaTrash, 
@@ -54,7 +55,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         const statsResponse = await axios.get(`${API_BASE_URL}/api/logos/cache/stats`, { headers });
         setLogoStats(statsResponse.data);
       } catch (err) {
-        console.warn('Failed to load logo stats:', err);
+        debugWarn('Failed to load logo stats:', err);
         if (err.response?.status === 403) {
           setError('Admin access required for logo management');
         }
@@ -65,7 +66,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         const healthResponse = await axios.get(`${API_BASE_URL}/api/logos/health`, { headers });
         setLogoHealth(healthResponse.data);
       } catch (err) {
-        console.warn('Failed to load logo health:', err);
+        debugWarn('Failed to load logo health:', err);
       }
 
       // Load logo configuration
@@ -73,7 +74,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         const configResponse = await axios.get(`${API_BASE_URL}/api/logos/config`, { headers });
         setLogoConfig(configResponse.data);
       } catch (err) {
-        console.warn('Failed to load logo config:', err);
+        debugWarn('Failed to load logo config:', err);
         if (err.response?.status === 403) {
           setError('Admin access required for logo configuration');
         }

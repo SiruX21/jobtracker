@@ -4,6 +4,7 @@ import { Transition } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { showToast } from './utils/toast';
+import { debugLog } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
@@ -211,14 +212,14 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
         search: usersSearch.trim()
       };
       
-      console.log('Loading users with params:', params); // Debug log
+      debugLog('Loading users with params:', params); // Debug log
       
       const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
       
-      console.log('Users response:', response.data); // Debug log
+      debugLog('Users response:', response.data); // Debug log
       
       setUsers(response.data.users || []);
       setUsersPagination(response.data.pagination || {});

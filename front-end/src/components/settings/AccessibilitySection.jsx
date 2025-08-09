@@ -9,6 +9,7 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
+import { debugLog } from '../../utils/debug';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -22,7 +23,7 @@ function AccessibilitySection({
 }) {
   // Debug: Check if showToast is properly defined
   React.useEffect(() => {
-    console.log('AccessibilitySection showToast:', showToast);
+    debugLog('AccessibilitySection showToast:', showToast);
   }, [showToast]);
 
   const toastPositionOptions = [
@@ -171,7 +172,7 @@ function AccessibilitySection({
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
-                console.log('Test notification clicked', { showToast, position: toastPosition, theme: toastTheme }); // Debug
+                debugLog('Test notification clicked', { showToast, position: toastPosition, theme: toastTheme }); // Debug
                 
                 // Apply settings immediately before showing test toast
                 window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
@@ -180,7 +181,7 @@ function AccessibilitySection({
                 
                 // Small delay to ensure settings are applied
                 setTimeout(() => {
-                  console.log('Showing test toast'); // Debug
+                  debugLog('Showing test toast'); // Debug
                   if (showToast && showToast.success) {
                     showToast.success("🎉 This is a test notification!");
                   } else {
