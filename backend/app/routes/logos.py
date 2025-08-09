@@ -234,7 +234,7 @@ def logo_service_config():
             service_type = data.get('service_type', 'auto')
             
             # Validate service type
-            valid_services = ['auto', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            valid_services = ['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
             if service_type not in valid_services:
                 return jsonify({"error": "Invalid service type"}), 400
             

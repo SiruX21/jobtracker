@@ -611,22 +611,49 @@ function AddJobModal({
                     }
                   }, 100);
                 }}
-                className="flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+                className="flex items-center p-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0 transition-colors duration-200"
               >
-                <div className="w-8 h-8 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden mr-3">
+                {/* Company Logo */}
+                <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden mr-4 flex-shrink-0">
                   <img 
                     src={suggestion.logo_url} 
                     alt={suggestion.name}
-                    className="w-6 h-6 object-contain"
+                    className="w-8 h-8 object-contain"
                     onError={(e) => {
                       e.target.src = logoService.getFallbackLogo(suggestion.name);
                     }}
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="text-gray-900 dark:text-gray-100 font-medium">{suggestion.name}</div>
+                
+                {/* Company Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {suggestion.name}
+                    </h4>
+                    {suggestion.source === 'brandfetch' && (
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                        Verified
+                      </span>
+                    )}
+                  </div>
+                  
+                  {suggestion.domain && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                      {suggestion.domain}
+                    </p>
+                  )}
+                  
+                  {suggestion.description && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300 truncate mt-1 leading-tight">
+                      {suggestion.description}
+                    </p>
+                  )}
+                  
                   {suggestion.industry && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{suggestion.industry}</div>
+                    <span className="inline-block text-xs bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded mt-1">
+                      {suggestion.industry}
+                    </span>
                   )}
                 </div>
               </div>

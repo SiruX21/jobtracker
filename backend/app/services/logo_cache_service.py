@@ -12,12 +12,15 @@ class LogoCacheService:
     
     def __init__(self):
         self.redis_client = None
-        self.logo_dev_token = os.getenv('LOGO_DEV_API_TOKEN', 'pk_X-1ZO13GSgeOoUrIuJ6GMQ')
+        self.brandfetch_api_key = os.getenv('BRANDFETCH_API_KEY', '')  # Brandfetch API key
+        self.brandfetch_search_url = "https://api.brandfetch.io/v2/search"
+        self.brandfetch_brand_url = "https://api.brandfetch.io/v2/brands"
+        self.logo_dev_token = os.getenv('LOGO_DEV_API_TOKEN', 'pk_X-1ZO13GSgeOoUrIuJ6GMQ')  # Keep as fallback
         self.logo_dev_search_url = "https://img.logo.dev/search"
         self.cache_ttl = 30 * 24 * 60 * 60  # 30 days for images
         self.search_cache_ttl = 24 * 60 * 60  # 1 day for search results
         self.autocomplete_cache_ttl = 6 * 60 * 60  # 6 hours for autocomplete
-        self.service_config = 'auto'  # Default service configuration
+        self.service_config = 'brandfetch'  # Default to Brandfetch as primary
         self.connect_redis()
         self.load_service_config()  # Load saved configuration
     
@@ -67,17 +70,27 @@ class LogoCacheService:
             print(f"Logo image found in cache for {company_name}")
             return cached_data['image_data'], cached_data['content_type']
         
-        # Step 2: Try logo.dev search API to find exact company
+        # Step 2: Try Brandfetch API first for exact company search
+        search_result = self.search_brandfetch_api(company_name)
+        if search_result:
+            logo_url = search_result.get('url')
+            if logo_url:
+                image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='brandfetch_api')
+                if image_data:
+                    print(f"Logo image downloaded via Brandfetch API for {company_name}")
+                    return image_data, content_type
+        
+        # Step 3: Fallback to logo.dev search API if Brandfetch fails
         search_result = self.search_logo_dev_api(company_name)
         if search_result:
             logo_url = search_result.get('url')
             if logo_url:
-                image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='api_search')
+                image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='logodev_api')
                 if image_data:
-                    print(f"Logo image downloaded via API search for {company_name}")
+                    print(f"Logo image downloaded via Logo.dev API search for {company_name}")
                     return image_data, content_type
         
-        # Step 3: If API search fails, generate URL using domain pattern
+        # Step 4: If API search fails, generate URL using domain pattern
         logo_url = self.generate_logo_url(company_name)
         image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='generated')
         if image_data:
@@ -169,8 +182,102 @@ class LogoCacheService:
                     'metadata': {}
                 }
                 
+        return None
+                
         except Exception as e:
             print(f"Error getting image from cache: {e}")
+            return None
+
+    def search_brandfetch_api(self, company_name):
+        """Search Brandfetch API for company logo and brand data"""
+        try:
+            # Check if we have a cached search result
+            search_cache_key = f"brandfetch_search:{company_name.lower().replace(' ', '')}"
+            cached_search = self.get_search_from_cache(search_cache_key)
+            if cached_search:
+                print(f"Using cached Brandfetch search for {company_name}")
+                return cached_search
+            
+            # Only proceed if we have API key
+            if not self.brandfetch_api_key:
+                print("No Brandfetch API key available")
+                return None
+            
+            # First, search for the company
+            search_params = {
+                'q': company_name
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self.brandfetch_api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.get(
+                self.brandfetch_search_url + f"/{company_name}",
+                headers=headers,
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                search_data = response.json()
+                
+                # Get the first result from the search
+                if search_data and len(search_data) > 0:
+                    brand = search_data[0]
+                    
+                    # Extract logo information
+                    logo_url = None
+                    
+                    # Try to get the best logo from brand data
+                    if 'logos' in brand and brand['logos']:
+                        # Get the first logo (usually the primary one)
+                        for logo in brand['logos']:
+                            if 'formats' in logo:
+                                # Prefer PNG, then SVG, then any format
+                                for format_item in logo['formats']:
+                                    if format_item.get('format') == 'png':
+                                        logo_url = format_item.get('src')
+                                        break
+                                if not logo_url:
+                                    for format_item in logo['formats']:
+                                        if format_item.get('format') == 'svg':
+                                            logo_url = format_item.get('src')
+                                            break
+                                if not logo_url and logo['formats']:
+                                    logo_url = logo['formats'][0].get('src')
+                                break
+                    
+                    # Fallback to icon if no logo found
+                    if not logo_url and 'icon' in brand:
+                        logo_url = brand['icon']
+                    
+                    if logo_url:
+                        search_result = {
+                            'url': logo_url,
+                            'domain': brand.get('domain', ''),
+                            'company_name': brand.get('name', company_name),
+                            'confidence': 0.9,  # High confidence for Brandfetch API
+                            'source': 'brandfetch',
+                            'description': brand.get('description', ''),
+                            'industry': brand.get('industry', '')
+                        }
+                        
+                        # Cache search result
+                        self.cache_search_result(search_cache_key, search_result)
+                        print(f"Found Brandfetch logo for {company_name}: {logo_url}")
+                        return search_result
+                    else:
+                        print(f"No logo found in Brandfetch data for {company_name}")
+                else:
+                    print(f"No Brandfetch search results for {company_name}")
+            else:
+                print(f"Brandfetch API failed with status {response.status_code}: {response.text}")
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error searching Brandfetch API for {company_name}: {e}")
             return None
 
     def search_logo_dev_api(self, company_name):
@@ -411,7 +518,7 @@ class LogoCacheService:
         return alternatives[:3]  # Limit to 3 alternatives
     
     def search_companies(self, query, limit=10):
-        """Search for companies using logo.dev autocomplete API with fallback"""
+        """Search for companies using Brandfetch API with fallback to logo.dev"""
         if not query or len(query) < 2:
             return []
         
@@ -422,7 +529,20 @@ class LogoCacheService:
             return cached_results
         
         try:
-            # Try logo.dev API first (based on configuration)
+            # Try Brandfetch API first (primary option)
+            if self.should_use_brandfetch():
+                try:
+                    results = self.search_brandfetch_autocomplete(query, limit)
+                    if results:
+                        # Cache the results
+                        self.cache_autocomplete(cache_key, results)
+                        return results
+                    else:
+                        print(f"No Brandfetch autocomplete results for query: {query}")
+                except Exception as e:
+                    print(f"Brandfetch API failed: {e}")
+            
+            # Fallback to logo.dev API
             if self.should_use_logodev():
                 try:
                     url = f"https://img.logo.dev/search"
@@ -444,7 +564,8 @@ class LogoCacheService:
                                 'logo_url': f"/api/logos/company/{item.get('name', '')}",  # Use internal URL
                                 'description': item.get('description', ''),
                                 'industry': item.get('industry', ''),
-                                'confidence': item.get('confidence', 0)
+                                'confidence': item.get('confidence', 0),
+                                'source': 'logodev'
                             }
                             results.append(company_data)
                         
@@ -456,17 +577,85 @@ class LogoCacheService:
                 except Exception as e:
                     print(f"Logo.dev API failed: {e}")
             
-            # Fallback: Use local company database (unless logodev-only mode)
-            if self.service_config != 'logodev':
-                return self.fallback_search(query, limit)
-            else:
-                return []  # No results in logodev-only mode if API fails
+            # Final fallback: Use local company database
+            return self.fallback_search(query, limit)
                 
         except Exception as e:
             print(f"Error in search_companies: {e}")
             return self.fallback_search(query, limit)
-            print(f"Error searching companies: {e}")
-            return self.fallback_search(query, limit)
+
+    def search_brandfetch_autocomplete(self, query, limit=10):
+        """Search Brandfetch API for company autocomplete suggestions"""
+        if not self.brandfetch_api_key:
+            print("No Brandfetch API key available for autocomplete")
+            return []
+        
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.brandfetch_api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            # Use Brandfetch search endpoint
+            response = requests.get(
+                f"{self.brandfetch_search_url}/{query}",
+                headers=headers,
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                search_data = response.json()
+                results = []
+                
+                # Process the results
+                for brand in search_data[:limit]:  # Limit results
+                    # Get the best logo URL
+                    logo_url = None
+                    if 'logos' in brand and brand['logos']:
+                        for logo in brand['logos']:
+                            if 'formats' in logo and logo['formats']:
+                                # Prefer PNG format
+                                for format_item in logo['formats']:
+                                    if format_item.get('format') == 'png':
+                                        logo_url = format_item.get('src')
+                                        break
+                                if not logo_url:
+                                    logo_url = logo['formats'][0].get('src')
+                                break
+                    
+                    # Fallback to icon
+                    if not logo_url and 'icon' in brand:
+                        logo_url = brand['icon']
+                    
+                    company_data = {
+                        'name': brand.get('name', query.title()),
+                        'domain': brand.get('domain', ''),
+                        'logo_url': f"/api/logos/company/{brand.get('name', query.title())}" if brand.get('name') else None,
+                        'description': brand.get('description', ''),
+                        'industry': brand.get('industry', ''),
+                        'confidence': 0.85,  # High confidence for Brandfetch
+                        'source': 'brandfetch',
+                        'icon': logo_url  # Store direct icon URL for fallback
+                    }
+                    results.append(company_data)
+                
+                print(f"Brandfetch autocomplete found {len(results)} results for '{query}'")
+                return results
+            else:
+                print(f"Brandfetch autocomplete failed with status {response.status_code}: {response.text}")
+                return []
+                
+        except Exception as e:
+            print(f"Error in Brandfetch autocomplete search: {e}")
+            return []
+
+    def should_use_brandfetch(self):
+        """Check if Brandfetch should be used based on configuration"""
+        return self.service_config in ['brandfetch', 'auto'] and self.brandfetch_api_key
+
+    def should_use_logodev(self):
+        """Check if logo.dev should be used based on configuration"""
+        return self.service_config in ['logodev', 'auto'] and self.logo_dev_token
     
     def fallback_search(self, query, limit=10):
         """Fallback search when logo.dev API is unavailable"""
@@ -841,7 +1030,7 @@ class LogoCacheService:
     def set_service_config(self, service_type):
         """Set logo service configuration"""
         try:
-            valid_services = ['auto', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            valid_services = ['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
             if service_type not in valid_services:
                 return {"error": "Invalid service type"}
             
@@ -884,15 +1073,6 @@ class LogoCacheService:
                     self.service_config = stored_config
         except Exception as e:
             print(f"Error loading service config: {e}")
-
-    def should_use_logodev(self):
-        """Check if we should use logo.dev based on configuration"""
-        if self.service_config == 'logodev':
-            return True
-        elif self.service_config == 'auto':
-            return bool(self.logo_dev_token and self.logo_dev_token.strip())
-        else:
-            return False
 
     def get_preferred_fallback_url(self, domain):
         """Get fallback URL based on service configuration"""

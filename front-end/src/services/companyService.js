@@ -9,23 +9,48 @@ export const fetchCompanySuggestions = async (query) => {
   if (!query || query.length < 2) return [];
   
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/logos/search?q=${encodeURIComponent(query)}&limit=10`
-    );
+    const url = `${API_BASE_URL}/api/logos/search?q=${encodeURIComponent(query)}&limit=10`;
+    console.log('Fetching company suggestions from:', url);
+    
+    const response = await fetch(url);
+    
+    console.log('Company API response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`Backend API failed: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log('Company API response data:', data);
     
     // Transform backend response to match expected format
-    return data.results?.map(company => ({
+    console.log('Raw backend data structure:', JSON.stringify(data, null, 2));
+    
+    // Handle both array response and object with results array
+    const responseArray = Array.isArray(data) ? data : (data.results || []);
+    console.log('Response array to process:', responseArray);
+    
+    const results = responseArray.map(company => ({
       name: company.name,
       logo_url: company.logo_url ? `${API_BASE_URL}${company.logo_url}` : `${API_BASE_URL}/api/logos/company/${encodeURIComponent(company.name)}`,
       confidence: company.confidence || 0.8,
-      source: company.source || 'backend'
-    })) || [];
+      source: company.source || 'backend',
+      domain: company.domain || '',
+      description: company.description || '',
+      industry: company.industry || ''
+    }));
+    
+    console.log('Transformed results:', results);
+    
+    // If no results from backend, use local fallback
+    if (results.length === 0) {
+      console.log('No backend results, using local fallback...');
+      const fallbackResults = getLocalFallbackSuggestions(query);
+      console.log('Fallback results:', fallbackResults);
+      return fallbackResults;
+    }
+    
+    return results;
     
   } catch (error) {
     console.error('Company suggestion error:', error);
