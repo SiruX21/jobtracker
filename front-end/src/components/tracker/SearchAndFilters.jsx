@@ -85,17 +85,17 @@ function SearchAndFilters({
         {/* Controls Row */}
         <div className="flex items-center gap-3">
           {/* Sort Dropdown */}
-          <div className="flex items-center">
-            <label className={`${LABEL_TXT} font-medium text-gray-700 dark:text-gray-300 mr-2`}>
+          <div className="flex items-center gap-2">
+            <label className={`${LABEL_TXT} font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap`}>
               Sort by:
             </label>
             <Listbox value={sortBy} onChange={setSortBy}>
-              <div className="relative w-full">
+              <div className="relative">
                 <Listbox.Button
                   className={`relative cursor-default rounded-lg bg-white dark:bg-gray-700 ${PX} text-left
                               border border-gray-300 dark:border-gray-600 focus:outline-none
                               hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:text-gray-100
-                              transition-all duration-300 ${H} ${BTN_TEXT} ${MIN_W} w-full`}
+                              transition-all duration-300 ${H} ${BTN_TEXT} ${MIN_W}`}
                   style={{ outline: 'none' }}
                 >
                   <span className="block truncate text-gray-900 dark:text-gray-100 pr-6">
@@ -107,16 +107,16 @@ function SearchAndFilters({
                 </Listbox.Button>
                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
                   <Listbox.Options
-                    className={`absolute left-0 right-0 z-50 mt-1 max-h-60 w-full ${MIN_W} overflow-auto
+                    className={`absolute left-0 z-50 mt-1 max-h-60 overflow-auto
                                 rounded-lg bg-white dark:bg-gray-700 py-1 ${BTN_TEXT} shadow-lg ring-1 ring-black ring-opacity-5
-                                focus:outline-none border border-gray-300 dark:border-gray-600`}
+                                focus:outline-none border border-gray-300 dark:border-gray-600 ${MIN_W}`}
                   >
                     {sortOptions.map((option) => (
                       <Listbox.Option
                         key={option.value}
                         value={option.value}
                         className={({ active }) =>
-                          `relative cursor-default select-none ${OPTION_PY} pl-3 pr-9 w-full ${
+                          `relative cursor-default select-none ${OPTION_PY} pl-3 pr-9 whitespace-nowrap ${
                             active
                               ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100'
                               : 'text-gray-900 dark:text-gray-100'
