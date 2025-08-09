@@ -46,6 +46,7 @@ jobs:
           VITE_APP_NAME=${{ vars.VITE_APP_NAME }}
           VITE_VERSION=${{ vars.VITE_VERSION }}
           LOGO_DEV_API_TOKEN=${{ secrets.LOGO_DEV_API_TOKEN }}
+          BRANDFETCH_API_KEY=${{ secrets.BRANDFETCH_API_KEY }}
           EOF
 
       - name: Shut down current containers
