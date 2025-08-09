@@ -82,13 +82,11 @@ function Header({ darkMode, toggleTheme, isMobile }) {
           className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-all duration-200 ease-in-out transform hover:scale-105"
           onClick={() => handleNavigation("/")}
         >
-          <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-full shadow-lg">
-            <img 
-              src="/jobtrack.png" 
-              alt="jobtrack.dev logo" 
-              className="w-4 h-4 md:w-5 md:h-5" 
-            />
-          </div>
+          <img 
+            src="/jobtrack.png" 
+            alt="jobtrack.dev logo" 
+            className="h-8 md:h-10" 
+          />
         </div>
 
         {/* Navigation - responsive layout */}
