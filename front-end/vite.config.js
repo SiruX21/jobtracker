@@ -5,17 +5,51 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
   
+  // Extract all possible hostnames from environment variables
+  const getAllowedHosts = () => {
+    const hosts = new Set([
+      'localhost',
+      '127.0.0.1'
+    ]);
+    
+    // Add DOMAIN directly
+    if (env.DOMAIN) {
+      hosts.add(env.DOMAIN);
+    }
+    
+    // Extract hostname from FRONTEND_DOMAIN
+    if (env.FRONTEND_DOMAIN) {
+      try {
+        hosts.add(new URL(env.FRONTEND_DOMAIN).hostname);
+      } catch (e) {
+        // If URL parsing fails, add as-is
+        hosts.add(env.FRONTEND_DOMAIN);
+      }
+    }
+    
+    // Extract hostname from FRONTEND_URL
+    if (env.FRONTEND_URL) {
+      try {
+        hosts.add(new URL(env.FRONTEND_URL).hostname);
+      } catch (e) {
+        // If URL parsing fails, add as-is
+        hosts.add(env.FRONTEND_URL);
+      }
+    }
+    
+    // Add common development and production domains
+    hosts.add('jobtrack.dev');
+    hosts.add('job.siru.dev');
+    
+    return Array.from(hosts).filter(Boolean);
+  };
+  
   return {
     plugins: [react()],
     server: {
       host: true, // Allow external connections
       port: 5173,
-      allowedHosts: [
-        env.DOMAIN || 'localhost',
-        env.FRONTEND_DOMAIN ? new URL(env.FRONTEND_DOMAIN).hostname : 'localhost',
-        'localhost',
-        '127.0.0.1'
-      ].filter(Boolean), // Remove any undefined values
+      allowedHosts: getAllowedHosts(),
     },
     define: {
       // Make environment variables available to the client
