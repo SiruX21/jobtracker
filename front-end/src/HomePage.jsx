@@ -112,7 +112,7 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
           <div className="mb-8">
             <div className={`mb-4 ${isMobile ? 'text-6xl' : 'text-8xl'}`}><FaClipboard className="mx-auto text-blue-200" /></div>
             <h1 className={`font-bold mb-4 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-100 bg-clip-text text-transparent ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
-              JobTracker
+              jobtrack.dev
             </h1>
           </div>
 
@@ -131,7 +131,7 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
             </h2>
             <p className={`text-blue-200 dark:text-blue-200 leading-relaxed mb-8 max-w-3xl mx-auto ${isMobile ? 'text-base' : 'text-xl'}`}>
               Stay organized, track your applications, and never miss an opportunity. 
-              JobTracker helps you manage your job applications with ease and style.
+              Jobtrack.dev helps you manage your job applications with ease and style.
             </p>
           </Transition>
 
@@ -217,7 +217,7 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
             <p className="text-blue-300 dark:text-blue-300 text-sm">
               {isAuthenticated 
                 ? "Welcome back! Ready to manage your job applications?" 
-                : "Join thousands of job seekers who have organized their search with JobTracker"
+                : "Join thousands of job seekers who have organized their search with jobtrack.dev"
               }
             </p>
           </Transition>

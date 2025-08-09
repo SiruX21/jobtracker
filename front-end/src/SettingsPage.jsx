@@ -119,7 +119,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         toastTheme,
         darkMode
       },
-      cache: localStorage.getItem('jobTracker_jobs_cache'),
+      cache: localStorage.getItem('jobtrack_jobs_cache'),
       timestamp: new Date().toISOString()
     };
     
@@ -127,7 +127,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `jobtracker-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `jobtrack-data-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -245,8 +245,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const loadDeveloperInfo = () => {
     // Load cache information
-    const jobsCache = localStorage.getItem('jobTracker_jobs_cache');
-    const cacheExpiry = localStorage.getItem('jobTracker_cache_expiry');
+    const jobsCache = localStorage.getItem('jobtrack_jobs_cache');
+    const cacheExpiry = localStorage.getItem('jobtrack_cache_expiry');
     
     let cacheData = null;
     if (jobsCache) {
@@ -278,7 +278,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       totalSize += size;
       itemCount++;
       
-      if (key.startsWith('jobTracker_') || key === 'darkMode' || key === 'authToken') {
+      if (key.startsWith('jobtrack_') || key === 'darkMode' || key === 'authToken') {
         storageItems.push({
           key,
           size,
@@ -454,9 +454,9 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
   };
 
   const clearCache = () => {
-    localStorage.removeItem('jobTracker_jobs_cache');
-    localStorage.removeItem('jobTracker_cache_expiry');
-    localStorage.removeItem('jobTracker_cache_version');
+    localStorage.removeItem('jobtrack_jobs_cache');
+    localStorage.removeItem('jobtrack_cache_expiry');
+    localStorage.removeItem('jobtrack_cache_version');
     loadDeveloperInfo();
     showToast.success('🗑️ Cache cleared successfully');
   };

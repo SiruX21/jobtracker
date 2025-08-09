@@ -92,7 +92,7 @@ class LogoCacheService:
         try:
             # Download the image
             response = requests.get(logo_url, timeout=10, headers={
-                'User-Agent': 'JobTracker-LogoCache/1.0'
+                'User-Agent': 'jobtrack.dev-LogoCache/1.0'
             })
             
             if response.status_code == 200:

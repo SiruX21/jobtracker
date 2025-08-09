@@ -32,9 +32,9 @@ const getCurrentDate = () => {
 };
 
 // Cache utilities
-const CACHE_KEY = 'jobTracker_jobs_cache';
-const CACHE_EXPIRY_KEY = 'jobTracker_cache_expiry';
-const CACHE_VERSION_KEY = 'jobTracker_cache_version';
+const CACHE_KEY = 'jobtrack_jobs_cache';
+const CACHE_EXPIRY_KEY = 'jobtrack_cache_expiry';
+const CACHE_VERSION_KEY = 'jobtrack_cache_version';
 const CACHE_DURATION = 5 * 60 * 1000;
 const CURRENT_CACHE_VERSION = '1.0';
 
