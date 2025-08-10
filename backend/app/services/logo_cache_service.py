@@ -87,16 +87,27 @@ class LogoCacheService:
         print(f"🔄 get_logo_data: No cache hit for '{company_name}', trying Brandfetch API...")
         
         # Step 2: Try Brandfetch API for company search
-        search_result = self.search_brandfetch_api(company_name)
-        if search_result:
-            logo_url = search_result.get('url')
-            found_company_name = search_result.get('company_name', 'Unknown')
-            if logo_url:
-                print(f"🎯 get_logo_data: Found logo via BRANDFETCH API for '{company_name}' -> '{found_company_name}': {logo_url}")
-                image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='brandfetch_api')
-                if image_data:
-                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}' -> '{found_company_name}'")
-                    return image_data, content_type
+        try:
+            search_result = self.search_brandfetch_api(company_name)
+            print(f"🔍 get_logo_data: search_brandfetch_api returned: {search_result}")
+            
+            if search_result:
+                logo_url = search_result.get('url')
+                found_company_name = search_result.get('company_name', 'Unknown')
+                if logo_url:
+                    print(f"🎯 get_logo_data: Found logo via BRANDFETCH API for '{company_name}' -> '{found_company_name}': {logo_url}")
+                    image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='brandfetch_api')
+                    if image_data:
+                        print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}' -> '{found_company_name}'")
+                        return image_data, content_type
+                    else:
+                        print(f"❌ get_logo_data: Failed to download image for '{company_name}' from URL: {logo_url}")
+                else:
+                    print(f"❌ get_logo_data: No logo URL in search result for '{company_name}'")
+            else:
+                print(f"❌ get_logo_data: search_brandfetch_api returned None for '{company_name}'")
+        except Exception as e:
+            print(f"❌ get_logo_data: Exception during Brandfetch API search for '{company_name}': {e}")
 
         print(f"❌ get_logo_data: No logo found for '{company_name}' from Brandfetch API")
         return None, None
@@ -189,12 +200,16 @@ class LogoCacheService:
 
     def search_brandfetch_api(self, company_name):
         """Search Brandfetch API for company logo and brand data"""
+        print(f"🚀 search_brandfetch_api: Starting search for '{company_name}'")
+        
         try:
             # Check if we have a cached search result
             # Use a more robust cache key that prevents collisions
             clean_name = company_name.lower().strip()
             name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
             search_cache_key = f"brandfetch_direct_search:{clean_name.replace(' ', '_')}_{name_hash}"
+            print(f"🔑 search_brandfetch_api: Using cache key: {search_cache_key}")
+            
             cached_search = self.get_search_from_cache(search_cache_key)
             if cached_search:
                 print(f"🔄 search_brandfetch_api: Using cached Brandfetch search for '{company_name}' -> {cached_search.get('company_name', 'Unknown')}")
@@ -202,22 +217,30 @@ class LogoCacheService:
             
             # Only proceed if we have API key
             if not self.brandfetch_api_key:
-                print("No Brandfetch API key available")
+                print(f"❌ search_brandfetch_api: No Brandfetch API key available for '{company_name}'")
                 return None
+            
+            print(f"🌐 search_brandfetch_api: Making API request for '{company_name}'")
             
             headers = {
                 'Authorization': f'Bearer {self.brandfetch_api_key}',
                 'Content-Type': 'application/json'
             }
             
+            api_url = self.brandfetch_search_url + f"/{company_name}"
+            print(f"📡 search_brandfetch_api: URL: {api_url}")
+            
             response = requests.get(
-                self.brandfetch_search_url + f"/{company_name}",
+                api_url,
                 headers=headers,
                 timeout=5
             )
             
+            print(f"📊 search_brandfetch_api: Response status: {response.status_code}")
+            
             if response.status_code == 200:
                 search_data = response.json()
+                print(f"📋 search_brandfetch_api: Found {len(search_data)} results for '{company_name}'")
                 
                 # Get the first result from the search, but prefer exact matches
                 if search_data and len(search_data) > 0:
@@ -288,16 +311,21 @@ class LogoCacheService:
                         print(f"✅ search_brandfetch_api: Found Brandfetch logo for '{company_name}' -> '{brand.get('name', company_name)}': {logo_url}")
                         return search_result
                     else:
-                        print(f"No logo found in Brandfetch data for {company_name}")
+                        print(f"❌ search_brandfetch_api: No logo found in Brandfetch data for '{company_name}'")
                 else:
-                    print(f"No Brandfetch search results for {company_name}")
+                    print(f"❌ search_brandfetch_api: No Brandfetch search results for '{company_name}'")
             else:
-                print(f"Brandfetch API failed with status {response.status_code}: {response.text}")
+                print(f"❌ search_brandfetch_api: Brandfetch API failed with status {response.status_code}")
+                if response.text:
+                    print(f"   Response text: {response.text[:200]}...")  # Truncate long responses
             
+            print(f"❌ search_brandfetch_api: Returning None for '{company_name}'")
             return None
             
         except Exception as e:
-            print(f"Error searching Brandfetch API for {company_name}: {e}")
+            print(f"❌ search_brandfetch_api: Exception occurred for '{company_name}': {e}")
+            import traceback
+            print(f"   Traceback: {traceback.format_exc()}")
             return None
 
     def get_search_from_cache(self, cache_key):
