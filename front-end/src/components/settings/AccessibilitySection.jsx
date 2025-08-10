@@ -183,13 +183,45 @@ function AccessibilitySection({
                   detail: { position: toastPosition, theme: toastTheme } 
                 }));
                 
-                debugLog('Showing test toast');
-                toast.success("🎉 This is a test notification!");
+                // Add a small delay to ensure state updates
+                setTimeout(() => {
+                  debugLog('Showing test toast after delay');
+                  
+                  // Try both the prop and imported version
+                  try {
+                    if (showToast && showToast.success) {
+                      debugLog('Using showToast prop');
+                      showToast.success("🎉 This is a test notification from PROP!");
+                    } else {
+                      debugLog('Using importedShowToast');
+                      importedShowToast.success("🎉 This is a test notification from IMPORT!");
+                    }
+                  } catch (error) {
+                    debugLog('Toast error:', error);
+                    // Fallback - try direct import
+                    import('../../utils/toast').then(({ showToast: directToast }) => {
+                      debugLog('Using direct import');
+                      directToast.success("🎉 This is a test notification from DIRECT IMPORT!");
+                    });
+                  }
+                }, 200);
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
             >
               <FaBell className="mr-2" />
               Test Notification
+            </button>
+            
+            {/* Direct Toast Test Button */}
+            <button
+              onClick={() => {
+                debugLog('DIRECT toast test - no state changes');
+                importedShowToast.success("🚀 DIRECT TEST - This should definitely work!");
+              }}
+              className={`mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}
+            >
+              <FaBell className="mr-2" />
+              Direct Toast Test
             </button>
           </div>
         </div>

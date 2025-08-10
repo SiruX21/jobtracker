@@ -354,10 +354,70 @@ html {
   z-index: 9999 !important;
 }
 
+/* Ensure body allows fixed positioned elements */
+body {
+  position: relative !important;
+}
+
+/* Ensure root containers don't hide toasts */
+#root {
+  position: relative !important;
+}
+
 /* Ensure toast container is always visible */
 .Toastify__toast-container {
   z-index: 9999 !important;
   position: fixed !important;
+  pointer-events: none;
+}
+
+.Toastify__toast-container .Toastify__toast {
+  pointer-events: auto;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+/* Force toast visibility */
+div[class*="Toastify__toast-container"] {
+  z-index: 9999 !important;
+  position: fixed !important;
+  width: auto !important;
+  max-width: 400px !important;
+  min-width: 300px !important;
+}
+
+/* Position-specific overrides */
+.Toastify__toast-container--top-left {
+  top: 1rem !important;
+  left: 1rem !important;
+}
+
+.Toastify__toast-container--top-center {
+  top: 1rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.Toastify__toast-container--top-right {
+  top: 1rem !important;
+  right: 1rem !important;
+}
+
+.Toastify__toast-container--bottom-left {
+  bottom: 1rem !important;
+  left: 1rem !important;
+}
+
+.Toastify__toast-container--bottom-center {
+  bottom: 1rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.Toastify__toast-container--bottom-right {
+  bottom: 1rem !important;
+  right: 1rem !important;
 }
 
 /* Custom toast styling */
