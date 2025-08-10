@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
 import { debugLog } from '../../utils/debug';
-import { showToast as importedShowToast } from '../../utils/toast';
+import { showToast as importedShowToast, testToastify } from '../../utils/toast';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -215,13 +215,33 @@ function AccessibilitySection({
             {/* Direct Toast Test Button */}
             <button
               onClick={() => {
-                debugLog('DIRECT toast test - no state changes');
-                importedShowToast.success("🚀 DIRECT TEST - This should definitely work!");
+                debugLog('=== COMPREHENSIVE TOAST DEBUG ===');
+                
+                // Check if ToastContainer exists in DOM
+                const toastContainers = document.querySelectorAll('[class*="Toastify"]');
+                debugLog('ToastContainer elements found:', toastContainers.length);
+                toastContainers.forEach((container, index) => {
+                  debugLog(`Container ${index}:`, {
+                    className: container.className,
+                    style: container.style.cssText,
+                    display: window.getComputedStyle(container).display,
+                    visibility: window.getComputedStyle(container).visibility,
+                    zIndex: window.getComputedStyle(container).zIndex
+                  });
+                });
+                
+                // Test direct react-toastify
+                debugLog('Testing direct react-toastify...');
+                testToastify();
+                
+                // Test our wrapper
+                debugLog('Testing our showToast wrapper...');
+                importedShowToast.success("🚀 COMPREHENSIVE TEST!");
               }}
               className={`mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}
             >
               <FaBell className="mr-2" />
-              Direct Toast Test
+              Debug Toast System
             </button>
           </div>
         </div>

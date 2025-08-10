@@ -115,8 +115,8 @@ function App() {
   };
 
   return (
-    <Router>
-      <div className={`${darkMode ? "dark" : ""}`}>
+    <div className={`${darkMode ? "dark" : ""}`}>
+      <Router>
         <Routes>
           <Route
             path="/"
@@ -163,27 +163,34 @@ function App() {
             element={<VerifyNewEmail darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
         </Routes>
-        
-        {/* Toast Container for global notifications */}
-        <ToastContainer
-          key={`${toastPosition}-${toastTheme}`}
-          position={toastPosition}
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme={getToastTheme()}
-          className="custom-toast-container"
-          style={{ zIndex: 9999 }}
-          enableMultiContainer={false}
-          containerId="main-toast-container"
-        />
-      </div>
-    </Router>
+      </Router>
+      
+      {/* Toast Container for global notifications - OUTSIDE Router */}
+      <ToastContainer
+        key={`${toastPosition}-${toastTheme}`}
+        position={toastPosition}
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={getToastTheme()}
+        className="custom-toast-container"
+        style={{ 
+          zIndex: 9999, 
+          position: 'fixed',
+          pointerEvents: 'none'
+        }}
+        toastStyle={{
+          pointerEvents: 'auto'
+        }}
+        enableMultiContainer={false}
+        containerId="main-toast-container"
+      />
+    </div>
   );
 }
 
