@@ -7,7 +7,7 @@ import Cookies from "js-cookie"; // For managing cookies
 import config from "./config"; // Import the global config
 import PasswordStrengthIndicator from "./components/PasswordStrengthIndicator";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons for password visibility toggle
-import { showToast } from "./utils/toast";
+import { toast } from "react-toastify";
 
 function IntroPage({ darkMode, toggleTheme, isMobile }) {
   const [searchParams] = useSearchParams();
@@ -56,9 +56,9 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
       const response = await axios.post(`${config.API_BASE_URL}/auth/resend-verification`, {
         email: formData.email
       });
-      showToast.success("Verification email sent successfully!");
+      toast.success("Verification email sent successfully!");
     } catch (err) {
-      showToast.error(err.response?.data?.error || "Failed to resend verification email");
+      toast.error(err.response?.data?.error || "Failed to resend verification email");
     } finally {
       setResendLoading(false);
     }
@@ -115,7 +115,7 @@ function IntroPage({ darkMode, toggleTheme, isMobile }) {
           username: formData.email, // Use email as username
           password: formData.password
         });
-        showToast.success("Registration successful! Please check your email for verification instructions.");
+        toast.success("Registration successful! Please check your email for verification instructions.");
         switchToLogin();
       }
     } catch (err) {

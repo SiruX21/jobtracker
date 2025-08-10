@@ -9,7 +9,7 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
-import { showToast } from '../../utils/toast';
+import { toast } from 'react-toastify';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -174,7 +174,7 @@ function AccessibilitySection({
                 
                 // Show simple test toast
                 setTimeout(() => {
-                  showToast.success('🎉 Test notification! Toast system is working!');
+                  toast.success('🎉 Test notification! Toast system is working!');
                 }, 100);
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}

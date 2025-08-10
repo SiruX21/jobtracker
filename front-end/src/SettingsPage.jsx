@@ -346,7 +346,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       });
 
       // Always show success for account deletion regardless of notification setting
-      showCriticalToast.success('🗑️ Account deleted successfully');
+      toast.success('🗑️ Account deleted successfully');
       // Clear all storage and redirect to login
       Cookies.remove('authToken');
       localStorage.clear();
@@ -540,7 +540,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     expandedSections={expandedSections}
                     toggleSection={toggleSection}
                     darkMode={darkMode}
-                    showToast={showToast}
+                    showToast={toast}
                     isMobile={isMobile}
                   />
                 )}
@@ -557,7 +557,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
                     clearCache={clearCache}
                     formatBytes={formatBytes}
                     formatDate={formatDate}
-                    showToast={showToast}
+                    showToast={toast}
                     isMobile={isMobile}
                   />
                 )}

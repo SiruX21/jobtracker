@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { showToast } from '../../utils/toast';
+import { toast } from 'react-toastify';
 import { debugWarn } from '../../utils/debug';
 import { 
   FaExternalLinkAlt, 
@@ -96,7 +96,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
         return;
       }
       
@@ -104,15 +104,15 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      showToast.success('🗑️ Logo cache cleared successfully');
+      toast.success('🗑️ Logo cache cleared successfully');
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
-        showToast.error('Admin access required to clear logo cache');
+        toast.error('Admin access required to clear logo cache');
       } else if (error.response?.status === 401) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
       } else {
-        showToast.error('Failed to clear logo cache');
+        toast.error('Failed to clear logo cache');
       }
       console.error('Error clearing logo cache:', error);
     }
@@ -120,7 +120,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
 
   const clearSpecificLogoCache = async (companyName) => {
     if (!companyName.trim()) {
-      showToast.error('Please enter a company name');
+      toast.error('Please enter a company name');
       return;
     }
 
@@ -131,7 +131,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
         return;
       }
       
@@ -140,15 +140,15 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      showToast.success(`🗑️ Logo cache cleared for ${companyName}`);
+      toast.success(`🗑️ Logo cache cleared for ${companyName}`);
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
-        showToast.error('Admin access required to clear logo cache');
+        toast.error('Admin access required to clear logo cache');
       } else if (error.response?.status === 401) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
       } else {
-        showToast.error(`Failed to clear logo cache for ${companyName}`);
+        toast.error(`Failed to clear logo cache for ${companyName}`);
       }
       console.error('Error clearing specific logo cache:', error);
     }
@@ -156,14 +156,14 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
 
   const getLogoUrl = async (companyName) => {
     if (!companyName.trim()) {
-      showToast.error('Please enter a company name');
+      toast.error('Please enter a company name');
       return;
     }
 
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
         return;
       }
       
@@ -172,16 +172,16 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       });
       
       setLogoUrl(response.data);
-      showToast.success(`Logo URL retrieved for ${companyName}`);
+      toast.success(`Logo URL retrieved for ${companyName}`);
     } catch (error) {
       if (error.response?.status === 404) {
         setLogoUrl({ error: `Logo not found for ${companyName}`, company_name: companyName });
       } else if (error.response?.status === 403) {
-        showToast.error('Admin access required');
+        toast.error('Admin access required');
       } else if (error.response?.status === 401) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
       } else {
-        showToast.error(`Failed to get logo URL for ${companyName}`);
+        toast.error(`Failed to get logo URL for ${companyName}`);
         console.error('Error getting logo URL:', error);
       }
     }
@@ -189,14 +189,14 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
 
   const validateLogo = async (companyName) => {
     if (!companyName.trim()) {
-      showToast.error('Please enter a company name');
+      toast.error('Please enter a company name');
       return;
     }
 
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
         return;
       }
       
@@ -205,14 +205,14 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       });
       
       setLogoValidation(response.data);
-      showToast.success(`Logo validation completed for ${companyName}`);
+      toast.success(`Logo validation completed for ${companyName}`);
     } catch (error) {
       if (error.response?.status === 403) {
-        showToast.error('Admin access required');
+        toast.error('Admin access required');
       } else if (error.response?.status === 401) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
       } else {
-        showToast.error(`Failed to validate logo for ${companyName}`);
+        toast.error(`Failed to validate logo for ${companyName}`);
       }
       console.error('Error validating logo:', error);
     }
@@ -225,14 +225,14 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         localStorage.removeItem(key);
       }
     });
-    showToast.success('🗑️ Local logo cache cleared successfully');
+    toast.success('🗑️ Local logo cache cleared successfully');
   };
 
   const updateLogoConfig = async (serviceType) => {
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
         return;
       }
       
@@ -241,15 +241,15 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      showToast.success(`Logo service updated to: ${serviceType}`);
+      toast.success(`Logo service updated to: ${serviceType}`);
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
-        showToast.error('Admin access required to update logo configuration');
+        toast.error('Admin access required to update logo configuration');
       } else if (error.response?.status === 401) {
-        showToast.error('Authentication required');
+        toast.error('Authentication required');
       } else {
-        showToast.error('Failed to update logo configuration');
+        toast.error('Failed to update logo configuration');
       }
       console.error('Error updating logo config:', error);
     }
