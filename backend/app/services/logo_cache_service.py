@@ -190,11 +190,6 @@ class LogoCacheService:
                 print("No Brandfetch API key available")
                 return None
             
-            # First, search for the company
-            search_params = {
-                'q': company_name
-            }
-            
             headers = {
                 'Authorization': f'Bearer {self.brandfetch_api_key}',
                 'Content-Type': 'application/json'
@@ -212,32 +207,41 @@ class LogoCacheService:
                 # Get the first result from the search
                 if search_data and len(search_data) > 0:
                     brand = search_data[0]
+                    print(f"🔍 search_brandfetch_api: Brand data for {company_name}: {json.dumps(brand, indent=2)}")
                     
-                    # Extract logo information
+                    # Extract logo information using improved logic
                     logo_url = None
                     
                     # Try to get the best logo from brand data
                     if 'logos' in brand and brand['logos']:
+                        print(f"🖼️ search_brandfetch_api: Found {len(brand['logos'])} logos for {company_name}")
                         # Get the first logo (usually the primary one)
-                        for logo in brand['logos']:
-                            if 'formats' in logo:
+                        for logo_idx, logo in enumerate(brand['logos']):
+                            print(f"   Logo {logo_idx}: {json.dumps(logo, indent=4)}")
+                            if 'formats' in logo and logo['formats']:
                                 # Prefer PNG, then SVG, then any format
                                 for format_item in logo['formats']:
-                                    if format_item.get('format') == 'png':
+                                    if format_item.get('format') == 'png' and format_item.get('src'):
                                         logo_url = format_item.get('src')
+                                        print(f"   Selected PNG logo: {logo_url}")
                                         break
                                 if not logo_url:
                                     for format_item in logo['formats']:
-                                        if format_item.get('format') == 'svg':
+                                        if format_item.get('format') == 'svg' and format_item.get('src'):
                                             logo_url = format_item.get('src')
+                                            print(f"   Selected SVG logo: {logo_url}")
                                             break
                                 if not logo_url and logo['formats']:
-                                    logo_url = logo['formats'][0].get('src')
-                                break
+                                    first_format = logo['formats'][0]
+                                    if first_format.get('src'):
+                                        logo_url = first_format.get('src')
+                                        print(f"   Selected first available logo: {logo_url}")
+                                break  # Use first logo that has formats
                     
                     # Fallback to icon if no logo found
-                    if not logo_url and 'icon' in brand:
+                    if not logo_url and 'icon' in brand and brand['icon']:
                         logo_url = brand['icon']
+                        print(f"   Using icon fallback: {logo_url}")
                     
                     if logo_url:
                         search_result = {
@@ -442,25 +446,41 @@ class LogoCacheService:
                     brand_name = brand.get('name', query.title())
                     print(f"🏢 search_brandfetch_autocomplete: Processing brand: {brand_name}")
                     
-                    # Get the best logo URL
+                    # Debug: print the full brand data structure
+                    print(f"🔍 search_brandfetch_autocomplete: Brand data for {brand_name}: {json.dumps(brand, indent=2)}")
+                    
+                    # Get the best logo URL using the same logic as search_brandfetch_api
                     logo_url = None
                     if 'logos' in brand and brand['logos']:
-                        for logo in brand['logos']:
+                        print(f"🖼️ search_brandfetch_autocomplete: Found {len(brand['logos'])} logos for {brand_name}")
+                        for logo_idx, logo in enumerate(brand['logos']):
+                            print(f"   Logo {logo_idx}: {json.dumps(logo, indent=4)}")
                             if 'formats' in logo and logo['formats']:
-                                # Prefer PNG format
+                                # Prefer PNG, then SVG, then any format
                                 for format_item in logo['formats']:
-                                    if format_item.get('format') == 'png':
+                                    if format_item.get('format') == 'png' and format_item.get('src'):
                                         logo_url = format_item.get('src')
+                                        print(f"   Selected PNG logo: {logo_url}")
                                         break
                                 if not logo_url:
-                                    logo_url = logo['formats'][0].get('src')
-                                break
+                                    for format_item in logo['formats']:
+                                        if format_item.get('format') == 'svg' and format_item.get('src'):
+                                            logo_url = format_item.get('src')
+                                            print(f"   Selected SVG logo: {logo_url}")
+                                            break
+                                if not logo_url and logo['formats']:
+                                    first_format = logo['formats'][0]
+                                    if first_format.get('src'):
+                                        logo_url = first_format.get('src')
+                                        print(f"   Selected first available logo: {logo_url}")
+                                break  # Use first logo that has formats
                     
-                    # Fallback to icon
-                    if not logo_url and 'icon' in brand:
+                    # Fallback to icon if no logo found
+                    if not logo_url and 'icon' in brand and brand['icon']:
                         logo_url = brand['icon']
+                        print(f"   Using icon fallback: {logo_url}")
                     
-                    print(f"🖼️ search_brandfetch_autocomplete: Logo URL for {brand_name}: {logo_url}")
+                    print(f"🖼️ search_brandfetch_autocomplete: Final logo URL for {brand_name}: {logo_url}")
                     
                     company_data = {
                         'name': brand_name,
@@ -470,7 +490,7 @@ class LogoCacheService:
                         'industry': brand.get('industry', ''),
                         'confidence': 0.85,  # High confidence for Brandfetch
                         'source': 'brandfetch',
-                        'icon': logo_url  # Store direct icon URL for fallback
+                        'icon': logo_url  # Store direct icon URL for debugging
                     }
                     results.append(company_data)
                 
@@ -535,11 +555,31 @@ class LogoCacheService:
         
         try:
             if company_name:
+                # Clear both image cache and search cache for specific company
                 cache_key = self.get_cache_key(company_name)
                 meta_key = self.get_metadata_key(company_name)
-                self.redis_client.delete(cache_key)
-                self.redis_client.delete(meta_key)
-                print(f"Cleared cache for {company_name}")
+                search_key = f"brandfetch_search:{company_name.lower().replace(' ', '')}"
+                
+                cleared_keys = []
+                if self.redis_client.delete(cache_key):
+                    cleared_keys.append(cache_key)
+                if self.redis_client.delete(meta_key):
+                    cleared_keys.append(meta_key)
+                
+                # Also clear with text redis client for search cache
+                try:
+                    text_redis = redis.Redis(
+                        host=Config.REDIS_HOST,
+                        port=Config.REDIS_PORT,
+                        db=Config.REDIS_DB,
+                        decode_responses=True
+                    )
+                    if text_redis.delete(search_key):
+                        cleared_keys.append(search_key)
+                except Exception as e:
+                    print(f"Error clearing search cache: {e}")
+                
+                print(f"Cleared cache for {company_name}: {cleared_keys}")
             else:
                 # Clear all logo cache entries
                 logo_keys = self.redis_client.keys("logo_img:*")
