@@ -179,6 +179,10 @@ function App() {
         draggable
         pauseOnHover
         theme={getToastTheme()}
+        className="toast-container"
+        toastClassName="toast-notification"
+        bodyClassName="toast-body"
+        progressClassName="toast-progress"
       />
     </div>
   );

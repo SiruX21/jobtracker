@@ -352,8 +352,51 @@ html {
 .Toastify__toast-container {
   z-index: 9999;
 }
-.Toastify__toast-body { display:flex; align-items:center; gap:8px; }
-.Toastify__toast-body > div { white-space: nowrap; }
+
+.Toastify__toast {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 500;
+}
+
+.Toastify__toast-body { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  padding: 12px;
+}
+
+.Toastify__toast-body > div { 
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.Toastify__progress-bar {
+  height: 3px;
+}
 /* Fade in animation for progressive disclosure */
 @keyframes fadeIn {
   from {

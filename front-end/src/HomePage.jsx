@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Transition } from '@headlessui/react';
 import Cookies from 'js-cookie';
-import Header from './Header';
 import { 
   FaBriefcase, FaChartLine, FaStar, FaRocket, FaLaptop, FaMobile, 
   FaSearch, FaCheck, FaBuilding, FaGlobe, FaLink, FaEnvelope, 
@@ -63,9 +62,8 @@ function HomePage({ darkMode, toggleTheme, isMobile }) {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
       
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 dark:from-blue-900 dark:via-slate-900 dark:to-blue-950 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 dark:from-blue-900 dark:via-slate-900 dark:to-blue-950 flex flex-col items-center justify-center px-4 transition-all duration-700 ease-in-out relative overflow-hidden pt-20">
         
         {/* Animated Raining Icons - Behind everything */}
         {rainIcons.map((rainIcon) => {
