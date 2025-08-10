@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { debugLog, debugWarn } from './utils/debug';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
@@ -530,11 +530,11 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       cacheUtils.set(updatedJobs);
       setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
       
-      showToast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`);
+      toast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`);
       
     } catch (error) {
       console.error("Error deleting job:", error);
-      showToast.error("Failed to delete job application. Please try again.");
+      toast.error("Failed to delete job application. Please try again.");
       
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
@@ -705,7 +705,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         await fetchJobs();
       } catch (error) {
         console.error('Error initializing data:', error);
-        showToast.error('Failed to load data');
+        toast.error('Failed to load data');
       } finally {
         setInitialLoading(false);
       }

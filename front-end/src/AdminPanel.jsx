@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Transition } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { debugLog } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
@@ -392,7 +392,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       loadJobs();
       
       // Show success toast notification
-      showToast.success(`Job application for ${jobToDelete?.company_name || 'Unknown Company'} - ${jobToDelete?.position_title || 'Unknown Position'} deleted successfully!`, {
+      toast.success(`Job application for ${jobToDelete?.company_name || 'Unknown Company'} - ${jobToDelete?.position_title || 'Unknown Position'} deleted successfully!`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -405,7 +405,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       console.error('Error deleting job:', error);
       
       // Show error toast notification
-      showToast.error('Failed to delete job application. Please try again.', {
+      toast.error('Failed to delete job application. Please try again.', {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: false,
@@ -482,11 +482,11 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       closeEditModal();
       loadJobs(); // Reload the jobs list
       
-      showToast.success(`Job application for ${newJob.company_name} - ${newJob.job_title} updated successfully!`);
+      toast.success(`Job application for ${newJob.company_name} - ${newJob.job_title} updated successfully!`);
       
     } catch (error) {
       console.error("Error updating job:", error);
-      showToast.error("Failed to update job application. Please try again.");
+      toast.error("Failed to update job application. Please try again.");
       
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
@@ -531,7 +531,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       loadSystemInfo();
-      showToast.success('🗑️ System cache cleared successfully');
+      toast.success('🗑️ System cache cleared successfully');
     } catch (error) {
       setError('Failed to clear cache');
     }

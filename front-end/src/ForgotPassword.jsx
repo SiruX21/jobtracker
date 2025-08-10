@@ -2,7 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import config from './config';
 import Header from './Header';
 

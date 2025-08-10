@@ -2,7 +2,7 @@ import React, { useState, useEffect, Fragment } from 'react';
 import { Transition } from '@headlessui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
@@ -42,18 +42,18 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
 
     // Validate password using backend validation
     if (!passwordValidation || !passwordValidation.valid) {
-      showToast.error('Please ensure your password meets all security requirements.');
+      toast.error('Please ensure your password meets all security requirements.');
       return;
     }
 
     // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
-      showToast.error('Passwords do not match.');
+      toast.error('Passwords do not match.');
       return;
     }
 
     if (!token) {
-      showToast.error('Invalid reset token. Please request a new password reset.');
+      toast.error('Invalid reset token. Please request a new password reset.');
       return;
     }
 
@@ -65,7 +65,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
         password: formData.password
       });
 
-      showToast.success('✅ Password reset successfully! Redirecting to login...');
+      toast.success('✅ Password reset successfully! Redirecting to login...');
       setFormData({ password: '', confirmPassword: '' });
 
       // Redirect to login after 3 seconds
@@ -73,7 +73,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
         navigate('/auth');
       }, 3000);
     } catch (err) {
-      showToast.error(err.response?.data?.error || 'Failed to reset password. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }

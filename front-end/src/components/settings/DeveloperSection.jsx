@@ -98,6 +98,37 @@ function DeveloperSection({
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Test Notifications */}
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-4">Test Notifications</h3>
+              <div className={`grid ${isMobile ? 'grid-cols-1 gap-2' : 'grid-cols-4 gap-3'}`}>
+                <button
+                  onClick={() => showToast.success('✅ Success notification test!')}
+                  className="px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                >
+                  Success
+                </button>
+                <button
+                  onClick={() => showToast.error('❌ Error notification test!')}
+                  className="px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+                >
+                  Error
+                </button>
+                <button
+                  onClick={() => showToast.warning('⚠️ Warning notification test!')}
+                  className="px-3 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 transition-colors"
+                >
+                  Warning
+                </button>
+                <button
+                  onClick={() => showToast.info('ℹ️ Info notification test!')}
+                  className="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Info
+                </button>
+              </div>
+            </div>
+
             {/* Cache Information */}
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'items-center justify-between'} mb-4`}>

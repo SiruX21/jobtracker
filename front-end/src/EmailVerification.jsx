@@ -2,7 +2,7 @@ import React, { useEffect, useState, Fragment } from 'react';
 import { Transition } from '@headlessui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { showToast } from './utils/toast';
+import { toast } from 'react-toastify';
 import config from './config';
 import Header from './Header';
 import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
@@ -16,7 +16,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
     const token = searchParams.get('token');
     if (!token) {
       setStatus('error');
-      showToast.error('Invalid verification link. No token provided.');
+      toast.error('Invalid verification link. No token provided.');
       return;
     }
 
@@ -25,15 +25,15 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
         const response = await axios.get(`${config.API_BASE_URL}/auth/verify-email?token=${token}`);
         if (response.status === 200) {
           setStatus('success');
-          showToast.success('✅ Email verified successfully! Redirecting to login...');
+          toast.success('✅ Email verified successfully! Redirecting to login...');
           setTimeout(() => { navigate('/auth'); }, 3000);
         }
       } catch (error) {
         setStatus('error');
         if (error.response?.data?.error) {
-          showToast.error(error.response.data.error);
+          toast.error(error.response.data.error);
         } else {
-          showToast.error('Failed to verify email. Please try again or contact support.');
+          toast.error('Failed to verify email. Please try again or contact support.');
         }
       }
     };
