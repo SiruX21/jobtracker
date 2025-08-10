@@ -45,10 +45,6 @@ class LogoCacheService:
         except Exception as e:
             print(f"Redis connection failed: {e}")
             self.redis_client = None
-            print("Redis connection successful")
-        except Exception as e:
-            print(f"Redis connection failed: {e}")
-            self.redis_client = None
     
     def get_cache_key(self, company_name):
         """Generate cache key for company logo"""
@@ -317,18 +313,6 @@ class LogoCacheService:
         except Exception as e:
             print(f"Error caching search result: {e}")
 
-    def generate_logo_url(self, company_name):
-        """Generate logo.dev URL for company"""
-        clean_name = company_name.lower().replace(' ', '').replace('-', '')
-        # Remove special characters except dots
-        clean_name = ''.join(c for c in clean_name if c.isalnum() or c == '.')
-        
-        # Default to .com if no domain extension
-        if '.' not in clean_name:
-            clean_name += '.com'
-        
-        return f"https://img.logo.dev/{clean_name}?token={self.logo_dev_token}"
-    
     def get_from_cache(self, cache_key):
         """Get logo data from Redis cache"""
         if not self.redis_client:
@@ -376,56 +360,10 @@ class LogoCacheService:
             return False
     
     def get_logo_with_validation(self, company_name):
-        """Get logo URL and validate it works"""
-        logo_url = self.get_logo_url(company_name)
-        
-        if not logo_url:
-            return None
-        
-        # For cached URLs, we assume they're valid
-        cache_key = self.get_cache_key(company_name)
-        cached_data = self.get_from_cache(cache_key)
-        
-        if cached_data:
-            return logo_url
-        
-        # For new URLs, validate them
-        if self.validate_logo_url(logo_url):
-            return logo_url
-        else:
-            # If validation fails, try alternative domains
-            alternatives = self.get_alternative_domains(company_name)
-            for alt_domain in alternatives:
-                alt_url = f"https://img.logo.dev/{alt_domain}?token={self.logo_dev_token}"
-                if self.validate_logo_url(alt_url):
-                    # Update cache with working URL
-                    self.cache_logo(cache_key, alt_url, company_name)
-                    return alt_url
-        
-        return logo_url  # Return original even if validation failed
-    
-    def get_alternative_domains(self, company_name):
-        """Get alternative domain formats for a company"""
-        clean_name = company_name.lower().replace(' ', '').replace('-', '')
-        alternatives = []
-        
-        # Try different TLDs
-        if not clean_name.endswith('.com'):
-            alternatives.append(f"{clean_name}.com")
-        
-        # Try with hyphens
-        if ' ' in company_name.lower():
-            hyphenated = company_name.lower().replace(' ', '-')
-            alternatives.append(f"{hyphenated}.com")
-        
-        # Try without common suffixes
-        suffixes = ['inc', 'corp', 'corporation', 'company', 'co', 'ltd']
-        for suffix in suffixes:
-            if clean_name.replace('.com', '').endswith(suffix):
-                without_suffix = clean_name.replace('.com', '').replace(suffix, '')
-                alternatives.append(f"{without_suffix}.com")
-        
-        return alternatives[:3]  # Limit to 3 alternatives
+        """Get logo data and validate it works (Brandfetch only)"""
+        # Since we only use Brandfetch now, just return the regular logo data
+        image_data, content_type = self.get_logo_data(company_name)
+        return (image_data, content_type) if image_data else (None, None)
     
     def search_companies(self, query, limit=10):
         """Search for companies using Brandfetch API only"""
@@ -551,43 +489,6 @@ class LogoCacheService:
         return self.service_config == 'brandfetch' and self.brandfetch_api_key
 
     def get_autocomplete_from_cache(self, cache_key):
-            {'name': 'Uber', 'domain': 'uber.com', 'industry': 'Transportation'},
-            {'name': 'Airbnb', 'domain': 'airbnb.com', 'industry': 'Hospitality'},
-            {'name': 'LinkedIn', 'domain': 'linkedin.com', 'industry': 'Professional Network'},
-            {'name': 'Spotify', 'domain': 'spotify.com', 'industry': 'Music'},
-            {'name': 'Discord', 'domain': 'discord.com', 'industry': 'Communication'},
-            {'name': 'Slack', 'domain': 'slack.com', 'industry': 'Communication'},
-            {'name': 'Figma', 'domain': 'figma.com', 'industry': 'Design'},
-            {'name': 'Canva', 'domain': 'canva.com', 'industry': 'Design'},
-            {'name': 'Adobe', 'domain': 'adobe.com', 'industry': 'Creative Software'},
-            {'name': 'Salesforce', 'domain': 'salesforce.com', 'industry': 'CRM'},
-            {'name': 'Oracle', 'domain': 'oracle.com', 'industry': 'Database'},
-            {'name': 'IBM', 'domain': 'ibm.com', 'industry': 'Technology'},
-            {'name': 'Intel', 'domain': 'intel.com', 'industry': 'Semiconductors'},
-            {'name': 'NVIDIA', 'domain': 'nvidia.com', 'industry': 'Graphics'},
-            {'name': 'PayPal', 'domain': 'paypal.com', 'industry': 'Payments'},
-            {'name': 'Stripe', 'domain': 'stripe.com', 'industry': 'Payments'},
-            {'name': 'Coinbase', 'domain': 'coinbase.com', 'industry': 'Cryptocurrency'},
-            {'name': 'Shopify', 'domain': 'shopify.com', 'industry': 'E-commerce'},
-            {'name': 'Square', 'domain': 'squareup.com', 'industry': 'Payments'},
-            {'name': 'GitHub', 'domain': 'github.com', 'industry': 'Developer Tools'},
-            {'name': 'GitLab', 'domain': 'gitlab.com', 'industry': 'Developer Tools'},
-            {'name': 'Redis', 'domain': 'redis.io', 'industry': 'Database'},
-            {'name': 'MongoDB', 'domain': 'mongodb.com', 'industry': 'Database'},
-            {'name': 'Databricks', 'domain': 'databricks.com', 'industry': 'Data Analytics'},
-            {'name': 'Snowflake', 'domain': 'snowflake.com', 'industry': 'Data Warehouse'},
-            {'name': 'McKinsey', 'domain': 'mckinsey.com', 'industry': 'Consulting'},
-            {'name': 'BCG', 'domain': 'bcg.com', 'industry': 'Consulting'},
-            {'name': 'Deloitte', 'domain': 'deloitte.com', 'industry': 'Consulting'},
-            {'name': 'Accenture', 'domain': 'accenture.com', 'industry': 'Consulting'},
-            {'name': 'Ford', 'domain': 'ford.com', 'industry': 'Automotive'},
-            {'name': 'General Motors', 'domain': 'gm.com', 'industry': 'Automotive'},
-            {'name': 'BMW', 'domain': 'bmw.com', 'industry': 'Automotive'},
-            {'name': 'Toyota', 'domain': 'toyota.com', 'industry': 'Automotive'},
-            {'name': 'Booking.com', 'domain': 'booking.com', 'industry': 'Travel'},
-            {'name': 'Lyft', 'domain': 'lyft.com', 'industry': 'Transportation'},
-            {'name': 'DoorDash', 'domain': 'doordash.com', 'industry': 'Food Delivery'},
-    def get_autocomplete_from_cache(self, cache_key):
         """Get autocomplete results from cache"""
         if not self.redis_client:
             return None
@@ -599,6 +500,8 @@ class LogoCacheService:
         except Exception as e:
             print(f"Error getting autocomplete from cache: {e}")
             return None
+        
+        return None
         
         return None
     
@@ -633,14 +536,21 @@ class LogoCacheService:
         try:
             if company_name:
                 cache_key = self.get_cache_key(company_name)
+                meta_key = self.get_metadata_key(company_name)
                 self.redis_client.delete(cache_key)
+                self.redis_client.delete(meta_key)
                 print(f"Cleared cache for {company_name}")
             else:
                 # Clear all logo cache entries
-                keys = self.redis_client.keys("logo:*")
-                if keys:
-                    self.redis_client.delete(*keys)
-                print(f"Cleared {len(keys)} logo cache entries")
+                logo_keys = self.redis_client.keys("logo_img:*")
+                meta_keys = self.redis_client.keys("logo_meta:*")
+                search_keys = self.redis_client.keys("brandfetch_search:*")
+                autocomplete_keys = self.redis_client.keys("autocomplete:*")
+                
+                all_keys = logo_keys + meta_keys + search_keys + autocomplete_keys
+                if all_keys:
+                    self.redis_client.delete(*all_keys)
+                print(f"Cleared {len(all_keys)} logo cache entries")
         except Exception as e:
             print(f"Error clearing cache: {e}")
     
@@ -768,11 +678,18 @@ class LogoCacheService:
             return {"error": "Redis not connected"}
         
         try:
-            logo_keys = self.redis_client.keys("logo:*")
+            logo_img_keys = self.redis_client.keys("logo_img:*")
+            logo_meta_keys = self.redis_client.keys("logo_meta:*")
+            search_keys = self.redis_client.keys("brandfetch_search:*")
+            autocomplete_keys = self.redis_client.keys("autocomplete:*")
+            
             return {
-                "total_cached_logos": len(logo_keys),
+                "total_cached_logos": len(logo_img_keys),
+                "metadata_entries": len(logo_meta_keys),
+                "search_cache_entries": len(search_keys),
+                "autocomplete_cache_entries": len(autocomplete_keys),
                 "redis_info": self.redis_client.info("memory"),
-                "sample_keys": logo_keys[:10] if logo_keys else []
+                "sample_logo_keys": [k.decode('utf-8') if isinstance(k, bytes) else k for k in logo_img_keys[:5]]
             }
         except Exception as e:
             return {"error": str(e)}
@@ -813,35 +730,6 @@ class LogoCacheService:
         except Exception as e:
             print(f"Error getting service config: {e}")
             return {"error": str(e)}
-            services_status = {}
-            fallback_services = [
-                ("clearbit", "https://logo.clearbit.com/google.com"),
-                ("iconhorse", "https://icon.horse/icon/google.com"),
-                ("favicon", "https://www.google.com/s2/favicons?domain=google.com&sz=64")
-            ]
-            
-            for service_name, test_url in fallback_services:
-                try:
-                    test_response = requests.head(test_url, timeout=3)
-                    services_status[service_name] = "available" if test_response.status_code == 200 else "error"
-                except:
-                    services_status[service_name] = "unavailable"
-            
-            return {
-                "current_service": self.service_config,
-                "logodev_status": logodev_status,
-                "services_status": services_status,
-                "has_token": bool(self.logo_dev_token and self.logo_dev_token.strip()),
-                "available_services": [
-                    "auto", "logodev", "clearbit", "iconhorse", "favicon", "fallback"
-                ]
-            }
-        except Exception as e:
-            print(f"Error getting service config: {e}")
-            return {
-                "current_service": self.service_config,
-                "error": str(e)
-            }
 
     def set_service_config(self, service_type):
         """Set logo service configuration"""
