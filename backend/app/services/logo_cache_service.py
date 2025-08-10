@@ -5,6 +5,7 @@ import time
 import os
 import base64
 import hashlib
+from urllib.parse import quote
 from app.config import Config
 
 class LogoCacheService:
@@ -491,7 +492,7 @@ class LogoCacheService:
                     company_data = {
                         'name': brand_name,
                         'domain': brand.get('domain', ''),
-                        'logo_url': f"/api/logos/company/{brand_name}" if brand_name else None,
+                        'logo_url': f"/api/logos/company/{quote(brand_name)}" if brand_name else None,
                         'description': brand.get('description', ''),
                         'industry': brand.get('industry', ''),
                         'confidence': 0.85,  # High confidence for Brandfetch

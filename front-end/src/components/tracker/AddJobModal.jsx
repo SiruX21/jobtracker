@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { fetchCompanySuggestions } from '../../services/companyService';
 import { logoService } from '../../services/logoService';
 import { debugError, debugLog } from '../../utils/debug';
+import { API_BASE_URL } from '../../config';
 
 function AddJobModal({ 
   isOpen, 
@@ -608,8 +609,11 @@ function AddJobModal({
                   // Update the job with the selected company
                   setNewJob(prev => ({ ...prev, company_name: suggestion.name }));
                   
-                  // Store the selected company logo
-                  setSelectedCompanyLogo(suggestion.logo_url);
+                  // Store the selected company logo (convert relative URLs to absolute)
+                  const logoUrl = suggestion.logo_url?.startsWith('/') 
+                    ? `${API_BASE_URL}${suggestion.logo_url}` 
+                    : suggestion.logo_url;
+                  setSelectedCompanyLogo(logoUrl);
                   
                   // Clear the search term to close the dropdown
                   setCompanySearchTerm("");
@@ -626,7 +630,7 @@ function AddJobModal({
                 {/* Company Logo */}
                 <div className="w-10 h-10 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm flex items-center justify-center overflow-hidden mr-4 flex-shrink-0 border border-gray-200 dark:border-gray-600">
                   <img 
-                    src={suggestion.logo_url} 
+                    src={suggestion.logo_url?.startsWith('/') ? `${API_BASE_URL}${suggestion.logo_url}` : suggestion.logo_url} 
                     alt={suggestion.name}
                     className="w-full h-full object-cover rounded-lg"
                     style={{ 
