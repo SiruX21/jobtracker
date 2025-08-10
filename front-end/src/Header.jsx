@@ -1,7 +1,7 @@
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield, FaFileAlt, FaBars, FaTimes } from "react-icons/fa";
-import { Switch, Transition } from '@headlessui/react';
+import { FaMoon, FaSun, FaHome, FaBriefcase, FaSignInAlt, FaSignOutAlt, FaCog, FaUserShield, FaFileAlt } from "react-icons/fa";
+import { Switch } from '@headlessui/react';
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
@@ -92,20 +92,126 @@ function Header({ darkMode, toggleTheme, isMobile }) {
         {/* Navigation - responsive layout */}
         {isMobile ? (
           /* Mobile Menu Button - show on mobile */
-          <button
-            onClick={() => {
-              const newShowMobileMenu = !showMobileMenu;
-              setShowMobileMenu(newShowMobileMenu);
-              
-              // Dispatch event to close other mobile menus when opening header menu
-              if (newShowMobileMenu) {
-                window.dispatchEvent(new CustomEvent('headerMobileMenuOpened'));
-              }
-            }}
-            className="text-white hover:text-blue-300 transition-all duration-200 ease-in-out transform hover:scale-110 p-2"
-          >
-            {showMobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
-          </button>
+          <nav>
+            <section className="MOBILE-MENU flex lg:hidden">
+              <div
+                className="HAMBURGER-ICON space-y-2 cursor-pointer"
+                onClick={() => {
+                  const newShowMobileMenu = !showMobileMenu;
+                  setShowMobileMenu(newShowMobileMenu);
+                  
+                  // Dispatch event to close other mobile menus when opening header menu
+                  if (newShowMobileMenu) {
+                    window.dispatchEvent(new CustomEvent('headerMobileMenuOpened'));
+                  }
+                }}
+              >
+                <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
+                <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
+                <span className="block h-0.5 w-8 animate-pulse bg-white"></span>
+              </div>
+
+              <div className={showMobileMenu ? "showMenuNav" : "hideMenuNav"}>
+                <div
+                  className="absolute top-0 right-0 px-8 py-8 cursor-pointer"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <svg
+                    className="h-8 w-8 text-gray-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </div>
+                <ul className="flex flex-col items-center justify-center min-h-[250px] space-y-8">
+                  {authToken && (
+                    <li className="border-b border-gray-400 py-4 uppercase">
+                      <button
+                        onClick={() => handleNavigation("/")}
+                        className="flex items-center text-gray-800 hover:text-blue-600 transition-all duration-200"
+                      >
+                        <FaHome className="mr-3" />
+                        Home
+                      </button>
+                    </li>
+                  )}
+                  {authToken && (
+                    <li className="border-b border-gray-400 py-4 uppercase">
+                      <button
+                        onClick={() => handleNavigation("/tracker")}
+                        className="flex items-center text-gray-800 hover:text-blue-600 transition-all duration-200"
+                      >
+                        <FaFileAlt className="mr-3" />
+                        Applications
+                      </button>
+                    </li>
+                  )}
+                  {authToken && (
+                    <li className="border-b border-gray-400 py-4 uppercase">
+                      <button
+                        onClick={() => handleNavigation("/settings")}
+                        className="flex items-center text-gray-800 hover:text-blue-600 transition-all duration-200"
+                      >
+                        <FaCog className="mr-3" />
+                        Settings
+                      </button>
+                    </li>
+                  )}
+                  {!authToken && !isAuthPage && (
+                    <li className="border-b border-gray-400 py-4 uppercase">
+                      <button
+                        onClick={() => handleNavigation("/auth")}
+                        className="flex items-center text-gray-800 hover:text-blue-600 transition-all duration-200"
+                      >
+                        <FaSignInAlt className="mr-3" />
+                        Sign In
+                      </button>
+                    </li>
+                  )}
+                  {authToken && (
+                    <li className="border-b border-gray-400 py-4 uppercase">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center text-red-600 hover:text-red-800 transition-all duration-200"
+                      >
+                        <FaSignOutAlt className="mr-3" />
+                        Logout
+                      </button>
+                    </li>
+                  )}
+                  {/* Theme Toggle */}
+                  {toggleTheme && (
+                    <li className="py-4">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-gray-800">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                        <Switch
+                          checked={darkMode}
+                          onChange={() => {
+                            toggleTheme();
+                            setShowMobileMenu(false);
+                          }}
+                          className="group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-blue-300 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 data-[checked]:bg-blue-500"
+                        >
+                          <span className="sr-only">Toggle theme</span>
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              darkMode ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </Switch>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </section>
+          </nav>
         ) : (
           /* Desktop Navigation Links - show on desktop */
           <nav className="flex items-center space-x-4">
@@ -188,106 +294,37 @@ function Header({ darkMode, toggleTheme, isMobile }) {
         )}
       </header>
 
-      {/* Mobile Navigation Menu - show on mobile only */}
-      <Transition appear show={isMobile && showMobileMenu} as={Fragment}>
-        {/* Overlay */}
-        <Transition.Child
-          as="div"
-          enter="transition-opacity duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="transition-opacity duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setShowMobileMenu(false)}
-        />
-        {/* Panel */}
-        <Transition.Child
-          as="div"
-          enter="transition-transform transition-opacity duration-300"
-          enterFrom="opacity-0 -translate-y-4"
-          enterTo="opacity-100 translate-y-0"
-          leave="transition-transform transition-opacity duration-200"
-          leaveFrom="opacity-100 translate-y-0"
-          leaveTo="opacity-0 -translate-y-4"
-          className="fixed left-0 right-0 bg-blue-800 dark:bg-blue-900 w-full shadow-lg z-50"
-          style={{ marginTop: '72px' }}
-          onClick={e => e.stopPropagation()}
-        >
-            <nav className="py-4 px-4 space-y-3">
-              {authToken && (
-                <button
-                  onClick={() => handleNavigation("/")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
-                >
-                  <FaHome className="mr-3" />
-                  Home
-                </button>
-              )}
-              {authToken && (
-                <button
-                  onClick={() => handleNavigation("/tracker")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
-                >
-                  <FaFileAlt className="mr-3" />
-                  Applications
-                </button>
-              )}
-              {authToken && (
-                <button
-                  onClick={() => handleNavigation("/settings")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
-                >
-                  <FaCog className="mr-3" />
-                  Settings
-                </button>
-              )}
-              {!authToken && !isAuthPage && (
-                <button
-                  onClick={() => handleNavigation("/auth")}
-                  className="w-full flex items-center text-white hover:text-blue-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transform hover:scale-105"
-                >
-                  <FaSignInAlt className="mr-3" />
-                  Sign In
-                </button>
-              )}
-              {authToken && (
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center text-white hover:text-red-300 transition-all duration-200 ease-in-out py-3 px-4 rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transform hover:scale-105"
-                >
-                  <FaSignOutAlt className="mr-3" />
-                  Logout
-                </button>
-              )}
-              {/* Theme Toggle */}
-              {toggleTheme && (
-                <div className="flex items-center justify-between py-3 px-4">
-                  <div className="flex items-center">
-                    {darkMode ? <FaSun className="mr-3 text-white" /> : <FaMoon className="mr-3 text-white" />}
-                    <span className="text-white">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                  </div>
-                  <Switch
-                    checked={darkMode}
-                    onChange={() => {
-                      toggleTheme();
-                      setShowMobileMenu(false);
-                    }}
-                    className="group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-blue-300 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 data-[checked]:bg-blue-500"
-                  >
-                    <span className="sr-only">Toggle theme</span>
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        darkMode ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </Switch>
-                </div>
-              )}
-            </nav>
-        </Transition.Child>
-      </Transition>
+      <style>{`
+        .hideMenuNav {
+          display: none;
+        }
+        .showMenuNav {
+          display: block;
+          position: fixed;
+          width: 100%;
+          height: 100vh;
+          top: 0;
+          left: 0;
+          background: white;
+          z-index: 50;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        .dark .showMenuNav {
+          background: #1f2937;
+        }
+        .dark .showMenuNav li button {
+          color: #f3f4f6;
+        }
+        .dark .showMenuNav li button:hover {
+          color: #3b82f6;
+        }
+        .dark .showMenuNav svg {
+          color: #f3f4f6;
+        }
+      `}</style>
     </>
   );
 }

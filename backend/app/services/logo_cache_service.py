@@ -575,11 +575,9 @@ class LogoCacheService:
                     
                     # Cache this specific brand's logo data immediately to prevent cross-contamination
                     if logo_url:
-                        brand_cache_key = self.get_cache_key(brand_name)
-                        brand_meta_key = self.get_metadata_key(brand_name)
-                        
                         # Store a reference to the original Brandfetch URL in search cache
-                        brand_search_cache_key = f"brandfetch_search:{brand_name.lower().strip().replace(' ', '_')}_{hashlib.md5(brand_name.lower().encode('utf-8')).hexdigest()[:8]}"
+                        # Use a different cache key pattern for autocomplete to prevent conflicts
+                        brand_search_cache_key = f"brandfetch_autocomplete:{brand_name.lower().strip().replace(' ', '_')}_{hashlib.md5(brand_name.lower().encode('utf-8')).hexdigest()[:8]}"
                         brand_search_result = {
                             'url': logo_url,
                             'domain': brand.get('domain', ''),
@@ -590,7 +588,7 @@ class LogoCacheService:
                             'industry': brand.get('industry', '')
                         }
                         self.cache_search_result(brand_search_cache_key, brand_search_result)
-                        print(f"   Cached search result for {brand_name} with key: {brand_search_cache_key}")
+                        print(f"   Cached autocomplete search result for {brand_name} with key: {brand_search_cache_key}")
                     
                     print(f"🖼️ search_brandfetch_autocomplete: Final logo URL for {brand_name}: {logo_url}")
                     
@@ -671,11 +669,12 @@ class LogoCacheService:
                 cache_key = self.get_cache_key(company_name)
                 meta_key = self.get_metadata_key(company_name)
                 
-                # Generate both direct and autocomplete search cache keys
+                # Generate all possible search cache keys
                 clean_name = company_name.lower().strip()
                 name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
                 direct_search_key = f"brandfetch_direct_search:{clean_name.replace(' ', '_')}_{name_hash}"
                 autocomplete_search_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
+                autocomplete_brand_key = f"brandfetch_autocomplete:{clean_name.replace(' ', '_')}_{name_hash}"
                 
                 cleared_keys = []
                 if self.redis_client.delete(cache_key):
@@ -695,6 +694,8 @@ class LogoCacheService:
                         cleared_keys.append(direct_search_key)
                     if text_redis.delete(autocomplete_search_key):
                         cleared_keys.append(autocomplete_search_key)
+                    if text_redis.delete(autocomplete_brand_key):
+                        cleared_keys.append(autocomplete_brand_key)
                 except Exception as e:
                     print(f"Error clearing search cache: {e}")
                 
@@ -712,6 +713,7 @@ class LogoCacheService:
                 meta_keys = self.redis_client.keys("logo_meta:*")
                 search_keys = self.redis_client.keys("brandfetch_search:*")
                 direct_search_keys = self.redis_client.keys("brandfetch_direct_search:*")
+                autocomplete_brand_keys = self.redis_client.keys("brandfetch_autocomplete:*")
                 autocomplete_keys = self.redis_client.keys("autocomplete:*")
                 
                 # Count before clearing
@@ -720,10 +722,11 @@ class LogoCacheService:
                     "metadata": len(meta_keys),
                     "search_results": len(search_keys),
                     "direct_search_results": len(direct_search_keys),
+                    "autocomplete_brand_results": len(autocomplete_brand_keys),
                     "autocomplete": len(autocomplete_keys)
                 }
                 
-                all_keys = logo_keys + meta_keys + search_keys + direct_search_keys + autocomplete_keys
+                all_keys = logo_keys + meta_keys + search_keys + direct_search_keys + autocomplete_brand_keys + autocomplete_keys
                 cleared_count = 0
                 if all_keys:
                     cleared_count = self.redis_client.delete(*all_keys)
@@ -870,6 +873,7 @@ class LogoCacheService:
             logo_meta_keys = self.redis_client.keys("logo_meta:*")
             search_keys = self.redis_client.keys("brandfetch_search:*")
             direct_search_keys = self.redis_client.keys("brandfetch_direct_search:*")
+            autocomplete_brand_keys = self.redis_client.keys("brandfetch_autocomplete:*")
             autocomplete_keys = self.redis_client.keys("autocomplete:*")
             
             # Calculate cache size by getting total memory usage for logo images
@@ -895,7 +899,7 @@ class LogoCacheService:
                 used_memory = 0
             
             # Calculate hit/miss rates (simplified - based on cache vs search entries)
-            total_searches = len(search_keys) + len(direct_search_keys) + len(autocomplete_keys)
+            total_searches = len(search_keys) + len(direct_search_keys) + len(autocomplete_brand_keys) + len(autocomplete_keys)
             cached_results = len(logo_img_keys)
             
             hit_rate = 0.0
@@ -913,6 +917,7 @@ class LogoCacheService:
                 "metadata_entries": len(logo_meta_keys),
                 "search_cache_entries": len(search_keys),
                 "direct_search_cache_entries": len(direct_search_keys),
+                "autocomplete_brand_cache_entries": len(autocomplete_brand_keys),
                 "autocomplete_cache_entries": len(autocomplete_keys),
                 "redis_used_memory": used_memory,
                 "sample_logo_keys": [k.decode('utf-8') if isinstance(k, bytes) else k for k in logo_img_keys[:5]]
