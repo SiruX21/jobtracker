@@ -90,11 +90,12 @@ class LogoCacheService:
         search_result = self.search_brandfetch_api(company_name)
         if search_result:
             logo_url = search_result.get('url')
+            found_company_name = search_result.get('company_name', 'Unknown')
             if logo_url:
-                print(f"🎯 get_logo_data: Found logo via BRANDFETCH API for '{company_name}': {logo_url}")
+                print(f"🎯 get_logo_data: Found logo via BRANDFETCH API for '{company_name}' -> '{found_company_name}': {logo_url}")
                 image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='brandfetch_api')
                 if image_data:
-                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}'")
+                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}' -> '{found_company_name}'")
                     return image_data, content_type
 
         print(f"❌ get_logo_data: No logo found for '{company_name}' from Brandfetch API")
@@ -193,10 +194,10 @@ class LogoCacheService:
             # Use a more robust cache key that prevents collisions
             clean_name = company_name.lower().strip()
             name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
-            search_cache_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
+            search_cache_key = f"brandfetch_direct_search:{clean_name.replace(' ', '_')}_{name_hash}"
             cached_search = self.get_search_from_cache(search_cache_key)
             if cached_search:
-                print(f"Using cached Brandfetch search for {company_name}")
+                print(f"🔄 search_brandfetch_api: Using cached Brandfetch search for '{company_name}' -> {cached_search.get('company_name', 'Unknown')}")
                 return cached_search
             
             # Only proceed if we have API key
@@ -218,10 +219,25 @@ class LogoCacheService:
             if response.status_code == 200:
                 search_data = response.json()
                 
-                # Get the first result from the search
+                # Get the first result from the search, but prefer exact matches
                 if search_data and len(search_data) > 0:
-                    brand = search_data[0]
-                    print(f"🔍 search_brandfetch_api: Found brand for {company_name}: {brand.get('name', 'Unknown')}")
+                    # Try to find exact match first
+                    exact_match = None
+                    best_match = None
+                    
+                    for brand in search_data:
+                        brand_name = brand.get('name', '').lower().strip()
+                        if brand_name == company_name.lower().strip():
+                            exact_match = brand
+                            print(f"🎯 search_brandfetch_api: Found EXACT match for '{company_name}': {brand.get('name', 'Unknown')}")
+                            break
+                        elif not best_match:
+                            best_match = brand
+                    
+                    # Use exact match if found, otherwise use first result
+                    brand = exact_match if exact_match else best_match
+                    if brand:
+                        print(f"🔍 search_brandfetch_api: Using brand for '{company_name}': {brand.get('name', 'Unknown')} (exact: {exact_match is not None})")
                     
                     # Extract logo information using improved logic
                     logo_url = None
@@ -262,14 +278,14 @@ class LogoCacheService:
                             'domain': brand.get('domain', ''),
                             'company_name': brand.get('name', company_name),
                             'confidence': 0.9,  # High confidence for Brandfetch API
-                            'source': 'brandfetch',
+                            'source': 'brandfetch_direct',
                             'description': brand.get('description', ''),
                             'industry': brand.get('industry', '')
                         }
                         
-                        # Cache search result
+                        # Cache search result with direct search key
                         self.cache_search_result(search_cache_key, search_result)
-                        print(f"Found Brandfetch logo for {company_name}: {logo_url}")
+                        print(f"✅ search_brandfetch_api: Found Brandfetch logo for '{company_name}' -> '{brand.get('name', company_name)}': {logo_url}")
                         return search_result
                     else:
                         print(f"No logo found in Brandfetch data for {company_name}")
@@ -600,10 +616,11 @@ class LogoCacheService:
                 cache_key = self.get_cache_key(company_name)
                 meta_key = self.get_metadata_key(company_name)
                 
-                # Generate the same search cache key as used in search_brandfetch_api
+                # Generate both direct and autocomplete search cache keys
                 clean_name = company_name.lower().strip()
                 name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
-                search_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
+                direct_search_key = f"brandfetch_direct_search:{clean_name.replace(' ', '_')}_{name_hash}"
+                autocomplete_search_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
                 
                 cleared_keys = []
                 if self.redis_client.delete(cache_key):
@@ -619,8 +636,10 @@ class LogoCacheService:
                         db=Config.REDIS_DB,
                         decode_responses=True
                     )
-                    if text_redis.delete(search_key):
-                        cleared_keys.append(search_key)
+                    if text_redis.delete(direct_search_key):
+                        cleared_keys.append(direct_search_key)
+                    if text_redis.delete(autocomplete_search_key):
+                        cleared_keys.append(autocomplete_search_key)
                 except Exception as e:
                     print(f"Error clearing search cache: {e}")
                 
@@ -637,17 +656,19 @@ class LogoCacheService:
                 logo_keys = self.redis_client.keys("logo_img:*")
                 meta_keys = self.redis_client.keys("logo_meta:*")
                 search_keys = self.redis_client.keys("brandfetch_search:*")
+                direct_search_keys = self.redis_client.keys("brandfetch_direct_search:*")
                 autocomplete_keys = self.redis_client.keys("autocomplete:*")
                 
                 # Count before clearing
                 counts = {
                     "logo_images": len(logo_keys),
                     "metadata": len(meta_keys),
-                    "search_results": len(search_keys), 
+                    "search_results": len(search_keys),
+                    "direct_search_results": len(direct_search_keys),
                     "autocomplete": len(autocomplete_keys)
                 }
                 
-                all_keys = logo_keys + meta_keys + search_keys + autocomplete_keys
+                all_keys = logo_keys + meta_keys + search_keys + direct_search_keys + autocomplete_keys
                 cleared_count = 0
                 if all_keys:
                     cleared_count = self.redis_client.delete(*all_keys)
@@ -793,6 +814,7 @@ class LogoCacheService:
             logo_img_keys = self.redis_client.keys("logo_img:*")
             logo_meta_keys = self.redis_client.keys("logo_meta:*")
             search_keys = self.redis_client.keys("brandfetch_search:*")
+            direct_search_keys = self.redis_client.keys("brandfetch_direct_search:*")
             autocomplete_keys = self.redis_client.keys("autocomplete:*")
             
             # Calculate cache size by getting total memory usage for logo images
@@ -818,7 +840,7 @@ class LogoCacheService:
                 used_memory = 0
             
             # Calculate hit/miss rates (simplified - based on cache vs search entries)
-            total_searches = len(search_keys) + len(autocomplete_keys)
+            total_searches = len(search_keys) + len(direct_search_keys) + len(autocomplete_keys)
             cached_results = len(logo_img_keys)
             
             hit_rate = 0.0
@@ -835,6 +857,7 @@ class LogoCacheService:
                 "total_cached_logos": len(logo_img_keys),
                 "metadata_entries": len(logo_meta_keys),
                 "search_cache_entries": len(search_keys),
+                "direct_search_cache_entries": len(direct_search_keys),
                 "autocomplete_cache_entries": len(autocomplete_keys),
                 "redis_used_memory": used_memory,
                 "sample_logo_keys": [k.decode('utf-8') if isinstance(k, bytes) else k for k in logo_img_keys[:5]]
