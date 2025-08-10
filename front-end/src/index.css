@@ -348,54 +348,76 @@ html {
   color: #ffffff !important;
 }
 
-/* Simple Toast Styles */
+/* Toast Notification Styles - Enhanced */
 .Toastify__toast-container {
-  z-index: 9999;
+  z-index: 9999 !important;
 }
 
-.Toastify__toast {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-family: 'Quicksand', sans-serif;
-  font-weight: 500;
+/* Override all toast styles with higher specificity */
+div.Toastify__toast {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 500 !important;
+  min-height: 60px !important;
+  margin-bottom: 8px !important;
+  border: none !important;
 }
 
-.Toastify__toast-body { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
-  padding: 12px;
+div.Toastify__toast-body { 
+  display: flex !important; 
+  align-items: center !important; 
+  gap: 8px !important; 
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
 }
 
-.Toastify__toast-body > div { 
-  white-space: nowrap; 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
+div.Toastify__toast-body > div { 
+  white-space: nowrap !important; 
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex: 1 !important;
 }
 
-.Toastify__toast--success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+div.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
 }
 
-.Toastify__toast--error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+div.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
 }
 
-.Toastify__toast--info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+div.Toastify__toast--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
 }
 
-.Toastify__toast--warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+div.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
 }
 
 .Toastify__progress-bar {
-  height: 3px;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.Toastify__close-button {
+  color: white !important;
+  opacity: 0.8 !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+/* Force override any default theme styles */
+div.Toastify__toast.Toastify__toast--default {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  color: white !important;
 }
 /* Fade in animation for progressive disclosure */
 @keyframes fadeIn {
