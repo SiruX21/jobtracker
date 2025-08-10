@@ -225,14 +225,14 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         localStorage.removeItem(key);
       }
     });
-    toast.success('🗑️ Local logo cache cleared successfully');
+    showToast.success('🗑️ Local logo cache cleared successfully');
   };
 
   const updateLogoConfig = async (serviceType) => {
     try {
       const token = Cookies.get('authToken');
       if (!token) {
-        toast.error('Authentication required');
+        showToast.error('Authentication required');
         return;
       }
       
@@ -241,15 +241,15 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success(`Logo service updated to: ${serviceType}`);
+      showToast.success(`Logo service updated to: ${serviceType}`);
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
-        toast.error('Admin access required to update logo configuration');
+        showToast.error('Admin access required to update logo configuration');
       } else if (error.response?.status === 401) {
-        toast.error('Authentication required');
+        showToast.error('Authentication required');
       } else {
-        toast.error('Failed to update logo configuration');
+        showToast.error('Failed to update logo configuration');
       }
       console.error('Error updating logo config:', error);
     }
@@ -574,7 +574,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">Available Services</div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {['auto', 'logodev', 'clearbit', 'iconhorse', 'favicon'].map((service) => (
+                {['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon'].map((service) => (
                   <button
                     key={service}
                     onClick={() => updateLogoConfig(service)}
@@ -584,9 +584,17 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
                         : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <div className="font-medium capitalize">{service}</div>
+                    <div className="font-medium capitalize flex items-center">
+                      {service}
+                      {service === 'brandfetch' && (
+                        <span className="ml-2 px-1 py-0.5 text-xs bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100 rounded">
+                          Premium
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {service === 'auto' && 'Automatic fallback chain'}
+                      {service === 'auto' && 'Automatic fallback chain (Brandfetch → Logo.dev → Clearbit)'}
+                      {service === 'brandfetch' && 'Brandfetch API with company search & rich data'}
                       {service === 'logodev' && 'Logo.dev API'}
                       {service === 'clearbit' && 'Clearbit Logo API'}
                       {service === 'iconhorse' && 'IconHorse service'}
@@ -632,8 +640,20 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         <div className="space-y-4">
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
             <div className="flex items-center justify-between mb-2">
+              <span className="font-medium text-gray-900 dark:text-white">Brandfetch API</span>
+              <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100 rounded">Premium</span>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div>Endpoint: https://api.brandfetch.io/v2/search</div>
+              <div>Format: High-quality logos with company metadata</div>
+              <div>Features: Company search, autocomplete, rich data (industry, description)</div>
+            </div>
+          </div>
+          
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
+            <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-gray-900 dark:text-white">Clearbit Logo API</span>
-              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Primary</span>
+              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Secondary</span>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <div>Endpoint: https://logo.clearbit.com/{'{company}'}</div>
@@ -645,12 +665,12 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-gray-900 dark:text-white">Logo.dev API</span>
-              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Secondary</span>
+              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Tertiary</span>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <div>Endpoint: https://img.logo.dev/{'{company}'}.com</div>
               <div>Format: Optimized company logos</div>
-              <div>Usage: Fallback when Clearbit fails</div>
+              <div>Usage: Fallback when Brandfetch/Clearbit fails</div>
             </div>
           </div>
 
