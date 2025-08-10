@@ -120,6 +120,35 @@ function App() {
     return toastTheme;
   };
 
+  const getToastContainerStyle = () => {
+    const baseStyle = {
+      zIndex: 99999,
+      position: 'fixed',
+      pointerEvents: 'none',
+      padding: '8px',
+      maxWidth: '400px',
+      minWidth: '300px'
+    };
+
+    // Add position-specific styles
+    switch(toastPosition) {
+      case 'top-left':
+        return { ...baseStyle, top: '1rem', left: '1rem' };
+      case 'top-center':
+        return { ...baseStyle, top: '1rem', left: '50%', transform: 'translateX(-50%)' };
+      case 'top-right':
+        return { ...baseStyle, top: '1rem', right: '1rem' };
+      case 'bottom-left':
+        return { ...baseStyle, bottom: '1rem', left: '1rem' };
+      case 'bottom-center':
+        return { ...baseStyle, bottom: '1rem', left: '50%', transform: 'translateX(-50%)' };
+      case 'bottom-right':
+        return { ...baseStyle, bottom: '1rem', right: '1rem' };
+      default:
+        return { ...baseStyle, bottom: '1rem', left: '50%', transform: 'translateX(-50%)' };
+    }
+  };
+
   const toggleTheme = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
@@ -198,13 +227,17 @@ function App() {
         pauseOnHover
         theme={getToastTheme()}
         className="custom-toast-container"
-        style={{ 
-          zIndex: 9999, 
-          position: 'fixed',
-          pointerEvents: 'none'
-        }}
+        style={getToastContainerStyle()}
         toastStyle={{
-          pointerEvents: 'auto'
+          pointerEvents: 'auto',
+          background: '#333',
+          color: 'white',
+          borderRadius: '8px',
+          padding: '16px',
+          fontSize: '14px',
+          zIndex: 99999,
+          marginBottom: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}
         enableMultiContainer={false}
         containerId="main-toast-container"

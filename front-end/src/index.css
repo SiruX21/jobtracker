@@ -388,10 +388,51 @@ div[class*="Toastify__toast-container"] {
 }
 
 /* FORCE TOAST VISIBILITY - OVERRIDE ALL CONFLICTS */
+section.Toastify,
+section[class*="Toastify"],
+#main-toast-container {
+  position: fixed !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  width: auto !important;
+  max-width: 400px !important;
+  min-width: 300px !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+section.Toastify div[class*="toast"],
+section[class*="Toastify"] div[class*="toast"],
+#main-toast-container div[class*="toast"] {
+  position: relative !important;
+  pointer-events: auto !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  margin-bottom: 8px !important;
+  padding: 16px !important;
+  background: #333 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  min-height: auto !important;
+  transform: none !important;
+  transition: all 0.3s ease !important;
+}
+
 .Toastify__toast-container,
 div[class*="Toastify__toast-container"] {
   position: fixed !important;
-  z-index: 9999 !important;
+  z-index: 99999 !important;
   pointer-events: none !important;
   top: auto !important;
   left: auto !important;
