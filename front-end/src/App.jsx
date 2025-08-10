@@ -177,6 +177,7 @@ function App() {
           pauseOnHover
           theme={getToastTheme()}
           className="custom-toast-container"
+          style={{ zIndex: 9999 }}
         />
       </div>
     </Router>

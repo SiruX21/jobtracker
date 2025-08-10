@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
 import { debugLog } from '../../utils/debug';
+import { showToast as importedShowToast } from '../../utils/toast';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -21,10 +22,13 @@ function AccessibilitySection({
   showToast,
   isMobile 
 }) {
+  // Use imported showToast if prop is not provided
+  const toast = showToast || importedShowToast;
+  
   // Debug: Check if showToast is properly defined
   React.useEffect(() => {
-    debugLog('AccessibilitySection showToast:', showToast);
-  }, [showToast]);
+    debugLog('AccessibilitySection toast:', toast);
+  }, [toast]);
 
   const toastPositionOptions = [
     { value: 'top-left', label: 'Top Left' },
@@ -172,22 +176,15 @@ function AccessibilitySection({
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
-                debugLog('Test notification clicked', { showToast, position: toastPosition, theme: toastTheme }); // Debug
+                debugLog('Test notification clicked', { toast, position: toastPosition, theme: toastTheme });
                 
                 // Apply settings immediately before showing test toast
                 window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
                   detail: { position: toastPosition, theme: toastTheme } 
                 }));
                 
-                // Small delay to ensure settings are applied
-                setTimeout(() => {
-                  debugLog('Showing test toast'); // Debug
-                  if (showToast && showToast.success) {
-                    showToast.success("🎉 This is a test notification!");
-                  } else {
-                    console.error('showToast is not properly defined:', showToast);
-                  }
-                }, 100);
+                debugLog('Showing test toast');
+                toast.success("🎉 This is a test notification!");
               }}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
             >

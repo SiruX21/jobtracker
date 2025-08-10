@@ -351,6 +351,13 @@ html {
 /* Custom Toast Styles */
 .custom-toast-container {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  z-index: 9999 !important;
+}
+
+/* Ensure toast container is always visible */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+  position: fixed !important;
 }
 
 /* Custom toast styling */
