@@ -352,7 +352,8 @@ html {
 .Toastify__toast-container {
   z-index: 9999;
 }
-
+.Toastify__toast-body { display:flex; align-items:center; gap:8px; }
+.Toastify__toast-body > div { white-space: nowrap; }
 /* Fade in animation for progressive disclosure */
 @keyframes fadeIn {
   from {
