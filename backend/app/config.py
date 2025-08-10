@@ -44,7 +44,6 @@ class Config:
     DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
     
     # Logo service configuration
-    LOGO_DEV_API_TOKEN = os.getenv('LOGO_DEV_API_TOKEN')
     BRANDFETCH_API_KEY = os.getenv('BRANDFETCH_API_KEY')
     
     @classmethod

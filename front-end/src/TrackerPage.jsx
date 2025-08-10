@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { debugLog, debugWarn } from './utils/debug';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
-import companySuggestions, { getJobTitleSuggestions } from "./data/companySuggestions";
+import { getJobTitleSuggestions } from "./data/companySuggestions";
 import { logoService } from "./services/logoService";
 import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
@@ -657,23 +657,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           
           setAutocompleteSuggestions(fixedSuggestions);
         } catch (error) {
-          console.error('Error searching companies via API, falling back to static suggestions:', error);
-          
-          // Fallback to static company suggestions
-          const filtered = companySuggestions.filter(company =>
-            company.name.toLowerCase().includes(companySearchTerm.toLowerCase())
-          ).slice(0, 8);
-          
-          // Convert static suggestions to API format
-          const fallbackSuggestions = filtered.map(company => ({
-            name: company.name,
-            logo_url: company.logo,
-            industry: company.commonTitles?.[0] ? `${company.commonTitles[0]} roles` : 'Technology',
-            domain: company.website,
-            confidence: 0.8
-          }));
-          
-          setAutocompleteSuggestions(fallbackSuggestions);
+          console.error('Error searching companies via API:', error);
+          // Just set empty suggestions if API fails
+          setAutocompleteSuggestions([]);
         } finally {
           setSearchLoading(false);
         }

@@ -80,13 +80,18 @@ function JobCards({
               </button>
               
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden">
+                <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
                   <img 
                     src={getCompanyLogoSync(job.company_name)} 
                     alt={job.company_name}
-                    className="w-10 h-10 object-contain"
+                    className="w-full h-full object-cover rounded-lg"
+                    style={{ 
+                      backgroundColor: 'transparent',
+                      objectFit: 'contain',
+                      padding: '2px'
+                    }}
                     onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=40&bold=true`;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`;
                     }}
                   />
                 </div>

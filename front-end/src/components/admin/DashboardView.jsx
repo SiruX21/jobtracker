@@ -232,13 +232,18 @@ function DashboardView({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 min-w-0 flex-1">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors overflow-hidden">
+                        <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-100 dark:group-hover:bg-gray-600 transition-colors overflow-hidden border border-gray-200 dark:border-gray-600 shadow-sm">
                           <img 
                             src={getCompanyLogoSync(job.company_name)} 
                             alt={job.company_name}
-                            className="w-8 h-8 object-contain"
+                            className="w-full h-full object-cover rounded-lg"
+                            style={{ 
+                              backgroundColor: 'transparent',
+                              objectFit: 'contain',
+                              padding: '2px'
+                            }}
                             onError={(e) => {
-                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=32&bold=true`;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company_name)}&background=3b82f6&color=ffffff&size=48&bold=true`;
                             }}
                           />
                         </div>
