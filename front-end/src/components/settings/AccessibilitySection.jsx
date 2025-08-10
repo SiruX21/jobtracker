@@ -10,7 +10,8 @@ import {
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
 import { debugLog } from '../../utils/debug';
-import { showToast as importedShowToast, testToastify } from '../../utils/toast';
+import { showToast as importedShowToast } from '../../utils/toast';
+import { toast } from 'react-toastify';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -230,13 +231,32 @@ function AccessibilitySection({
                   });
                 });
                 
+                // Check if root element has ToastContainer
+                const rootEl = document.getElementById('root');
+                if (rootEl) {
+                  debugLog('Root element children:', rootEl.children.length);
+                  Array.from(rootEl.children).forEach((child, i) => {
+                    debugLog(`Root child ${i}:`, child.className, child.tagName);
+                  });
+                }
+                
                 // Test direct react-toastify
                 debugLog('Testing direct react-toastify...');
-                testToastify();
+                debugLog('toast object:', toast);
+                try {
+                  const result = toast.success('🔥 DIRECT REACT-TOASTIFY TEST!');
+                  debugLog('Direct toast result:', result);
+                } catch (error) {
+                  debugLog('Direct toast error:', error);
+                }
                 
                 // Test our wrapper
                 debugLog('Testing our showToast wrapper...');
-                importedShowToast.success("🚀 COMPREHENSIVE TEST!");
+                try {
+                  importedShowToast.success("🚀 WRAPPER TEST!");
+                } catch (error) {
+                  debugLog('Wrapper error:', error);
+                }
               }}
               className={`mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}
             >

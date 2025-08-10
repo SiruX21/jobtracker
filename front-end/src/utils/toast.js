@@ -1,7 +1,7 @@
 import { toast } from 'react-toastify';
 
 // Debug function to test if react-toastify is working
-const testToastify = () => {
+export const testToastify = () => {
   console.log('Testing react-toastify directly...');
   console.log('toast object:', toast);
   console.log('toast.success function:', toast.success);
@@ -57,8 +57,5 @@ export const showCriticalToast = {
   // Function version for backward compatibility
   show: (type, message, options = {}) => toast[type](message, options)
 };
-
-// Export test function for debugging
-export { testToastify };
 
 export default showToast;

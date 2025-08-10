@@ -94,6 +94,25 @@ function App() {
     return () => window.removeEventListener('toastSettingsChanged', handleToastSettingsChange);
   }, []);
 
+  // Debug: Check if ToastContainer is mounting
+  useEffect(() => {
+    console.log('=== APP.JSX TOAST DEBUG ===');
+    console.log('toastPosition:', toastPosition);
+    console.log('toastTheme:', toastTheme);
+    console.log('getToastTheme():', getToastTheme());
+    
+    // Check after a short delay to see if container appears
+    setTimeout(() => {
+      const containers = document.querySelectorAll('[class*="Toastify"]');
+      console.log('ToastContainer elements after mount:', containers.length);
+      if (containers.length === 0) {
+        console.error('🚨 NO TOASTCONTAINER FOUND IN DOM!');
+      } else {
+        console.log('✅ ToastContainer found:', containers);
+      }
+    }, 1000);
+  }, [toastPosition, toastTheme]);
+
   const getToastTheme = () => {
     if (toastTheme === 'auto') {
       return darkMode ? 'dark' : 'light';
