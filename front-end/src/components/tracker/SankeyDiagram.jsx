@@ -34,6 +34,10 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
   };
 
   const processSankeyData = (transitions, initialStatuses) => {
+    console.log("🔍 Debug: Raw data from API:");
+    console.log("Transitions:", transitions);
+    console.log("Initial statuses:", initialStatuses);
+    
     // Get all unique statuses
     const allStatuses = new Set();
     
@@ -52,6 +56,8 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
       statusToIndex[status] = index;
     });
 
+    console.log("🔍 Debug: Status mapping:", statusToIndex);
+
     // Create source, target, and value arrays for Sankey
     const source = [];
     const target = [];
@@ -62,18 +68,30 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
     const startNodeIndex = statusList.length;
     labels.push("Start");
     
+    let totalInitialApplications = 0;
     initialStatuses.forEach(item => {
       source.push(startNodeIndex);
       target.push(statusToIndex[item.status]);
       value.push(item.count);
+      totalInitialApplications += item.count;
+      console.log(`🔍 Debug: Start -> ${item.status}: ${item.count} applications`);
     });
 
     // Add transitions
+    let totalTransitions = 0;
     transitions.forEach(t => {
       source.push(statusToIndex[t.from_status]);
       target.push(statusToIndex[t.to_status]);
       value.push(t.count);
+      totalTransitions += t.count;
+      console.log(`🔍 Debug: ${t.from_status} -> ${t.to_status}: ${t.count} transitions`);
     });
+
+    console.log(`🔍 Debug: Total initial applications: ${totalInitialApplications}`);
+    console.log(`🔍 Debug: Total transitions: ${totalTransitions}`);
+    console.log("🔍 Debug: Source array:", source);
+    console.log("🔍 Debug: Target array:", target);
+    console.log("🔍 Debug: Value array:", value);
 
     // Define colors for different statuses
     const statusColors = {

@@ -36,17 +36,18 @@ def ensure_status_history_table(cursor):
                 )
             """)
             
-            # Insert initial history for existing jobs
+            # Insert initial history for existing jobs (only if no history exists for them)
             cursor.execute("""
                 INSERT INTO job_status_history (job_id, from_status, to_status, changed_at, created_by)
                 SELECT 
-                    id as job_id,
+                    ja.id as job_id,
                     NULL as from_status,
-                    status as to_status,
-                    application_date as changed_at,
-                    user_id as created_by
-                FROM job_applications
-                WHERE status IS NOT NULL
+                    ja.status as to_status,
+                    ja.application_date as changed_at,
+                    ja.user_id as created_by
+                FROM job_applications ja
+                LEFT JOIN job_status_history jsh ON ja.id = jsh.job_id
+                WHERE ja.status IS NOT NULL AND jsh.job_id IS NULL
             """)
             print("job_status_history table created and populated with existing job data")
             
@@ -607,6 +608,26 @@ def get_status_flow_analytics(current_user):
         # Ensure the table exists
         ensure_status_history_table(cursor)
         
+        # Debug: Get total job count for this user
+        cursor.execute("SELECT COUNT(*) as total_jobs FROM job_applications WHERE user_id = ?", (current_user['id'],))
+        total_jobs = cursor.fetchone()['total_jobs']
+        print(f"🔍 Debug: User {current_user['id']} has {total_jobs} total jobs")
+        
+        # Clean up any duplicate initial status entries (safety check)
+        cursor.execute("""
+            DELETE jsh1 FROM job_status_history jsh1
+            INNER JOIN job_status_history jsh2 
+            WHERE jsh1.id > jsh2.id 
+            AND jsh1.job_id = jsh2.job_id 
+            AND jsh1.from_status IS NULL 
+            AND jsh2.from_status IS NULL 
+            AND jsh1.to_status = jsh2.to_status
+            AND EXISTS (SELECT 1 FROM job_applications ja WHERE ja.id = jsh1.job_id AND ja.user_id = ?)
+        """, (current_user['id'],))
+        
+        if cursor.rowcount > 0:
+            print(f"🔧 Debug: Cleaned up {cursor.rowcount} duplicate initial status entries")
+        
         # Get all status transitions for user's jobs
         cursor.execute("""
             SELECT jsh.from_status, jsh.to_status, COUNT(*) as transition_count
@@ -624,6 +645,7 @@ def get_status_flow_analytics(current_user):
                 'to_status': row['to_status'],
                 'count': row['transition_count']
             })
+            print(f"🔍 Debug: Transition {row['from_status']} -> {row['to_status']}: {row['transition_count']}")
         
         # Get initial status counts (applications that started with this status)
         cursor.execute("""
@@ -635,11 +657,33 @@ def get_status_flow_analytics(current_user):
         """, (current_user['id'],))
         
         initial_statuses = []
+        total_initial = 0
         for row in cursor.fetchall():
             initial_statuses.append({
                 'status': row['status'],
                 'count': row['count']
             })
+            total_initial += row['count']
+            print(f"🔍 Debug: Initial status {row['status']}: {row['count']}")
+        
+        print(f"🔍 Debug: Total initial statuses: {total_initial}")
+        print(f"🔍 Debug: Total transitions: {len(transitions)}")
+        
+        # Debug: Check for duplicate history entries
+        cursor.execute("""
+            SELECT job_id, COUNT(*) as history_count
+            FROM job_status_history jsh
+            INNER JOIN job_applications j ON jsh.job_id = j.id
+            WHERE j.user_id = ? AND jsh.from_status IS NULL
+            GROUP BY job_id
+            HAVING COUNT(*) > 1
+        """, (current_user['id'],))
+        
+        duplicates = cursor.fetchall()
+        if duplicates:
+            print(f"🚨 Debug: Found {len(duplicates)} jobs with multiple initial status entries!")
+            for dup in duplicates:
+                print(f"   Job ID {dup['job_id']} has {dup['history_count']} initial status entries")
         
         conn.close()
         return jsonify({
