@@ -124,13 +124,12 @@ function App() {
       <Router>
         <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
         <Routes>
-          <Route path="/" element={<Navigate to="/intro" replace />} />
           <Route
-            path="/intro"
+            path="/auth"
             element={<IntroPage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
-            path="/home"
+            path="/"
             element={<HomePage darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
@@ -144,10 +143,6 @@ function App() {
           <Route
             path="/admin"
             element={<AdminPanel darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
-          />
-          <Route
-            path="/email-verification"
-            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
           <Route
             path="/forgot-password"
@@ -164,6 +159,10 @@ function App() {
           <Route
             path="/verify-new-email"
             element={<VerifyNewEmail darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
+          />
+          <Route
+            path="/verify-email"
+            element={<EmailVerification darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />}
           />
         </Routes>
       </Router>
