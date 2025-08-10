@@ -168,12 +168,25 @@ def clear_logo_cache():
         data = request.get_json() or {}
         company_name = data.get('company_name')
         
-        logo_cache.clear_cache(company_name)
+        # Get clear result with statistics
+        clear_result = logo_cache.clear_cache(company_name)
+        
+        if not clear_result.get('success', True):
+            return jsonify(clear_result), 500
         
         if company_name:
-            return jsonify({"message": f"Cache cleared for {company_name}"})
+            return jsonify({
+                "message": f"Cache cleared for {company_name}",
+                "cleared_count": clear_result.get('cleared_count', 0),
+                "cleared_keys": clear_result.get('cleared_keys', [])
+            })
         else:
-            return jsonify({"message": "All logo cache cleared"})
+            return jsonify({
+                "message": "All logo cache cleared",
+                "cleared_count": clear_result.get('cleared_count', 0),
+                "breakdown": clear_result.get('breakdown', {}),
+                "total_keys": clear_result.get('total_keys', 0)
+            })
             
     except Exception as e:
         from app.config import Config

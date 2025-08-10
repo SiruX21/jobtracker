@@ -100,11 +100,22 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         return;
       }
       
-      await axios.post(`${API_BASE_URL}/api/logos/cache/clear`, {}, {
+      const response = await axios.post(`${API_BASE_URL}/api/logos/cache/clear`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success('Logo cache cleared successfully');
+      const data = response.data;
+      if (data.breakdown) {
+        const { breakdown, cleared_count } = data;
+        toast.success(
+          `Logo cache cleared successfully! Removed ${cleared_count} items: ` +
+          `${breakdown.logo_images || 0} logos, ${breakdown.metadata || 0} metadata, ` +
+          `${breakdown.search_results || 0} search results, ${breakdown.autocomplete || 0} autocomplete entries`
+        );
+      } else {
+        toast.success(data.message || 'Logo cache cleared successfully');
+      }
+      
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
@@ -135,12 +146,18 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         return;
       }
       
-      await axios.post(`${API_BASE_URL}/api/logos/cache/clear`, 
+      const response = await axios.post(`${API_BASE_URL}/api/logos/cache/clear`, 
         { company_name: companyName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success(`Logo cache cleared for ${companyName}`);
+      const data = response.data;
+      if (data.cleared_count > 0) {
+        toast.success(`Logo cache cleared for ${companyName} (${data.cleared_count} items removed)`);
+      } else {
+        toast.info(`No cache entries found for ${companyName}`);
+      }
+      
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {

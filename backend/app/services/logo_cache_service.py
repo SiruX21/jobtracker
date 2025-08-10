@@ -207,7 +207,7 @@ class LogoCacheService:
                 # Get the first result from the search
                 if search_data and len(search_data) > 0:
                     brand = search_data[0]
-                    print(f"🔍 search_brandfetch_api: Brand data for {company_name}: {json.dumps(brand, indent=2)}")
+                    print(f"🔍 search_brandfetch_api: Found brand for {company_name}: {brand.get('name', 'Unknown')}")
                     
                     # Extract logo information using improved logic
                     logo_url = None
@@ -217,7 +217,6 @@ class LogoCacheService:
                         print(f"🖼️ search_brandfetch_api: Found {len(brand['logos'])} logos for {company_name}")
                         # Get the first logo (usually the primary one)
                         for logo_idx, logo in enumerate(brand['logos']):
-                            print(f"   Logo {logo_idx}: {json.dumps(logo, indent=4)}")
                             if 'formats' in logo and logo['formats']:
                                 # Prefer PNG, then SVG, then any format
                                 for format_item in logo['formats']:
@@ -444,17 +443,24 @@ class LogoCacheService:
                 # Process the results
                 for brand in search_data[:limit]:  # Limit results
                     brand_name = brand.get('name', query.title())
-                    print(f"🏢 search_brandfetch_autocomplete: Processing brand: {brand_name}")
                     
-                    # Debug: print the full brand data structure
-                    print(f"🔍 search_brandfetch_autocomplete: Brand data for {brand_name}: {json.dumps(brand, indent=2)}")
+                    # Skip invalid or problematic company names
+                    if not brand_name or brand_name.lower() in ['null', 'undefined', 'none', '']:
+                        print(f"⚠️ search_brandfetch_autocomplete: Skipping invalid brand name: {brand_name}")
+                        continue
+                    
+                    # Skip brands without meaningful domain or logo data
+                    if not brand.get('domain') and not brand.get('icon') and not brand.get('logos'):
+                        print(f"⚠️ search_brandfetch_autocomplete: Skipping brand with no useful data: {brand_name}")
+                        continue
+                    
+                    print(f"🏢 search_brandfetch_autocomplete: Processing brand: {brand_name}")
                     
                     # Get the best logo URL using the same logic as search_brandfetch_api
                     logo_url = None
                     if 'logos' in brand and brand['logos']:
                         print(f"🖼️ search_brandfetch_autocomplete: Found {len(brand['logos'])} logos for {brand_name}")
                         for logo_idx, logo in enumerate(brand['logos']):
-                            print(f"   Logo {logo_idx}: {json.dumps(logo, indent=4)}")
                             if 'formats' in logo and logo['formats']:
                                 # Prefer PNG, then SVG, then any format
                                 for format_item in logo['formats']:
@@ -551,7 +557,7 @@ class LogoCacheService:
     def clear_cache(self, company_name=None):
         """Clear logo cache for specific company or all logos"""
         if not self.redis_client:
-            return
+            return {"error": "Redis not connected", "cleared_count": 0}
         
         try:
             if company_name:
@@ -579,7 +585,14 @@ class LogoCacheService:
                 except Exception as e:
                     print(f"Error clearing search cache: {e}")
                 
+                result = {
+                    "company_name": company_name,
+                    "cleared_count": len(cleared_keys),
+                    "cleared_keys": cleared_keys,
+                    "success": True
+                }
                 print(f"Cleared cache for {company_name}: {cleared_keys}")
+                return result
             else:
                 # Clear all logo cache entries
                 logo_keys = self.redis_client.keys("logo_img:*")
@@ -587,12 +600,32 @@ class LogoCacheService:
                 search_keys = self.redis_client.keys("brandfetch_search:*")
                 autocomplete_keys = self.redis_client.keys("autocomplete:*")
                 
+                # Count before clearing
+                counts = {
+                    "logo_images": len(logo_keys),
+                    "metadata": len(meta_keys),
+                    "search_results": len(search_keys), 
+                    "autocomplete": len(autocomplete_keys)
+                }
+                
                 all_keys = logo_keys + meta_keys + search_keys + autocomplete_keys
+                cleared_count = 0
                 if all_keys:
-                    self.redis_client.delete(*all_keys)
-                print(f"Cleared {len(all_keys)} logo cache entries")
+                    cleared_count = self.redis_client.delete(*all_keys)
+                
+                result = {
+                    "cleared_count": cleared_count,
+                    "breakdown": counts,
+                    "total_keys": len(all_keys),
+                    "success": True
+                }
+                
+                print(f"Cleared {cleared_count} logo cache entries: {counts}")
+                return result
         except Exception as e:
+            error_result = {"error": str(e), "cleared_count": 0, "success": False}
             print(f"Error clearing cache: {e}")
+            return error_result
     
     def guess_company_domain(self, company_name):
         """Guess the most likely domain for a company name"""
@@ -723,15 +756,52 @@ class LogoCacheService:
             search_keys = self.redis_client.keys("brandfetch_search:*")
             autocomplete_keys = self.redis_client.keys("autocomplete:*")
             
+            # Calculate cache size by getting total memory usage for logo images
+            cache_size = 0
+            try:
+                for key in logo_img_keys[:100]:  # Sample first 100 to avoid timeout
+                    size = self.redis_client.memory_usage(key)
+                    if size:
+                        cache_size += size
+                # Estimate total size based on sample
+                if len(logo_img_keys) > 100:
+                    cache_size = int(cache_size * (len(logo_img_keys) / 100))
+            except Exception as e:
+                print(f"Error calculating cache size: {e}")
+                cache_size = 0
+            
+            # Get Redis memory info
+            try:
+                redis_info = self.redis_client.info("memory")
+                used_memory = redis_info.get('used_memory', 0)
+            except Exception as e:
+                print(f"Error getting Redis memory info: {e}")
+                used_memory = 0
+            
+            # Calculate hit/miss rates (simplified - based on cache vs search entries)
+            total_searches = len(search_keys) + len(autocomplete_keys)
+            cached_results = len(logo_img_keys)
+            
+            hit_rate = 0.0
+            miss_rate = 0.0
+            if total_searches > 0:
+                hit_rate = min(1.0, cached_results / total_searches)
+                miss_rate = 1.0 - hit_rate
+            
             return {
+                "cached_count": len(logo_img_keys),
+                "cache_size": cache_size,
+                "hit_rate": hit_rate,
+                "miss_rate": miss_rate,
                 "total_cached_logos": len(logo_img_keys),
                 "metadata_entries": len(logo_meta_keys),
                 "search_cache_entries": len(search_keys),
                 "autocomplete_cache_entries": len(autocomplete_keys),
-                "redis_info": self.redis_client.info("memory"),
+                "redis_used_memory": used_memory,
                 "sample_logo_keys": [k.decode('utf-8') if isinstance(k, bytes) else k for k in logo_img_keys[:5]]
             }
         except Exception as e:
+            print(f"Error in get_cache_stats: {e}")
             return {"error": str(e)}
 
     def get_service_config(self):
