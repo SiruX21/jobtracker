@@ -348,28 +348,14 @@ html {
   color: #ffffff !important;
 }
 
-/* Toast Notification Styles - Using CSS Variables and Custom Classes */
+/* Toast Notification Styles - Direct Approach */
 :root {
   --toastify-font-family: 'Quicksand', sans-serif;
-  --toastify-toast-background: #fff;
   --toastify-toast-min-height: 60px;
   --toastify-toast-bd-radius: 8px;
   --toastify-toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   --toastify-toast-padding: 12px 16px;
   --toastify-z-index: 9999;
-  
-  /* Custom color variables for gradients */
-  --toastify-color-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --toastify-color-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  --toastify-color-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --toastify-color-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  --toastify-color-default: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  
-  /* Text colors for better contrast */
-  --toastify-text-color-success: #fff;
-  --toastify-text-color-error: #fff;
-  --toastify-text-color-info: #fff;
-  --toastify-text-color-warning: #fff;
 }
 
 /* Custom toast container */
@@ -377,7 +363,7 @@ html {
   z-index: 9999 !important;
 }
 
-/* Custom toast notification styles */
+/* Base toast notification styles */
 .toast-notification {
   font-family: var(--toastify-font-family) !important;
   font-weight: 500 !important;
@@ -386,36 +372,38 @@ html {
   margin-bottom: 8px !important;
   border: none !important;
   box-shadow: var(--toastify-toast-shadow) !important;
+  border-radius: var(--toastify-toast-bd-radius) !important;
+  min-height: var(--toastify-toast-min-height) !important;
 }
 
-/* Success toast */
+/* Success toast - Direct gradient */
 .toast-notification.Toastify__toast--success {
-  background: var(--toastify-color-success) !important;
-  color: var(--toastify-text-color-success) !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
 }
 
-/* Error toast */
+/* Error toast - Direct gradient */
 .toast-notification.Toastify__toast--error {
-  background: var(--toastify-color-error) !important;
-  color: var(--toastify-text-color-error) !important;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
 }
 
-/* Info toast */
+/* Info toast - Direct gradient */
 .toast-notification.Toastify__toast--info {
-  background: var(--toastify-color-info) !important;
-  color: var(--toastify-text-color-info) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
 }
 
-/* Warning toast */
+/* Warning toast - Direct gradient */
 .toast-notification.Toastify__toast--warning {
-  background: var(--toastify-color-warning) !important;
-  color: var(--toastify-text-color-warning) !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
 }
 
-/* Default toast */
+/* Default toast - Direct gradient */
 .toast-notification.Toastify__toast--default {
-  background: var(--toastify-color-default) !important;
-  color: #fff !important;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  color: white !important;
 }
 
 /* Custom toast body */
@@ -423,7 +411,7 @@ html {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  padding: 0 !important; /* Remove default padding since we handle it in the toast */
+  padding: var(--toastify-toast-padding) !important;
 }
 
 /* Custom progress bar */
