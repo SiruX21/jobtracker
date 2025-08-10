@@ -244,23 +244,50 @@ class LogoCacheService:
                 
                 # Get the first result from the search, but prefer exact matches
                 if search_data and len(search_data) > 0:
-                    # Try to find exact match first
-                    exact_match = None
+                    # Try to find exact match first, preferring higher scores
+                    exact_matches = []
                     best_match = None
                     
                     for brand in search_data:
                         brand_name = brand.get('name', '').lower().strip()
+                        score = brand.get('_score', 0)
+                        
                         if brand_name == company_name.lower().strip():
-                            exact_match = brand
-                            print(f"🎯 search_brandfetch_api: Found EXACT match for '{company_name}': {brand.get('name', 'Unknown')}")
-                            break
+                            exact_matches.append((brand, score))
+                            print(f"🎯 search_brandfetch_api: Found exact match for '{company_name}': {brand.get('name', 'Unknown')} (score: {score})")
                         elif not best_match:
                             best_match = brand
                     
-                    # Use exact match if found, otherwise use first result
-                    brand = exact_match if exact_match else best_match
-                    if brand:
-                        print(f"🔍 search_brandfetch_api: Using brand for '{company_name}': {brand.get('name', 'Unknown')} (exact: {exact_match is not None})")
+                    # Sort exact matches by score (highest first) and take the best one
+                    if exact_matches:
+                        # Special handling for well-known companies
+                        if company_name.lower().strip() == 'meta':
+                            # For Meta, prefer the meta.com domain over others
+                            meta_com_match = None
+                            for brand, score in exact_matches:
+                                if brand.get('domain') == 'meta.com':
+                                    meta_com_match = (brand, score)
+                                    break
+                            
+                            if meta_com_match:
+                                brand = meta_com_match[0]
+                                print(f"🔍 search_brandfetch_api: Using meta.com domain match for '{company_name}': {brand.get('name', 'Unknown')} (score: {meta_com_match[1]})")
+                            else:
+                                exact_matches.sort(key=lambda x: x[1], reverse=True)
+                                brand = exact_matches[0][0]
+                                print(f"🔍 search_brandfetch_api: Using highest-scored exact match for '{company_name}': {brand.get('name', 'Unknown')} (score: {exact_matches[0][1]})")
+                        else:
+                            exact_matches.sort(key=lambda x: x[1], reverse=True)
+                            brand = exact_matches[0][0]  # Take the brand with highest score
+                            print(f"🔍 search_brandfetch_api: Using highest-scored exact match for '{company_name}': {brand.get('name', 'Unknown')} (score: {exact_matches[0][1]})")
+                    else:
+                        brand = best_match
+                        if brand:
+                            print(f"🔍 search_brandfetch_api: Using first result for '{company_name}': {brand.get('name', 'Unknown')} (no exact match)")
+                    
+                    if not brand:
+                        print(f"❌ search_brandfetch_api: No suitable brand found for '{company_name}'")
+                        return None
                     
                     # Extract logo information using improved logic
                     logo_url = None
