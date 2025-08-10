@@ -25,7 +25,7 @@ function EmailVerification({ darkMode, toggleTheme, isMobile }) {
         const response = await axios.get(`${config.API_BASE_URL}/auth/verify-email?token=${token}`);
         if (response.status === 200) {
           setStatus('success');
-          toast.success('✅ Email verified successfully! Redirecting to login...');
+          toast.success('Email verified successfully! Redirecting to login...');
           setTimeout(() => { navigate('/auth'); }, 3000);
         }
       } catch (error) {

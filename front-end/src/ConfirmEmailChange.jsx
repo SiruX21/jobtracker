@@ -26,7 +26,7 @@ function ConfirmEmailChange() {
         if (response.data.success) {
           setStatus('success');
           setMessage('Email change request confirmed! Please check your new email address for the verification link.');
-          toast.success('✅ Email change confirmed! Check your new email for verification.');
+          toast.success('Email change confirmed! Check your new email for verification.');
         } else {
           setStatus('error');
           setMessage(response.data.message || 'Failed to confirm email change.');
@@ -35,7 +35,7 @@ function ConfirmEmailChange() {
         setStatus('error');
         const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to confirm email change';
         setMessage(errorMessage);
-        toast.error(`❌ ${errorMessage}`);
+        toast.error(`${errorMessage}`);
       }
     };
 

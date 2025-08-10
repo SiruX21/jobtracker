@@ -104,7 +104,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success('🗑️ Logo cache cleared successfully');
+      toast.success('Logo cache cleared successfully');
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
@@ -140,7 +140,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success(`🗑️ Logo cache cleared for ${companyName}`);
+      toast.success(`Logo cache cleared for ${companyName}`);
       loadLogoData(); // Reload data
     } catch (error) {
       if (error.response?.status === 403) {
@@ -225,7 +225,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         localStorage.removeItem(key);
       }
     });
-    toast.success('🗑️ Local logo cache cleared successfully');
+    toast.success('Local logo cache cleared successfully');
   };
 
   const updateLogoConfig = async (serviceType) => {

@@ -133,7 +133,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('📁 Data exported successfully');
+    toast.success('Data exported successfully');
   };
 
   // Check authentication and load user data
@@ -332,7 +332,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword.trim()) {
-      toast.error('❌ Please enter your password to confirm deletion');
+      toast.error('Please enter your password to confirm deletion');
       return;
     }
 
@@ -346,7 +346,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       });
 
       // Always show success for account deletion regardless of notification setting
-      toast.success('🗑️ Account deleted successfully');
+      toast.success('Account deleted successfully');
       // Clear all storage and redirect to login
       Cookies.remove('authToken');
       localStorage.clear();
@@ -354,7 +354,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         window.location.href = '/';
       }, 2000);
     } catch (error) {
-      toast.error(`❌ ${error.response?.data?.message || 'Failed to delete account'}`);
+      toast.error(`${error.response?.data?.message || 'Failed to delete account'}`);
       setDeletePassword('');
     } finally {
       setDeleteLoading(false);
@@ -364,17 +364,17 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
 
   const handleEmailChange = async () => {
     if (!newEmail.trim()) {
-      toast.error('❌ Please enter a new email address');
+      toast.error('Please enter a new email address');
       return;
     }
     
     if (!emailChangePassword.trim()) {
-      toast.error('❌ Please enter your current password to confirm email change');
+      toast.error('Please enter your current password to confirm email change');
       return;
     }
 
     if (newEmail === user?.email) {
-      toast.error('❌ New email must be different from current email');
+      toast.error('New email must be different from current email');
       return;
     }
 
@@ -389,10 +389,10 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
-      toast.success('📧 Confirmation emails sent to both your current and new email addresses. Please check both inboxes.');
+      toast.success('Confirmation emails sent to both your current and new email addresses. Please check both inboxes.');
       setEmailChangeStep('pending');
     } catch (error) {
-      toast.error(`❌ ${error.response?.data?.error || 'Failed to initiate email change'}`);
+      toast.error(`${error.response?.data?.error || 'Failed to initiate email change'}`);
       setEmailChangePassword('');
     } finally {
       setEmailChangeLoading(false);
@@ -406,20 +406,20 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         localStorage.setItem('developerMode', value.toString());
         if (value) {
           loadDeveloperInfo();
-          toast.success('🔧 Developer mode enabled - Advanced tools are now available');
+          toast.success('Developer mode enabled - Advanced tools are now available');
         } else {
-          toast.info('🔧 Developer mode disabled');
+          toast.info('Developer mode disabled');
         }
         break;
       case 'autoRefresh':
         setAutoRefresh(value);
         localStorage.setItem('autoRefresh', value.toString());
-        toast.success(`🔄 Auto refresh ${value ? 'enabled' : 'disabled'}`);
+        toast.success(`Auto refresh ${value ? 'enabled' : 'disabled'}`);
         break;
       case 'dataRetention':
         setDataRetention(value);
         localStorage.setItem('dataRetention', value);
-        toast.success(`📅 Data retention set to ${value} days`);
+        toast.success(`Data retention set to ${value} days`);
         break;
       case 'toastPosition':
         setToastPosition(value);
@@ -430,7 +430,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          toast.success(`📍 Position changed to ${value.replace('-', ' ')}`, {
+          toast.success(`Position changed to ${value.replace('-', ' ')}`, {
             position: value,
             theme: toastTheme === 'auto' ? (darkMode ? 'dark' : 'light') : toastTheme
           });
@@ -445,7 +445,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         }));
         // Small delay to ensure settings are applied before showing confirmation
         setTimeout(() => {
-          toast.success(`🎨 Theme changed to ${value}`, {
+          toast.success(`Theme changed to ${value}`, {
             position: toastPosition,
             theme: value === 'auto' ? (darkMode ? 'dark' : 'light') : value
           });
@@ -459,7 +459,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
     localStorage.removeItem('jobtrack_cache_expiry');
     localStorage.removeItem('jobtrack_cache_version');
     loadDeveloperInfo();
-    toast.success('🗑️ Cache cleared successfully');
+    toast.success('Cache cleared successfully');
   };
 
   if (initialLoading) {

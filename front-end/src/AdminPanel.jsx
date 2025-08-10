@@ -531,7 +531,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       loadSystemInfo();
-      toast.success('🗑️ System cache cleared successfully');
+      toast.success('System cache cleared successfully');
     } catch (error) {
       setError('Failed to clear cache');
     }

@@ -33,7 +33,7 @@ function DeveloperSection({
         localStorage.removeItem(key);
       }
     });
-    showToast.success('🗑️ Logo cache cleared successfully');
+    showToast.success('Logo cache cleared successfully');
   };
 
   return (
@@ -103,25 +103,25 @@ function DeveloperSection({
               <h3 className="font-medium text-gray-900 dark:text-white mb-4">Test Notifications</h3>
               <div className={`grid ${isMobile ? 'grid-cols-1 gap-2' : 'grid-cols-4 gap-3'}`}>
                 <button
-                  onClick={() => showToast.success('✅ Success test!')}
+                  onClick={() => showToast.success('Success test!')}
                   className="px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
                 >
                   Success
                 </button>
                 <button
-                  onClick={() => showToast.error('❌ Error test!')}
+                  onClick={() => showToast.error('Error test!')}
                   className="px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
                 >
                   Error
                 </button>
                 <button
-                  onClick={() => showToast.warning('⚠️ Warning test!')}
+                  onClick={() => showToast.warning('Warning test!')}
                   className="px-3 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 transition-colors"
                 >
                   Warning
                 </button>
                 <button
-                  onClick={() => showToast.info('ℹ️ Info test!')}
+                  onClick={() => showToast.info('Info test!')}
                   className="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                 >
                   Info

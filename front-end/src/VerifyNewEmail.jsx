@@ -26,7 +26,7 @@ function VerifyNewEmail() {
         if (response.data.success) {
           setStatus('success');
           setMessage('Email address verified successfully! Your email has been updated.');
-          toast.success('✅ Email address verified! Your account email has been updated.');
+          toast.success('Email address verified! Your account email has been updated.');
         } else {
           setStatus('error');
           setMessage(response.data.message || 'Failed to verify new email address.');
@@ -35,7 +35,7 @@ function VerifyNewEmail() {
         setStatus('error');
         const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to verify new email address';
         setMessage(errorMessage);
-        toast.error(`❌ ${errorMessage}`);
+        toast.error(`${errorMessage}`);
       }
     };
 

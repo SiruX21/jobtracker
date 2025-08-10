@@ -65,7 +65,7 @@ function ResetPassword({ darkMode, toggleTheme, isMobile }) {
         password: formData.password
       });
 
-      toast.success('✅ Password reset successfully! Redirecting to login...');
+      toast.success('Password reset successfully! Redirecting to login...');
       setFormData({ password: '', confirmPassword: '' });
 
       // Redirect to login after 3 seconds
