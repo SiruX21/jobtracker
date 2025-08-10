@@ -9,9 +9,7 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import { Listbox, Transition } from '@headlessui/react';
-import { debugLog } from '../../utils/debug';
-import { showToast as importedShowToast } from '../../utils/toast';
-import { toast } from 'react-toastify';
+import { showToast } from '../../utils/toast';
 
 function AccessibilitySection({ 
   toastPosition, 
@@ -23,14 +21,6 @@ function AccessibilitySection({
   showToast,
   isMobile 
 }) {
-  // Use imported showToast if prop is not provided
-  const toast = showToast || importedShowToast;
-  
-  // Debug: Check if showToast is properly defined
-  React.useEffect(() => {
-    debugLog('AccessibilitySection toast:', toast);
-  }, [toast]);
-
   const toastPositionOptions = [
     { value: 'top-left', label: 'Top Left' },
     { value: 'top-center', label: 'Top Center' },
@@ -177,91 +167,20 @@ function AccessibilitySection({
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
-                debugLog('Test notification clicked', { toast, position: toastPosition, theme: toastTheme });
-                
                 // Apply settings immediately before showing test toast
                 window.dispatchEvent(new CustomEvent('toastSettingsChanged', { 
                   detail: { position: toastPosition, theme: toastTheme } 
                 }));
                 
-                // Add a small delay to ensure state updates
+                // Show simple test toast
                 setTimeout(() => {
-                  debugLog('Showing test toast after delay');
-                  
-                  // Try both the prop and imported version
-                  try {
-                    if (showToast && showToast.success) {
-                      debugLog('Using showToast prop');
-                      showToast.success("🎉 This is a test notification from PROP!");
-                    } else {
-                      debugLog('Using importedShowToast');
-                      importedShowToast.success("🎉 This is a test notification from IMPORT!");
-                    }
-                  } catch (error) {
-                    debugLog('Toast error:', error);
-                    // Fallback - try direct import
-                    import('../../utils/toast').then(({ showToast: directToast }) => {
-                      debugLog('Using direct import');
-                      directToast.success("🎉 This is a test notification from DIRECT IMPORT!");
-                    });
-                  }
-                }, 200);
+                  showToast.success('🎉 Test notification! Toast system is working!');
+                }, 100);
               }}
-              className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-lg ${isMobile ? 'w-full justify-center' : ''}`}
+              className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}
             >
               <FaBell className="mr-2" />
               Test Notification
-            </button>
-            
-            {/* Direct Toast Test Button */}
-            <button
-              onClick={() => {
-                debugLog('=== COMPREHENSIVE TOAST DEBUG ===');
-                
-                // Check if ToastContainer exists in DOM
-                const toastContainers = document.querySelectorAll('[class*="Toastify"]');
-                debugLog('ToastContainer elements found:', toastContainers.length);
-                toastContainers.forEach((container, index) => {
-                  debugLog(`Container ${index}:`, {
-                    className: container.className,
-                    style: container.style.cssText,
-                    display: window.getComputedStyle(container).display,
-                    visibility: window.getComputedStyle(container).visibility,
-                    zIndex: window.getComputedStyle(container).zIndex
-                  });
-                });
-                
-                // Check if root element has ToastContainer
-                const rootEl = document.getElementById('root');
-                if (rootEl) {
-                  debugLog('Root element children:', rootEl.children.length);
-                  Array.from(rootEl.children).forEach((child, i) => {
-                    debugLog(`Root child ${i}:`, child.className, child.tagName);
-                  });
-                }
-                
-                // Test direct react-toastify
-                debugLog('Testing direct react-toastify...');
-                debugLog('toast object:', toast);
-                try {
-                  const result = toast.success('🔥 DIRECT REACT-TOASTIFY TEST!');
-                  debugLog('Direct toast result:', result);
-                } catch (error) {
-                  debugLog('Direct toast error:', error);
-                }
-                
-                // Test our wrapper
-                debugLog('Testing our showToast wrapper...');
-                try {
-                  importedShowToast.success("🚀 WRAPPER TEST!");
-                } catch (error) {
-                  debugLog('Wrapper error:', error);
-                }
-              }}
-              className={`mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center transition-all duration-200 ease-in-out ${isMobile ? 'w-full justify-center' : ''}`}
-            >
-              <FaBell className="mr-2" />
-              Debug Toast System
             </button>
           </div>
         </div>
