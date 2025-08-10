@@ -45,11 +45,14 @@ function AddJobModal({
   useEffect(() => {
     const loadCompanyLogo = async () => {
       if (newJob.company_name && !selectedCompanyLogo) {
+        console.log(`🔄 Loading logo for "${newJob.company_name}" (selectedCompanyLogo is ${selectedCompanyLogo})`);
         try {
           const logoUrl = await logoService.getCompanyLogo(newJob.company_name);
+          console.log(`✅ Logo loaded for "${newJob.company_name}":`, logoUrl);
           setSelectedCompanyLogo(logoUrl);
         } catch (error) {
           debugError('Error loading company logo:', error);
+          console.log(`❌ Logo loading failed for "${newJob.company_name}":`, error);
           // Set to null so fallback will be used
           setSelectedCompanyLogo(null);
         }
@@ -295,7 +298,11 @@ function AddJobModal({
                           objectFit: 'contain',
                           padding: '2px'
                         }}
+                        onLoad={() => {
+                          console.log(`🖼️ Logo loaded for ${newJob.company_name}:`, selectedCompanyLogo || logoService.getFallbackLogo(newJob.company_name));
+                        }}
                         onError={(e) => {
+                          console.log(`❌ Logo failed for ${newJob.company_name}:`, e.target.src);
                           e.target.src = logoService.getFallbackLogo(newJob.company_name);
                         }}
                       />
@@ -613,6 +620,7 @@ function AddJobModal({
                   const logoUrl = suggestion.logo_url?.startsWith('/') 
                     ? `${API_BASE_URL}${suggestion.logo_url}` 
                     : suggestion.logo_url;
+                  console.log(`🎯 Setting logo for ${suggestion.name}:`, logoUrl, 'from suggestion:', suggestion.logo_url);
                   setSelectedCompanyLogo(logoUrl);
                   
                   // Clear the search term to close the dropdown

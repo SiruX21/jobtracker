@@ -49,13 +49,23 @@ class LogoCacheService:
     
     def get_cache_key(self, company_name):
         """Generate cache key for company logo"""
-        clean_name = company_name.lower().replace(' ', '').replace('.', '')
-        return f"logo_img:{clean_name}"
+        # Use a more robust cache key that includes a hash to prevent collisions
+        clean_name = company_name.lower().strip()
+        # Create a hash of the original name to ensure uniqueness
+        name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
+        # Combine clean name with hash for readability and uniqueness
+        safe_name = clean_name.replace(' ', '_').replace('.', '_').replace('/', '_')[:30]
+        return f"logo_img:{safe_name}_{name_hash}"
     
     def get_metadata_key(self, company_name):
         """Generate cache key for logo metadata"""
-        clean_name = company_name.lower().replace(' ', '').replace('.', '')
-        return f"logo_meta:{clean_name}"
+        # Use a more robust cache key that includes a hash to prevent collisions
+        clean_name = company_name.lower().strip()
+        # Create a hash of the original name to ensure uniqueness
+        name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
+        # Combine clean name with hash for readability and uniqueness
+        safe_name = clean_name.replace(' ', '_').replace('.', '_').replace('/', '_')[:30]
+        return f"logo_meta:{safe_name}_{name_hash}"
     
     def get_logo_data(self, company_name):
         """Get logo image data with caching using only Brandfetch API"""
@@ -180,7 +190,10 @@ class LogoCacheService:
         """Search Brandfetch API for company logo and brand data"""
         try:
             # Check if we have a cached search result
-            search_cache_key = f"brandfetch_search:{company_name.lower().replace(' ', '')}"
+            # Use a more robust cache key that prevents collisions
+            clean_name = company_name.lower().strip()
+            name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
+            search_cache_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
             cached_search = self.get_search_from_cache(search_cache_key)
             if cached_search:
                 print(f"Using cached Brandfetch search for {company_name}")
@@ -378,7 +391,9 @@ class LogoCacheService:
         print(f"🔍 search_companies: Searching for companies with query: '{query}' (limit: {limit})")
         
         # Check cache first
-        cache_key = f"autocomplete:{query.lower()}"
+        # Use a more robust cache key for autocomplete to prevent collisions
+        query_hash = hashlib.md5(query.lower().encode('utf-8')).hexdigest()[:8]
+        cache_key = f"autocomplete:{query.lower().replace(' ', '_')}_{query_hash}"
         cached_results = self.get_autocomplete_from_cache(cache_key)
         if cached_results:
             print(f"✅ search_companies: Found {len(cached_results)} cached results for '{query}'")
@@ -467,25 +482,44 @@ class LogoCacheService:
                                 for format_item in logo['formats']:
                                     if format_item.get('format') == 'png' and format_item.get('src'):
                                         logo_url = format_item.get('src')
-                                        print(f"   Selected PNG logo: {logo_url}")
+                                        print(f"   Selected PNG logo for {brand_name}: {logo_url}")
                                         break
                                 if not logo_url:
                                     for format_item in logo['formats']:
                                         if format_item.get('format') == 'svg' and format_item.get('src'):
                                             logo_url = format_item.get('src')
-                                            print(f"   Selected SVG logo: {logo_url}")
+                                            print(f"   Selected SVG logo for {brand_name}: {logo_url}")
                                             break
                                 if not logo_url and logo['formats']:
                                     first_format = logo['formats'][0]
                                     if first_format.get('src'):
                                         logo_url = first_format.get('src')
-                                        print(f"   Selected first available logo: {logo_url}")
+                                        print(f"   Selected first available logo for {brand_name}: {logo_url}")
                                 break  # Use first logo that has formats
                     
                     # Fallback to icon if no logo found
                     if not logo_url and 'icon' in brand and brand['icon']:
                         logo_url = brand['icon']
-                        print(f"   Using icon fallback: {logo_url}")
+                        print(f"   Using icon fallback for {brand_name}: {logo_url}")
+                    
+                    # Cache this specific brand's logo data immediately to prevent cross-contamination
+                    if logo_url:
+                        brand_cache_key = self.get_cache_key(brand_name)
+                        brand_meta_key = self.get_metadata_key(brand_name)
+                        
+                        # Store a reference to the original Brandfetch URL in search cache
+                        brand_search_cache_key = f"brandfetch_search:{brand_name.lower().strip().replace(' ', '_')}_{hashlib.md5(brand_name.lower().encode('utf-8')).hexdigest()[:8]}"
+                        brand_search_result = {
+                            'url': logo_url,
+                            'domain': brand.get('domain', ''),
+                            'company_name': brand_name,
+                            'confidence': 0.9,
+                            'source': 'brandfetch_autocomplete',
+                            'description': brand.get('description', ''),
+                            'industry': brand.get('industry', '')
+                        }
+                        self.cache_search_result(brand_search_cache_key, brand_search_result)
+                        print(f"   Cached search result for {brand_name} with key: {brand_search_cache_key}")
                     
                     print(f"🖼️ search_brandfetch_autocomplete: Final logo URL for {brand_name}: {logo_url}")
                     
@@ -565,7 +599,11 @@ class LogoCacheService:
                 # Clear both image cache and search cache for specific company
                 cache_key = self.get_cache_key(company_name)
                 meta_key = self.get_metadata_key(company_name)
-                search_key = f"brandfetch_search:{company_name.lower().replace(' ', '')}"
+                
+                # Generate the same search cache key as used in search_brandfetch_api
+                clean_name = company_name.lower().strip()
+                name_hash = hashlib.md5(clean_name.encode('utf-8')).hexdigest()[:8]
+                search_key = f"brandfetch_search:{clean_name.replace(' ', '_')}_{name_hash}"
                 
                 cleared_keys = []
                 if self.redis_client.delete(cache_key):
