@@ -22,6 +22,8 @@ import AddJobModal from "./components/tracker/AddJobModal";
 import EditJobModal from "./components/tracker/EditJobModal";
 import LoadingOverlay from "./components/tracker/LoadingOverlay";
 import LoadingScreen from "./components/shared/LoadingScreen";
+import SankeyDiagram from "./components/tracker/SankeyDiagram";
+import SankeyDiagramButton from "./components/tracker/SankeyDiagramButton";
 
 // Utility functions
 const getCurrentDate = () => {
@@ -167,6 +169,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
     return saved === 'true';
   });
   const [dashboardFilter, setDashboardFilter] = useState(null);
+  const [showSankeyDiagram, setShowSankeyDiagram] = useState(false);
 
   // Available stats configuration
   const availableStats = [
@@ -430,9 +433,13 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       });
       
       const jobsData = response.data;
+      
+      // Always replace the entire jobs array with fresh data from server
+      // This ensures deleted jobs are removed and new jobs are added
       setJobs(jobsData);
       cacheUtils.set(jobsData);
       
+      // Preload logos for all companies
       const companyNames = [...new Set(jobsData.map(job => job.company_name).filter(Boolean))];
       if (companyNames.length > 0) {
         logoService.preloadLogos(companyNames);
@@ -445,6 +452,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         isRefreshing: false
       });
       
+      debugLog(`Fetched ${jobsData.length} jobs from server${forceRefresh ? ' (force refresh)' : ''}`);
+      
     } catch (error) {
       console.error("Error fetching jobs:", error);
       setCacheStatus(prev => ({ ...prev, isRefreshing: false }));
@@ -452,6 +461,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
         navigate("/auth");
+      } else {
+        toast.error('Failed to fetch jobs from server');
       }
     }
   };
@@ -683,12 +694,22 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
     }
   }, [jobTitleSearchTerm]);
 
-  // Initialize data on mount
+  // Initialize data on mount - always fetch fresh data
   useEffect(() => {
     const initializeData = async () => {
       try {
+        // Clear any existing cache to ensure fresh data
+        cacheUtils.clear();
+        setCacheStatus({
+          isFromCache: false,
+          age: 0,
+          isValid: false,
+          isRefreshing: false
+        });
+        
         await fetchJobStatuses();
-        await fetchJobs();
+        // Force refresh to get latest data from server
+        await fetchJobs(true);
       } catch (error) {
         console.error('Error initializing data:', error);
         toast.error('Failed to load data');
@@ -774,8 +795,12 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             getStatColorClass={getStatColorClass}
           />
           
-          <div className="mb-6">
+          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <AddApplicationButton onOpenModal={openAddModal} />
+            <SankeyDiagramButton 
+              onClick={() => setShowSankeyDiagram(true)}
+              disabled={jobs.length === 0}
+            />
           </div>
           
           <SearchAndFilters 
@@ -848,6 +873,12 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           />
           
           <LoadingOverlay loading={loading} editingJob={editingJob} />
+          
+          <SankeyDiagram 
+            isOpen={showSankeyDiagram}
+            onClose={() => setShowSankeyDiagram(false)}
+            darkMode={darkMode}
+          />
           
         </div>
       </div>
