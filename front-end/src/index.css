@@ -348,76 +348,98 @@ html {
   color: #ffffff !important;
 }
 
-/* Toast Notification Styles - Enhanced */
-.Toastify__toast-container {
+/* Toast Notification Styles - Using CSS Variables and Custom Classes */
+:root {
+  --toastify-font-family: 'Quicksand', sans-serif;
+  --toastify-toast-background: #fff;
+  --toastify-toast-min-height: 60px;
+  --toastify-toast-bd-radius: 8px;
+  --toastify-toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --toastify-toast-padding: 12px 16px;
+  --toastify-z-index: 9999;
+  
+  /* Custom color variables for gradients */
+  --toastify-color-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --toastify-color-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --toastify-color-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --toastify-color-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --toastify-color-default: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  
+  /* Text colors for better contrast */
+  --toastify-text-color-success: #fff;
+  --toastify-text-color-error: #fff;
+  --toastify-text-color-info: #fff;
+  --toastify-text-color-warning: #fff;
+}
+
+/* Custom toast container */
+.toast-container {
   z-index: 9999 !important;
 }
 
-/* Override all toast styles with higher specificity */
-div.Toastify__toast {
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  font-family: 'Quicksand', sans-serif !important;
+/* Custom toast notification styles */
+.toast-notification {
+  font-family: var(--toastify-font-family) !important;
   font-weight: 500 !important;
-  min-height: 60px !important;
-  margin-bottom: 8px !important;
-  border: none !important;
-}
-
-div.Toastify__toast-body { 
-  display: flex !important; 
-  align-items: center !important; 
-  gap: 8px !important; 
-  padding: 12px 16px !important;
   font-size: 14px !important;
   line-height: 1.4 !important;
+  margin-bottom: 8px !important;
+  border: none !important;
+  box-shadow: var(--toastify-toast-shadow) !important;
 }
 
-div.Toastify__toast-body > div { 
-  white-space: nowrap !important; 
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  flex: 1 !important;
+/* Success toast */
+.toast-notification.Toastify__toast--success {
+  background: var(--toastify-color-success) !important;
+  color: var(--toastify-text-color-success) !important;
 }
 
-div.Toastify__toast--success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  color: white !important;
+/* Error toast */
+.toast-notification.Toastify__toast--error {
+  background: var(--toastify-color-error) !important;
+  color: var(--toastify-text-color-error) !important;
 }
 
-div.Toastify__toast--error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  color: white !important;
+/* Info toast */
+.toast-notification.Toastify__toast--info {
+  background: var(--toastify-color-info) !important;
+  color: var(--toastify-text-color-info) !important;
 }
 
-div.Toastify__toast--info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-  color: white !important;
+/* Warning toast */
+.toast-notification.Toastify__toast--warning {
+  background: var(--toastify-color-warning) !important;
+  color: var(--toastify-text-color-warning) !important;
 }
 
-div.Toastify__toast--warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  color: white !important;
+/* Default toast */
+.toast-notification.Toastify__toast--default {
+  background: var(--toastify-color-default) !important;
+  color: #fff !important;
 }
 
-.Toastify__progress-bar {
+/* Custom toast body */
+.toast-body {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 !important; /* Remove default padding since we handle it in the toast */
+}
+
+/* Custom progress bar */
+.toast-progress {
   height: 3px !important;
   background: rgba(255, 255, 255, 0.3) !important;
 }
 
-.Toastify__close-button {
+/* Close button styling */
+.toast-notification .Toastify__close-button {
   color: white !important;
   opacity: 0.8 !important;
 }
 
-.Toastify__close-button:hover {
+.toast-notification .Toastify__close-button:hover {
   opacity: 1 !important;
-}
-
-/* Force override any default theme styles */
-div.Toastify__toast.Toastify__toast--default {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
-  color: white !important;
 }
 /* Fade in animation for progressive disclosure */
 @keyframes fadeIn {
