@@ -557,12 +557,12 @@ class LogoCacheService:
         try:
             cached_data = self.redis_client.get(cache_key)
             if cached_data:
-                return json.loads(cached_data)
+                cache_obj = json.loads(cached_data)
+                # Return the results array, not the wrapper object
+                return cache_obj.get('results', [])
         except Exception as e:
             print(f"Error getting autocomplete from cache: {e}")
             return None
-        
-        return None
         
         return None
     
