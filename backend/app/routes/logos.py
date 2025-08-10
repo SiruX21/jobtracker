@@ -233,10 +233,10 @@ def logo_service_config():
             data = request.get_json()
             service_type = data.get('service_type', 'auto')
             
-            # Validate service type
-            valid_services = ['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            # Validate service type - only brandfetch allowed
+            valid_services = ['brandfetch']
             if service_type not in valid_services:
-                return jsonify({"error": "Invalid service type"}), 400
+                return jsonify({"error": "Invalid service type. Only 'brandfetch' is supported."}), 400
             
             # Update configuration
             result = logo_cache.set_service_config(service_type)

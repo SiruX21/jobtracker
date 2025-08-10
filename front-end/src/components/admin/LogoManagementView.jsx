@@ -574,7 +574,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">Available Services</div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon'].map((service) => (
+                {['brandfetch'].map((service) => (
                   <button
                     key={service}
                     onClick={() => updateLogoConfig(service)}
@@ -593,12 +593,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
                       )}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {service === 'auto' && 'Automatic fallback chain (Brandfetch → Logo.dev → Clearbit)'}
-                      {service === 'brandfetch' && 'Brandfetch API with company search & rich data'}
-                      {service === 'logodev' && 'Logo.dev API'}
-                      {service === 'clearbit' && 'Clearbit Logo API'}
-                      {service === 'iconhorse' && 'IconHorse service'}
-                      {service === 'favicon' && 'Favicon service'}
+                      {service === 'brandfetch' && 'Brandfetch API (Recommended for high-quality logos)'}
                     </div>
                   </button>
                 ))}
@@ -647,42 +642,6 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
               <div>Endpoint: https://api.brandfetch.io/v2/search</div>
               <div>Format: High-quality logos with company metadata</div>
               <div>Features: Company search, autocomplete, rich data (industry, description)</div>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-900 dark:text-white">Clearbit Logo API</span>
-              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 rounded">Secondary</span>
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <div>Endpoint: https://logo.clearbit.com/{'{company}'}</div>
-              <div>Format: High-quality PNG/SVG logos</div>
-              <div>Fallback: Company initials with generated colors</div>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-900 dark:text-white">Logo.dev API</span>
-              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 rounded">Tertiary</span>
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <div>Endpoint: https://img.logo.dev/{'{company}'}.com</div>
-              <div>Format: Optimized company logos</div>
-              <div>Usage: Fallback when Brandfetch/Clearbit fails</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-900 dark:text-white">Favicon Service</span>
-              <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 rounded">Tertiary</span>
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <div>Endpoint: https://www.google.com/s2/favicons</div>
-              <div>Format: Favicon/small icons</div>
-              <div>Usage: Last resort fallback</div>
             </div>
           </div>
         </div>

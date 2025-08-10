@@ -45,7 +45,6 @@ jobs:
           VITE_API_URL=${{ vars.VITE_API_URL }}
           VITE_APP_NAME=${{ vars.VITE_APP_NAME }}
           VITE_VERSION=${{ vars.VITE_VERSION }}
-          LOGO_DEV_API_TOKEN=${{ secrets.LOGO_DEV_API_TOKEN }}
           BRANDFETCH_API_KEY=${{ secrets.BRANDFETCH_API_KEY }}
           EOF
 

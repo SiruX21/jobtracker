@@ -15,22 +15,18 @@ class LogoCacheService:
         self.brandfetch_api_key = os.getenv('BRANDFETCH_API_KEY', '')  # Brandfetch API key
         self.brandfetch_search_url = "https://api.brandfetch.io/v2/search"
         self.brandfetch_brand_url = "https://api.brandfetch.io/v2/brands"
-        self.logo_dev_token = os.getenv('LOGO_DEV_API_TOKEN', 'pk_X-1ZO13GSgeOoUrIuJ6GMQ')  # Keep as fallback
-        self.logo_dev_search_url = "https://img.logo.dev/search"
         self.cache_ttl = 30 * 24 * 60 * 60  # 30 days for images
         self.search_cache_ttl = 24 * 60 * 60  # 1 day for search results
         self.autocomplete_cache_ttl = 6 * 60 * 60  # 6 hours for autocomplete
-        self.service_config = 'auto'  # Default to auto to try Brandfetch first
+        self.service_config = 'brandfetch'  # Only use Brandfetch
         self.connect_redis()
         self.load_service_config()  # Load saved configuration
         
         # Debug environment variables
         print(f"🔧 LogoCacheService init:")
         print(f"   - Brandfetch API key: {'✅ SET' if self.brandfetch_api_key else '❌ NOT SET'}")
-        print(f"   - Logo.dev token: {'✅ SET' if self.logo_dev_token else '❌ NOT SET'}")
         print(f"   - Service config: {self.service_config}")
         print(f"   - Should use Brandfetch: {self.should_use_brandfetch()}")
-        print(f"   - Should use Logo.dev: {self.should_use_logodev()}")
     
     def connect_redis(self):
         """Connect to Redis server"""
@@ -65,7 +61,7 @@ class LogoCacheService:
         return f"logo_meta:{clean_name}"
     
     def get_logo_data(self, company_name):
-        """Get logo image data with caching and API search fallback"""
+        """Get logo image data with caching using only Brandfetch API"""
         if not company_name:
             print(f"❌ get_logo_data: No company name provided")
             return None, None
@@ -81,9 +77,9 @@ class LogoCacheService:
             print(f"✅ get_logo_data: Logo found in CACHE for '{company_name}' (source: {cached_data.get('metadata', {}).get('source', 'unknown')})")
             return cached_data['image_data'], cached_data['content_type']
         
-        print(f"🔄 get_logo_data: No cache hit for '{company_name}', trying APIs...")
+        print(f"🔄 get_logo_data: No cache hit for '{company_name}', trying Brandfetch API...")
         
-        # Step 2: Try Brandfetch API first for exact company search
+        # Step 2: Try Brandfetch API for company search
         search_result = self.search_brandfetch_api(company_name)
         if search_result:
             logo_url = search_result.get('url')
@@ -93,27 +89,8 @@ class LogoCacheService:
                 if image_data:
                     print(f"✅ get_logo_data: Successfully downloaded and cached logo from BRANDFETCH for '{company_name}'")
                     return image_data, content_type
-        
-        # Step 3: Fallback to logo.dev search API if Brandfetch fails
-        search_result = self.search_logo_dev_api(company_name)
-        if search_result:
-            logo_url = search_result.get('url')
-            if logo_url:
-                print(f"🎯 get_logo_data: Found logo via LOGO.DEV API for '{company_name}': {logo_url}")
-                image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='logodev_api')
-                if image_data:
-                    print(f"✅ get_logo_data: Successfully downloaded and cached logo from LOGO.DEV for '{company_name}'")
-                    return image_data, content_type
-        
-        # Step 4: If API search fails, generate URL using domain pattern
-        logo_url = self.generate_logo_url(company_name)
-        print(f"🔗 get_logo_data: Trying GENERATED URL for '{company_name}': {logo_url}")
-        image_data, content_type = self.download_and_cache_image(logo_url, cache_key, meta_key, company_name, source='generated')
-        if image_data:
-            print(f"✅ get_logo_data: Successfully downloaded and cached logo from GENERATED URL for '{company_name}'")
-            return image_data, content_type
-        
-        print(f"❌ get_logo_data: No logo found for '{company_name}' from any source")
+
+        print(f"❌ get_logo_data: No logo found for '{company_name}' from Brandfetch API")
         return None, None
     
     def download_and_cache_image(self, logo_url, cache_key, meta_key, company_name, source='generated'):
@@ -294,87 +271,6 @@ class LogoCacheService:
             print(f"Error searching Brandfetch API for {company_name}: {e}")
             return None
 
-    def search_logo_dev_api(self, company_name):
-        """Search logo.dev API for company logo with fallback methods"""
-        try:
-            # Check if we have a cached search result (use text-based redis client)
-            search_cache_key = f"search:{company_name.lower().replace(' ', '')}"
-            cached_search = self.get_search_from_cache(search_cache_key)
-            if cached_search:
-                return cached_search
-            
-            # Try logo.dev API first (based on configuration)
-            if self.should_use_logodev():
-                try:
-                    params = {
-                        'q': company_name,
-                        'token': self.logo_dev_token,
-                        'limit': 1  # We only need the best match
-                    }
-                    
-                    response = requests.get(
-                        'https://img.logo.dev/search',
-                        params=params,
-                        timeout=5
-                    )
-                    
-                    if response.status_code == 200:
-                        data = response.json()
-                        results = data.get('results', [])
-                        
-                        if results:
-                            best_match = results[0]
-                            search_result = {
-                                'url': f"https://img.logo.dev/{best_match.get('domain', '')}?token={self.logo_dev_token}",
-                                'domain': best_match.get('domain', ''),
-                                'company_name': best_match.get('name', company_name),
-                                'confidence': best_match.get('score', 0),
-                                'source': 'api_search'
-                            }
-                            
-                            # Cache search result for shorter time
-                            self.cache_search_result(search_cache_key, search_result)
-                            return search_result
-                    else:
-                        print(f"Logo.dev API failed with status {response.status_code}: {response.text}")
-                except Exception as e:
-                    print(f"Logo.dev API failed: {e}")
-            
-            # Use fallback services (unless logodev-only mode)
-            if self.service_config != 'logodev':
-                domain = self.guess_company_domain(company_name)
-                if domain:
-                    # Get preferred fallback URL(s)
-                    fallback_urls = self.get_preferred_fallback_url(domain)
-                    
-                    # If it's a single URL (specific service selected)
-                    if isinstance(fallback_urls, str):
-                        fallback_urls = [fallback_urls]
-                    
-                    for url in fallback_urls:
-                        try:
-                            test_response = requests.head(url, timeout=3)
-                            if test_response.status_code == 200:
-                                search_result = {
-                                    'url': url,
-                                    'domain': domain,
-                                    'company_name': company_name,
-                                    'confidence': 0.7,  # Lower confidence for fallback
-                                    'source': 'fallback'
-                                }
-                                
-                                # Cache search result
-                                self.cache_search_result(search_cache_key, search_result)
-                                return search_result
-                        except:
-                            continue
-            
-            return None
-            
-        except Exception as e:
-            print(f"Error searching for company logo {company_name}: {e}")
-            return None
-    
     def get_search_from_cache(self, cache_key):
         """Get search result from cache (text-based)"""
         try:
@@ -532,11 +428,11 @@ class LogoCacheService:
         return alternatives[:3]  # Limit to 3 alternatives
     
     def search_companies(self, query, limit=10):
-        """Search for companies using Brandfetch API with fallback to logo.dev"""
+        """Search for companies using Brandfetch API only"""
         if not query or len(query) < 2:
             print(f"❌ search_companies: Query too short or empty: '{query}'")
             return []
-        
+
         print(f"🔍 search_companies: Searching for companies with query: '{query}' (limit: {limit})")
         
         # Check cache first
@@ -545,9 +441,9 @@ class LogoCacheService:
         if cached_results:
             print(f"✅ search_companies: Found {len(cached_results)} cached results for '{query}'")
             return cached_results
-        
+
         try:
-            # Try Brandfetch API first (primary option)
+            # Use Brandfetch API
             if self.should_use_brandfetch():
                 print(f"🎯 search_companies: Trying BRANDFETCH API for '{query}'")
                 try:
@@ -564,54 +460,13 @@ class LogoCacheService:
             else:
                 print(f"⚠️ search_companies: BRANDFETCH not available (config: {self.service_config}, has_key: {bool(self.brandfetch_api_key)})")
             
-            # Fallback to logo.dev API
-            if self.should_use_logodev():
-                print(f"🔄 search_companies: Trying LOGO.DEV API fallback for '{query}'")
-                try:
-                    url = f"https://img.logo.dev/search"
-                    params = {
-                        'q': query,
-                        'limit': limit,
-                        'token': self.logo_dev_token
-                    }
-                    
-                    response = requests.get(url, params=params, timeout=5)
-                    if response.status_code == 200:
-                        data = response.json()
-                        results = []
-                        
-                        for item in data.get('results', []):
-                            company_data = {
-                                'name': item.get('name', ''),
-                                'domain': item.get('domain', ''),
-                                'logo_url': f"/api/logos/company/{item.get('name', '')}",  # Use internal URL
-                                'description': item.get('description', ''),
-                                'industry': item.get('industry', ''),
-                                'confidence': item.get('confidence', 0),
-                                'source': 'logodev'
-                            }
-                            results.append(company_data)
-                        
-                        print(f"✅ search_companies: LOGO.DEV returned {len(results)} results for '{query}'")
-                        # Cache the results
-                        self.cache_autocomplete(cache_key, results)
-                        return results
-                    else:
-                        print(f"❌ search_companies: LOGO.DEV API failed with status {response.status_code} for '{query}'")
-                except Exception as e:
-                    print(f"❌ search_companies: LOGO.DEV API failed for '{query}': {e}")
-            else:
-                print(f"⚠️ search_companies: LOGO.DEV not available (config: {self.service_config}, has_token: {bool(self.logo_dev_token)})")
-            
-            # Final fallback: Use local company database
-            print(f"🔄 search_companies: Using LOCAL FALLBACK for '{query}'")
-            fallback_results = self.fallback_search(query, limit)
-            print(f"✅ search_companies: LOCAL FALLBACK returned {len(fallback_results)} results for '{query}'")
-            return fallback_results
+            # If Brandfetch fails, return empty results
+            print(f"❌ search_companies: No results found for '{query}'")
+            return []
                 
         except Exception as e:
             print(f"❌ search_companies: Unexpected error for '{query}': {e}")
-            return self.fallback_search(query, limit)
+            return []
 
     def search_brandfetch_autocomplete(self, query, limit=10):
         """Search Brandfetch API for company autocomplete suggestions"""
@@ -693,56 +548,9 @@ class LogoCacheService:
 
     def should_use_brandfetch(self):
         """Check if Brandfetch should be used based on configuration"""
-        return self.service_config in ['brandfetch', 'auto'] and self.brandfetch_api_key
+        return self.service_config == 'brandfetch' and self.brandfetch_api_key
 
-    def should_use_logodev(self):
-        """Check if logo.dev should be used based on configuration"""
-        return self.service_config in ['logodev', 'auto'] and self.logo_dev_token
-    
-    def fallback_search(self, query, limit=10):
-        """Fallback search when logo.dev API is unavailable"""
-        # Generate suggestions based on common patterns
-        results = []
-        query_lower = query.lower()
-        
-        # Common company name patterns
-        patterns = [
-            f"{query_lower}",
-            f"{query_lower}.com",
-            f"{query_lower}inc.com",
-            f"{query_lower}corp.com",
-            f"{query_lower}tech.com",
-            f"{query_lower}labs.com",
-        ]
-        
-        for i, pattern in enumerate(patterns[:limit]):
-            if '.' not in pattern:
-                pattern += '.com'
-                
-            results.append({
-                'name': query.title(),
-                'domain': pattern,
-                'logo_url': f"https://img.logo.dev/{pattern}?token={self.logo_dev_token}",
-                'description': f"Company matching '{query}'",
-                'industry': 'Unknown',
-                'confidence': max(0.9 - (i * 0.1), 0.1)
-            })
-        
-        return results
-    
-    def fallback_search(self, query, limit=10):
-        """Fallback search using local company knowledge"""
-        query_lower = query.lower()
-        
-        # Popular companies database for fallback
-        popular_companies = [
-            {'name': 'Google', 'domain': 'google.com', 'industry': 'Technology'},
-            {'name': 'Apple', 'domain': 'apple.com', 'industry': 'Technology'},
-            {'name': 'Microsoft', 'domain': 'microsoft.com', 'industry': 'Technology'},
-            {'name': 'Meta', 'domain': 'meta.com', 'industry': 'Technology'},
-            {'name': 'Amazon', 'domain': 'amazon.com', 'industry': 'E-commerce'},
-            {'name': 'Tesla', 'domain': 'tesla.com', 'industry': 'Automotive'},
-            {'name': 'Netflix', 'domain': 'netflix.com', 'industry': 'Entertainment'},
+    def get_autocomplete_from_cache(self, cache_key):
             {'name': 'Uber', 'domain': 'uber.com', 'industry': 'Transportation'},
             {'name': 'Airbnb', 'domain': 'airbnb.com', 'industry': 'Hospitality'},
             {'name': 'LinkedIn', 'domain': 'linkedin.com', 'industry': 'Professional Network'},
@@ -779,56 +587,6 @@ class LogoCacheService:
             {'name': 'Booking.com', 'domain': 'booking.com', 'industry': 'Travel'},
             {'name': 'Lyft', 'domain': 'lyft.com', 'industry': 'Transportation'},
             {'name': 'DoorDash', 'domain': 'doordash.com', 'industry': 'Food Delivery'},
-            {'name': 'YouTube', 'domain': 'youtube.com', 'industry': 'Video'},
-            {'name': 'TikTok', 'domain': 'tiktok.com', 'industry': 'Social Media'},
-            {'name': 'Twitter', 'domain': 'twitter.com', 'industry': 'Social Media'},
-            {'name': 'Instagram', 'domain': 'instagram.com', 'industry': 'Social Media'},
-            {'name': 'Epic Games', 'domain': 'epicgames.com', 'industry': 'Gaming'},
-            {'name': 'Riot Games', 'domain': 'riotgames.com', 'industry': 'Gaming'},
-            {'name': 'EA', 'domain': 'ea.com', 'industry': 'Gaming'},
-            {'name': 'Activision Blizzard', 'domain': 'activisionblizzard.com', 'industry': 'Gaming'},
-            {'name': 'Airtable', 'domain': 'airtable.com', 'industry': 'Productivity'},
-            {'name': 'Notion', 'domain': 'notion.so', 'industry': 'Productivity'}
-        ]
-        
-        # Filter companies based on query
-        matching_companies = []
-        for company in popular_companies:
-            company_name_lower = company['name'].lower()
-            if (query_lower in company_name_lower or 
-                company_name_lower.startswith(query_lower) or
-                query_lower in company['domain']):
-                
-                # Calculate confidence based on match quality
-                if company_name_lower == query_lower:
-                    confidence = 0.95
-                elif company_name_lower.startswith(query_lower):
-                    confidence = 0.85
-                elif query_lower in company_name_lower:
-                    confidence = 0.75
-                else:
-                    confidence = 0.65
-                
-                result = {
-                    'name': company['name'],
-                    'domain': company['domain'],
-                    'logo_url': f"/api/logos/company/{company['name']}",
-                    'description': f"{company['industry']} company",
-                    'industry': company['industry'],
-                    'confidence': confidence
-                }
-                matching_companies.append(result)
-        
-        # Sort by confidence and limit results
-        matching_companies.sort(key=lambda x: x['confidence'], reverse=True)
-        results = matching_companies[:limit]
-        
-        # Cache the fallback results for a shorter time
-        cache_key = f"autocomplete:{query.lower()}"
-        self.cache_autocomplete(cache_key, results, ttl=3600)  # 1 hour cache for fallback
-        
-        return results
-
     def get_autocomplete_from_cache(self, cache_key):
         """Get autocomplete results from cache"""
         if not self.redis_client:
@@ -840,6 +598,7 @@ class LogoCacheService:
                 return json.loads(cached_data)
         except Exception as e:
             print(f"Error getting autocomplete from cache: {e}")
+            return None
         
         return None
     
@@ -1021,24 +780,39 @@ class LogoCacheService:
     def get_service_config(self):
         """Get current logo service configuration"""
         try:
-            # Check logo.dev API status
-            logodev_status = "unknown"
+            # Check Brandfetch API status
+            brandfetch_status = "unknown"
             try:
                 test_response = requests.get(
-                    'https://img.logo.dev/search',
-                    params={'q': 'test', 'token': self.logo_dev_token, 'limit': 1},
+                    f"{self.brandfetch_search_url}/test",
+                    headers={'Authorization': f'Bearer {self.brandfetch_api_key}'},
                     timeout=3
                 )
-                if test_response.status_code == 200:
-                    logodev_status = "available"
+                if test_response.status_code in [200, 404]:  # 404 is ok for test endpoint
+                    brandfetch_status = "available"
                 elif test_response.status_code == 401:
-                    logodev_status = "invalid_token"
+                    brandfetch_status = "invalid_token"
                 else:
-                    logodev_status = "error"
+                    brandfetch_status = "error"
             except:
-                logodev_status = "unavailable"
+                brandfetch_status = "unavailable"
             
-            # Test fallback services
+            return {
+                "current_service": self.service_config,
+                "available_services": ["brandfetch"],
+                "service_status": {
+                    "brandfetch": {
+                        "status": brandfetch_status,
+                        "has_key": bool(self.brandfetch_api_key),
+                        "endpoint": self.brandfetch_search_url
+                    }
+                },
+                "cache_ttl": self.cache_ttl,
+                "search_cache_ttl": self.search_cache_ttl
+            }
+        except Exception as e:
+            print(f"Error getting service config: {e}")
+            return {"error": str(e)}
             services_status = {}
             fallback_services = [
                 ("clearbit", "https://logo.clearbit.com/google.com"),
@@ -1072,9 +846,9 @@ class LogoCacheService:
     def set_service_config(self, service_type):
         """Set logo service configuration"""
         try:
-            valid_services = ['auto', 'brandfetch', 'logodev', 'clearbit', 'iconhorse', 'favicon', 'fallback']
+            valid_services = ['brandfetch']
             if service_type not in valid_services:
-                return {"error": "Invalid service type"}
+                return {"error": "Invalid service type. Only 'brandfetch' is supported."}
             
             self.service_config = service_type
             
@@ -1115,22 +889,6 @@ class LogoCacheService:
                     self.service_config = stored_config
         except Exception as e:
             print(f"Error loading service config: {e}")
-
-    def get_preferred_fallback_url(self, domain):
-        """Get fallback URL based on service configuration"""
-        if self.service_config == 'clearbit':
-            return f"https://logo.clearbit.com/{domain}"
-        elif self.service_config == 'iconhorse':
-            return f"https://icon.horse/icon/{domain}"
-        elif self.service_config == 'favicon':
-            return f"https://www.google.com/s2/favicons?domain={domain}&sz=128"
-        else:
-            # Default fallback order for 'auto' and 'fallback'
-            return [
-                f"https://icon.horse/icon/{domain}",
-                f"https://www.google.com/s2/favicons?domain={domain}&sz=128",
-                f"https://logo.clearbit.com/{domain}",
-            ]
 
 # Global instance
 logo_cache = LogoCacheService()
