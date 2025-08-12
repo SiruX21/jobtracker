@@ -812,6 +812,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
               darkMode={darkMode}
               sortBy={sortBy}
               setSortBy={setSortBy}
+              statusColorMap={statusColorMap}
             />
           )}
           

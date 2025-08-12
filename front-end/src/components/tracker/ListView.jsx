@@ -16,8 +16,27 @@ const ListView = ({
   setDashboardFilter,
   darkMode,
   sortBy,
-  setSortBy 
+  setSortBy,
+  statusColorMap = {} // Add statusColorMap prop like JobCards uses
 }) => {
+  // Default status colors fallback (matching JobCards)
+  const getDefaultStatusColor = (status) => {
+    const statusColors = {
+      'applied': '#3B82F6',
+      'reviewing': '#F59E0B', 
+      'phone screen': '#06B6D4',
+      'interview': '#10B981',
+      'technical': '#8B5CF6',
+      'final round': '#EC4899',
+      'offer': '#22C55E',
+      'accepted': '#059669',
+      'rejected': '#EF4444',
+      'withdrawn': '#6B7280',
+      'ghosted': '#374151'
+    };
+    return statusColors[status.toLowerCase()] || '#6b7280';
+  };
+
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -94,11 +113,17 @@ const ListView = ({
   const StatusDisplay = ({ status, isEditing, onEdit }) => {
     if (isEditing) return null;
     
-    const color = getStatusColor(status);
     return (
       <span 
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${color}`}
+        className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
+        style={{
+          backgroundColor: statusColorMap[status] || 
+                           statusColorMap[status.toLowerCase()] ||
+                           statusColorMap[status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()] ||
+                           getDefaultStatusColor(status)
+        }}
         onClick={onEdit}
+        title={`Click to edit status: ${status}`}
       >
         {status}
       </span>
@@ -274,44 +299,45 @@ const ListView = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 overflow-hidden">
-      {/* Excel-style Table */}
-      <table className="w-full border-collapse">
-        {/* Table Header - Excel Style */}
-        <thead>
-          <tr className="bg-gray-200 dark:bg-gray-700 border-b-2 border-gray-400 dark:border-gray-500">
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="flex items-center text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                <div className="w-6 h-6 mr-2"></div>
-                <SortableHeader field="company">Company</SortableHeader>
-              </div>
-            </th>
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                <SortableHeader field="title">Position</SortableHeader>
-              </div>
-            </th>
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                <SortableHeader field="status">Status</SortableHeader>
-              </div>
-            </th>
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                <SortableHeader field="location">Location</SortableHeader>
-              </div>
-            </th>
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                <SortableHeader field="date">Applied Date</SortableHeader>
-              </div>
-            </th>
-            <th className="px-3 py-2 text-center">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                Actions
-              </div>
-            </th>
-          </tr>
-        </thead>
+      {/* Excel-style Table with Horizontal Scroll */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse min-w-[800px]">
+          {/* Table Header - Excel Style */}
+          <thead>
+            <tr className="bg-gray-200 dark:bg-gray-700 border-b-2 border-gray-400 dark:border-gray-500">
+              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[200px]">
+                <div className="flex items-center text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <div className="w-6 h-6 mr-2"></div>
+                  <SortableHeader field="company">Company</SortableHeader>
+                </div>
+              </th>
+              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[180px]">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <SortableHeader field="title">Position</SortableHeader>
+                </div>
+              </th>
+              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[130px]">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <SortableHeader field="status">Status</SortableHeader>
+                </div>
+              </th>
+              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[150px]">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <SortableHeader field="location">Location</SortableHeader>
+                </div>
+              </th>
+              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[120px]">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <SortableHeader field="date">Applied Date</SortableHeader>
+                </div>
+              </th>
+              <th className="px-3 py-2 text-center min-w-[100px]">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  Actions
+                </div>
+              </th>
+            </tr>
+          </thead>
 
         {/* Table Body */}
         <tbody>
@@ -407,6 +433,7 @@ const ListView = ({
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* Footer */}
       <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-t-2 border-gray-300 dark:border-gray-600">
