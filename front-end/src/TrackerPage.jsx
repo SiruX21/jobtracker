@@ -799,11 +799,11 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           />
           
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <AddApplicationButton onOpenModal={openAddModal} loading={loading} />
             <SankeyDiagramButton 
               onClick={() => setShowSankeyDiagram(true)}
               disabled={jobs.length === 0}
             />
+            <AddApplicationButton onOpenModal={openAddModal} loading={loading} />
           </div>
           
           <SearchAndFilters 

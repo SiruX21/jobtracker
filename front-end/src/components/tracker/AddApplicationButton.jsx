@@ -9,9 +9,9 @@ function AddApplicationButton({ onOpenModal, loading = false }) {
         disabled={loading}
         className={`
           group relative overflow-hidden px-6 py-3 rounded-lg font-semibold text-white
-          bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800
+          bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
           transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-          focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-100
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100
           dark:focus:ring-offset-gray-800
           ${loading ? 'cursor-not-allowed opacity-75' : ''}
         `}
