@@ -91,6 +91,20 @@ const ListView = ({
     );
   };
 
+  const StatusDisplay = ({ status, isEditing, onEdit }) => {
+    if (isEditing) return null;
+    
+    const color = getStatusColor(status);
+    return (
+      <span 
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${color}`}
+        onClick={onEdit}
+      >
+        {status}
+      </span>
+    );
+  };
+
   const startEdit = (jobId, field, currentValue) => {
     setEditingCell(`${jobId}-${field}`);
     setEditValue(currentValue || '');
@@ -204,9 +218,11 @@ const ListView = ({
 
     if (field === 'status') {
       return (
-        <div onClick={() => startEdit(job.id, field, value)}>
-          {getStatusBadge(value)}
-        </div>
+        <StatusDisplay 
+          status={value} 
+          isEditing={isEditing}
+          onEdit={() => startEdit(job.id, field, value)}
+        />
       );
     }
 
@@ -286,7 +302,7 @@ const ListView = ({
           {filteredJobs.map((job, index) => (
             <tr 
               key={job.id || index} 
-              className="border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+              className="border-b border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-l-4 hover:border-l-blue-400 dark:hover:border-l-blue-500 transition-all duration-200"
             >
               {/* Company */}
               <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
@@ -377,8 +393,8 @@ const ListView = ({
       </table>
 
       {/* Footer */}
-      <div className="bg-gray-100 dark:bg-gray-750 px-4 py-2 border-t-2 border-gray-300 dark:border-gray-600">
-        <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+      <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-t-2 border-gray-300 dark:border-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
           Showing {filteredJobs.length} of {jobs.length} applications
         </div>
       </div>
