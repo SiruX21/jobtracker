@@ -724,6 +724,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             getStatColorClass={getStatColorClass}
           />
           
+          <div className="mb-8"></div>
+          
           <SearchAndFilters 
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
