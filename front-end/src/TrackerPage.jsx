@@ -708,7 +708,10 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             availableStats={availableStats}
             getStatColorClass={getStatColorClass}
           />
-          
+          <SankeyDiagramButton 
+              onClick={() => setShowSankeyDiagram(true)}
+              disabled={jobs.length === 0}
+            />
           <StatsCards 
             selectedStats={selectedStats}
             availableStats={availableStats}
@@ -718,10 +721,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           />
           
           <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <SankeyDiagramButton 
-              onClick={() => setShowSankeyDiagram(true)}
-              disabled={jobs.length === 0}
-            />
+
             <AddApplicationButton onOpenModal={openAddModal} loading={loading} />
           </div>
           
