@@ -798,7 +798,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             getStatColorClass={getStatColorClass}
           />
           
-          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <SankeyDiagramButton 
               onClick={() => setShowSankeyDiagram(true)}
               disabled={jobs.length === 0}
