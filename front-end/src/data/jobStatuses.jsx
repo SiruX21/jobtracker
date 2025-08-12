@@ -31,6 +31,12 @@ export const JOB_STATUSES = [
     description: 'Technical assessment or coding challenge'
   },
   {
+    id: 'oa',
+    name: 'OA',
+    color: '#A855F7', // Purple
+    description: 'Online Assessment'
+  },
+  {
     id: 'final_round',
     name: 'Final Round',
     color: '#EC4899', // Pink

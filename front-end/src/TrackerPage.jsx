@@ -850,6 +850,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             onSubmit={addOrUpdateJob}
             loading={loading}
             darkMode={darkMode}
+            onDelete={() => deleteJob(editingJobIndex)}
+            statusColorMap={statusColorMap}
           />
           
           <LoadingOverlay loading={loading} editingJob={editingJob} />

@@ -13,12 +13,51 @@ function EditJobModal({
   onSubmit, 
   loading,
   darkMode,
-  onDelete // Add delete handler prop
+  onDelete, // Add delete handler prop
+  statusColorMap = {} // Add statusColorMap prop
 }) {
   const [showStatusHistory, setShowStatusHistory] = useState(false);
   
   // Use JOB_STATUSES instead of prop
   const jobStatuses = JOB_STATUSES;
+  
+  // Default status colors fallback (matching JobCards)
+  const getDefaultStatusColor = (status) => {
+    const statusColors = {
+      'applied': '#3B82F6',
+      'reviewing': '#F59E0B', 
+      'phone screen': '#06B6D4',
+      'interview': '#10B981',
+      'technical': '#8B5CF6',
+      'final round': '#EC4899',
+      'offer': '#22C55E',
+      'accepted': '#059669',
+      'rejected': '#EF4444',
+      'withdrawn': '#6B7280',
+      'ghosted': '#374151'
+    };
+    return statusColors[status.toLowerCase()] || '#6b7280';
+  };
+
+  const getStatusColor = (status) => {
+    return statusColorMap[status] || 
+           statusColorMap[status.toLowerCase()] ||
+           statusColorMap[status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()] ||
+           getDefaultStatusColor(status);
+  };
+
+  const StatusBadge = ({ status, className = "" }) => {
+    return (
+      <span 
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-sm ${className}`}
+        style={{
+          backgroundColor: getStatusColor(status)
+        }}
+      >
+        {status}
+      </span>
+    );
+  };
   
   const handleCloseStatusHistory = () => {
     setShowStatusHistory(false);
@@ -120,7 +159,11 @@ function EditJobModal({
                   <div className="relative">
                     <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white">
                       <span className="block truncate">
-                        {newJob.status || 'Select status'}
+                        {newJob.status ? (
+                          <StatusBadge status={newJob.status} />
+                        ) : (
+                          'Select status'
+                        )}
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                         <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
@@ -167,7 +210,7 @@ function EditJobModal({
                             {({ selected }) => (
                               <>
                                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                  {status.name}
+                                  <StatusBadge status={status.name} />
                                 </span>
                                 {selected && (
                                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">

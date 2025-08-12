@@ -197,7 +197,7 @@ const ListView = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onSave}
-            className="appearance-none bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs min-w-24"
+            className="appearance-none bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded pl-8 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs min-w-32"
             autoFocus
           >
             {JOB_STATUSES.map(status => (
@@ -206,6 +206,16 @@ const ListView = ({
               </option>
             ))}
           </select>
+          {/* Color indicator dot */}
+          <div 
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full pointer-events-none"
+            style={{
+              backgroundColor: statusColorMap[value] || 
+                             statusColorMap[value.toLowerCase()] ||
+                             statusColorMap[value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()] ||
+                             getDefaultStatusColor(value)
+            }}
+          ></div>
           <div className="absolute right-1 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <div className="w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-500"></div>
           </div>
