@@ -451,6 +451,33 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
     }
   };
 
+  const updateJobInline = async (updatedJob, jobIndex) => {
+    try {
+      const authToken = Cookies.get("authToken");
+      
+      await axios.put(`${API_BASE_URL}/jobs/${updatedJob.id}`, updatedJob, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      
+      const updatedJobs = [...jobs];
+      updatedJobs[jobIndex] = updatedJob;
+      setJobs(updatedJobs);
+      cacheUtils.set(updatedJobs);
+      setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
+      
+      toast.success('Job updated successfully!');
+      
+    } catch (error) {
+      console.error("Error updating job:", error);
+      toast.error("Failed to update job. Please try again.");
+      
+      if (error.response?.status === 401) {
+        Cookies.remove("authToken");
+        navigate("/auth");
+      }
+    }
+  };
+
   const deleteJob = async (index) => {
     if (!window.confirm("Are you sure you want to delete this job application?")) {
       return;
@@ -775,6 +802,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
               filteredJobs={filteredJobs}
               jobs={jobs}
               editJob={openEditModal}
+              updateJobInline={updateJobInline}
               deleteJob={deleteJob}
               setSearchTerm={setSearchTerm}
               setStatusFilter={setStatusFilter}
