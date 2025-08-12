@@ -8,7 +8,7 @@ function AddApplicationButton({ onOpenModal, loading = false }) {
         onClick={onOpenModal}
         disabled={loading}
         className={`
-          group relative overflow-hidden px-6 py-3 rounded-lg font-semibold text-white
+          group relative overflow-hidden px-8 py-4 rounded-lg font-semibold text-lg text-white
           bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
           transform transition-all duration-300 hover:scale-105 hover:shadow-lg
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100
@@ -17,7 +17,7 @@ function AddApplicationButton({ onOpenModal, loading = false }) {
           ${loading ? 'cursor-not-allowed opacity-75' : ''}
         `}
       >
-        <FaPlus className="mr-2 text-sm" />
+        <FaPlus className="mr-3 text-base" />
         Add New Application
       </button>
     </div>

@@ -715,6 +715,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             onStatusFlowClick={() => setShowSankeyDiagram(true)}
             statusFlowDisabled={jobs.length === 0}
           />
+          
           <StatsCards 
             selectedStats={selectedStats}
             availableStats={availableStats}
@@ -722,8 +723,6 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             dashboardFilter={dashboardFilter}
             getStatColorClass={getStatColorClass}
           />
-          
-
           
           <SearchAndFilters 
             searchTerm={searchTerm}
