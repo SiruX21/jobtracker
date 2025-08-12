@@ -27,12 +27,13 @@ const ListView = ({
       'phone screen': '#06B6D4',
       'interview': '#10B981',
       'technical': '#8B5CF6',
+      'oa': '#A855F7',
       'final round': '#EC4899',
       'offer': '#22C55E',
       'accepted': '#059669',
       'rejected': '#EF4444',
-      'withdrawn': '#6B7280',
-      'ghosted': '#374151'
+      'withdrawn': '#F97316',
+      'ghosted': '#6B7280'
     };
     return statusColors[status.toLowerCase()] || '#6b7280';
   };
@@ -190,44 +191,81 @@ const ListView = ({
   };
 
   const StatusDropdown = ({ value, onChange, onSave, onCancel }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const StatusOption = ({ status, isSelected = false, onClick }) => (
+      <div 
+        className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center ${isSelected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+        onClick={onClick}
+      >
+        <span 
+          className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
+          style={{
+            backgroundColor: statusColorMap[status] || 
+                           statusColorMap[status.toLowerCase()] ||
+                           statusColorMap[status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()] ||
+                           getDefaultStatusColor(status)
+          }}
+        >
+          {status}
+        </span>
+      </div>
+    );
+
     return (
       <div className="flex items-center gap-1">
         <div className="relative">
-          <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onBlur={onSave}
-            className="appearance-none bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded pl-8 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs min-w-32"
-            autoFocus
+          {/* Custom dropdown button showing current status badge */}
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs min-w-32 flex items-center justify-between"
           >
-            {JOB_STATUSES.map(status => (
-              <option key={status.name} value={status.name} className="py-1">
-                {status.name}
-              </option>
-            ))}
-          </select>
-          {/* Color indicator dot */}
-          <div 
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full pointer-events-none"
-            style={{
-              backgroundColor: statusColorMap[value] || 
-                             statusColorMap[value.toLowerCase()] ||
-                             statusColorMap[value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()] ||
-                             getDefaultStatusColor(value)
-            }}
-          ></div>
-          <div className="absolute right-1 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <div className="w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-500"></div>
-          </div>
+            <span 
+              className="px-2 py-0.5 rounded-full text-xs font-semibold text-white shadow-sm"
+              style={{
+                backgroundColor: statusColorMap[value] || 
+                               statusColorMap[value.toLowerCase()] ||
+                               statusColorMap[value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()] ||
+                               getDefaultStatusColor(value)
+              }}
+            >
+              {value}
+            </span>
+            <div className="w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-500 ml-2"></div>
+          </button>
+
+          {/* Custom dropdown menu */}
+          {isOpen && (
+            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+              {JOB_STATUSES.map(status => (
+                <StatusOption
+                  key={status.name}
+                  status={status.name}
+                  isSelected={status.name === value}
+                  onClick={() => {
+                    onChange(status.name);
+                    setIsOpen(false);
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
         <button
-          onClick={onSave}
+          onClick={() => {
+            onSave();
+            setIsOpen(false);
+          }}
           className="text-green-500 hover:text-green-600 p-1"
         >
           <FaCheck className="w-3 h-3" />
         </button>
         <button
-          onClick={onCancel}
+          onClick={() => {
+            onCancel();
+            setIsOpen(false);
+          }}
           className="text-red-500 hover:text-red-600 p-1"
         >
           <FaTimes className="w-3 h-3" />

@@ -29,12 +29,13 @@ function EditJobModal({
       'phone screen': '#06B6D4',
       'interview': '#10B981',
       'technical': '#8B5CF6',
+      'oa': '#A855F7',
       'final round': '#EC4899',
       'offer': '#22C55E',
       'accepted': '#059669',
       'rejected': '#EF4444',
-      'withdrawn': '#6B7280',
-      'ghosted': '#374151'
+      'withdrawn': '#F97316',
+      'ghosted': '#6B7280'
     };
     return statusColors[status.toLowerCase()] || '#6b7280';
   };
@@ -56,6 +57,67 @@ function EditJobModal({
       >
         {status}
       </span>
+    );
+  };
+
+  const StatusDropdown = ({ value, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const StatusOption = ({ status, isSelected = false, onClick }) => (
+      <div 
+        className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center ${isSelected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+        onClick={onClick}
+      >
+        <StatusBadge status={status} />
+      </div>
+    );
+
+    return (
+      <div className="relative">
+        {/* Custom dropdown button showing current status badge */}
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
+        >
+          <span className="block truncate">
+            {value ? (
+              <StatusBadge status={value} />
+            ) : (
+              'Select status'
+            )}
+          </span>
+          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+            <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
+          </span>
+        </button>
+
+        {/* Custom dropdown menu */}
+        {isOpen && (
+          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+            <div 
+              className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center text-gray-900 dark:text-white"
+              onClick={() => {
+                onChange('');
+                setIsOpen(false);
+              }}
+            >
+              Select status
+            </div>
+            {jobStatuses?.map((status) => (
+              <StatusOption
+                key={status.id || status.name}
+                status={status.name}
+                isSelected={status.name === value}
+                onClick={() => {
+                  onChange(status.name);
+                  setIsOpen(false);
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     );
   };
   
@@ -155,76 +217,10 @@ function EditJobModal({
                     View History
                   </button>
                 </div>
-                <Listbox value={newJob.status || ''} onChange={(value) => setNewJob({ ...newJob, status: value })}>
-                  <div className="relative">
-                    <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white dark:bg-gray-700 py-3 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white">
-                      <span className="block truncate">
-                        {newJob.status ? (
-                          <StatusBadge status={newJob.status} />
-                        ) : (
-                          'Select status'
-                        )}
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
-                      </span>
-                    </Listbox.Button>
-                    <Transition
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                        <Listbox.Option
-                          value=""
-                          className={({ active }) =>
-                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                              active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
-                            }`
-                          }
-                        >
-                          {({ selected }) => (
-                            <>
-                              <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                Select status
-                              </span>
-                              {selected && (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                  <FaCheck className="h-3 w-3" aria-hidden="true" />
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </Listbox.Option>
-                        {jobStatuses?.map((status) => (
-                          <Listbox.Option
-                            key={status.id || status.name}
-                            value={status.name}
-                            className={({ active }) =>
-                              `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
-                              }`
-                            }
-                          >
-                            {({ selected }) => (
-                              <>
-                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                  <StatusBadge status={status.name} />
-                                </span>
-                                {selected && (
-                                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                    <FaCheck className="h-3 w-3" aria-hidden="true" />
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </Listbox>
+                <StatusDropdown 
+                  value={newJob.status || ''}
+                  onChange={(value) => setNewJob({ ...newJob, status: value })}
+                />
               </div>
 
               <div>
