@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaExternalLinkAlt, FaEdit, FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaEdit, FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaCheck, FaTimes, FaSortUp, FaSortDown, FaSort } from 'react-icons/fa';
 import { getStatusColor } from '../../data/jobStatuses';
 import { JOB_STATUSES } from '../../data/jobStatuses';
 
@@ -14,7 +14,9 @@ const ListView = ({
   setDateFilter, 
   setCompanyFilter,
   setDashboardFilter,
-  darkMode 
+  darkMode,
+  sortBy,
+  setSortBy 
 }) => {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -42,6 +44,32 @@ const ListView = ({
     setDateFilter("week");
     setDashboardFilter(null);
   };
+
+  const handleSort = (field) => {
+    if (sortBy === `${field}_asc`) {
+      setSortBy(`${field}_desc`);
+    } else if (sortBy === `${field}_desc`) {
+      setSortBy("date_desc"); // Reset to default
+    } else {
+      setSortBy(`${field}_asc`);
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortBy === `${field}_asc`) return <FaSortUp className="ml-1 w-3 h-3" />;
+    if (sortBy === `${field}_desc`) return <FaSortDown className="ml-1 w-3 h-3" />;
+    return <FaSort className="ml-1 w-3 h-3 opacity-40" />;
+  };
+
+  const SortableHeader = ({ field, children, className = "" }) => (
+    <div 
+      className={`flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1 rounded transition-colors ${className}`}
+      onClick={() => handleSort(field)}
+    >
+      {children}
+      {getSortIcon(field)}
+    </div>
+  );
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -213,92 +241,125 @@ const ListView = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-      {/* Table Header */}
-      <div className="bg-gray-100 dark:bg-gray-750 px-4 py-3 border-b-2 border-gray-300 dark:border-gray-600">
-        <div className="grid grid-cols-12 gap-3 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-          <div className="col-span-3 flex items-center">
-            <div className="w-6 h-6 mr-2"></div>
-            Company & Position
-          </div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-2">Location</div>
-          <div className="col-span-2">Applied Date</div>
-          <div className="col-span-2">Notes</div>
-          <div className="col-span-1 text-center">Actions</div>
-        </div>
-      </div>
+    <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 overflow-hidden">
+      {/* Excel-style Table */}
+      <table className="w-full border-collapse">
+        {/* Table Header - Excel Style */}
+        <thead>
+          <tr className="bg-gray-200 dark:bg-gray-700 border-b-2 border-gray-400 dark:border-gray-500">
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="flex items-center text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <div className="w-6 h-6 mr-2"></div>
+                <SortableHeader field="company">Company</SortableHeader>
+              </div>
+            </th>
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <SortableHeader field="title">Position</SortableHeader>
+              </div>
+            </th>
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <SortableHeader field="status">Status</SortableHeader>
+              </div>
+            </th>
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <SortableHeader field="location">Location</SortableHeader>
+              </div>
+            </th>
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                <SortableHeader field="date">Applied Date</SortableHeader>
+              </div>
+            </th>
+            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                Notes
+              </div>
+            </th>
+            <th className="px-3 py-2 text-center">
+              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                Actions
+              </div>
+            </th>
+          </tr>
+        </thead>
 
-      {/* Table Body */}
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {filteredJobs.map((job, index) => (
-          <div key={job.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors border-l-4 border-transparent hover:border-blue-400">
-            <div className="grid grid-cols-12 gap-3 px-4 py-3 items-center">
-              {/* Company & Position */}
-              <div className="col-span-3">
+        {/* Table Body */}
+        <tbody>
+          {filteredJobs.map((job, index) => (
+            <tr 
+              key={job.id || index} 
+              className="border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+            >
+              {/* Company */}
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
                 <div className="flex items-center">
-                  <div className="w-6 h-6 mr-3 flex-shrink-0">
+                  <div className="w-6 h-6 mr-2 flex-shrink-0">
                     {getCompanyLogo(job.company_name)}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <EditableCell
-                      job={job}
-                      field="company_name"
-                      value={job.company_name}
-                      className="font-medium text-gray-900 dark:text-white"
-                    />
-                    <EditableCell
-                      job={job}
-                      field="job_title"
-                      value={job.job_title}
-                      className="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    />
-                  </div>
+                  <EditableCell
+                    job={job}
+                    field="company_name"
+                    value={job.company_name}
+                    className="font-medium text-gray-900 dark:text-white text-sm"
+                  />
                 </div>
-              </div>
+              </td>
+
+              {/* Position */}
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+                <EditableCell
+                  job={job}
+                  field="job_title"
+                  value={job.job_title}
+                  className="text-sm text-gray-900 dark:text-gray-100"
+                />
+              </td>
 
               {/* Status */}
-              <div className="col-span-2">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
                 <EditableCell
                   job={job}
                   field="status"
                   value={job.status}
                 />
-              </div>
+              </td>
 
               {/* Location */}
-              <div className="col-span-2">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
                 <EditableCell
                   job={job}
                   field="location"
                   value={job.location}
-                  className="text-sm text-gray-600 dark:text-gray-300"
+                  className="text-sm text-gray-700 dark:text-gray-300"
                 />
-              </div>
+              </td>
 
               {/* Applied Date */}
-              <div className="col-span-2">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
                 <EditableCell
                   job={job}
                   field="application_date"
                   value={job.application_date}
                   type="date"
-                  className="text-sm text-gray-600 dark:text-gray-300"
+                  className="text-sm text-gray-700 dark:text-gray-300"
                 />
-              </div>
+              </td>
 
               {/* Notes */}
-              <div className="col-span-2">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
                 <EditableCell
                   job={job}
                   field="notes"
                   value={job.notes}
-                  className="text-sm text-gray-600 dark:text-gray-300 truncate"
+                  className="text-sm text-gray-700 dark:text-gray-300"
                 />
-              </div>
+              </td>
 
               {/* Actions */}
-              <div className="col-span-1">
+              <td className="px-3 py-2 align-top">
                 <div className="flex items-center justify-center space-x-2">
                   {job.job_url && (
                     <button
@@ -324,15 +385,15 @@ const ListView = ({
                     <FaTrash className="w-3 h-3" />
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Footer */}
-      <div className="bg-gray-50 dark:bg-gray-750 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+      <div className="bg-gray-100 dark:bg-gray-750 px-4 py-2 border-t-2 border-gray-300 dark:border-gray-600">
+        <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
           Showing {filteredJobs.length} of {jobs.length} applications
         </div>
       </div>

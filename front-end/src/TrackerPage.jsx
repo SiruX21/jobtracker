@@ -810,6 +810,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
               setCompanyFilter={setCompanyFilter}
               setDashboardFilter={setDashboardFilter}
               darkMode={darkMode}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
             />
           )}
           
