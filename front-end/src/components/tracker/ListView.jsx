@@ -164,6 +164,43 @@ const ListView = ({
     );
   };
 
+  const StatusDropdown = ({ value, onChange, onSave, onCancel }) => {
+    return (
+      <div className="flex items-center gap-1">
+        <div className="relative">
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onSave}
+            className="appearance-none bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs min-w-24"
+            autoFocus
+          >
+            {JOB_STATUSES.map(status => (
+              <option key={status.name} value={status.name} className="py-1">
+                {status.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-1 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <div className="w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-500"></div>
+          </div>
+        </div>
+        <button
+          onClick={onSave}
+          className="text-green-500 hover:text-green-600 p-1"
+        >
+          <FaCheck className="w-3 h-3" />
+        </button>
+        <button
+          onClick={onCancel}
+          className="text-red-500 hover:text-red-600 p-1"
+        >
+          <FaTimes className="w-3 h-3" />
+        </button>
+      </div>
+    );
+  };
+
   const EditableCell = ({ job, field, value, type = 'text', className = '' }) => {
     const cellKey = `${job.id}-${field}`;
     const isEditing = editingCell === cellKey;
@@ -171,33 +208,12 @@ const ListView = ({
     if (isEditing) {
       if (field === 'status') {
         return (
-          <div className="flex items-center gap-1">
-            <select
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={() => saveEdit(job, field, editValue)}
-              className="text-xs bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-400 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              autoFocus
-            >
-              {JOB_STATUSES.map(status => (
-                <option key={status.name} value={status.name}>
-                  {status.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => saveEdit(job, field, editValue)}
-              className="text-green-500 hover:text-green-600"
-            >
-              <FaCheck className="w-3 h-3" />
-            </button>
-            <button
-              onClick={cancelEdit}
-              className="text-red-500 hover:text-red-600"
-            >
-              <FaTimes className="w-3 h-3" />
-            </button>
-          </div>
+          <StatusDropdown
+            value={editValue}
+            onChange={setEditValue}
+            onSave={() => saveEdit(job, field, editValue)}
+            onCancel={cancelEdit}
+          />
         );
       }
 
@@ -228,7 +244,7 @@ const ListView = ({
 
     return (
       <div 
-        className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-1 transition-colors ${className}`}
+        className={`cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:border hover:border-blue-300 dark:hover:border-blue-600 rounded px-2 py-1 transition-all duration-150 ${className}`}
         onClick={() => startEdit(job.id, field, value)}
         title="Click to edit"
       >
@@ -302,7 +318,7 @@ const ListView = ({
           {filteredJobs.map((job, index) => (
             <tr 
               key={job.id || index} 
-              className="border-b border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-l-4 hover:border-l-blue-400 dark:hover:border-l-blue-500 transition-all duration-200"
+              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:shadow-lg hover:border-l-4 hover:border-l-blue-500 dark:hover:border-l-blue-400 transition-all duration-200"
             >
               {/* Company */}
               <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
