@@ -6,6 +6,7 @@ import { fetchCompanySuggestions } from '../../services/companyService';
 import { logoService } from '../../services/logoService';
 import { debugError, debugLog } from '../../utils/debug';
 import { API_BASE_URL } from '../../config';
+import { JOB_STATUSES } from '../../data/jobStatuses';
 
 function AddJobModal({ 
   isOpen, 
@@ -15,7 +16,6 @@ function AddJobModal({
   onPrevStep, 
   newJob, 
   setNewJob, 
-  jobStatuses,
   onSubmit,
   loading,
   companySearchTerm,
@@ -31,6 +31,8 @@ function AddJobModal({
   autoLogos,
   darkMode
 }) {
+  // Use static job statuses instead of prop
+  const jobStatuses = JOB_STATUSES;
   const companyInputRef = useRef(null);
   const jobTitleInputRef = useRef(null);
   const statusInputRef = useRef(null);

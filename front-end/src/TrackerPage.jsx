@@ -765,7 +765,6 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             onPrevStep={prevStep}
             newJob={newJob}
             setNewJob={setNewJob}
-            jobStatuses={JOB_STATUSES}
             onSubmit={addOrUpdateJob}
             loading={loading}
             companySearchTerm={companySearchTerm}
