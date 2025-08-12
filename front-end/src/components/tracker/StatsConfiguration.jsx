@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCog } from 'react-icons/fa';
+import { FaCog, FaChartLine } from 'react-icons/fa';
 
 function StatsConfiguration({ 
   showStatsConfig, 
@@ -7,19 +7,36 @@ function StatsConfiguration({
   availableStats, 
   selectedStats, 
   setSelectedStats, 
-  getStatColorClass 
+  getStatColorClass,
+  onStatusFlowClick,
+  statusFlowDisabled = false
 }) {
   return (
     <div className="relative mb-8 animate-fadeIn">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
-        <button
-          onClick={() => setShowStatsConfig(!showStatsConfig)}
-          className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-        >
-          <FaCog className="mr-2" />
-          Customize Stats
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onStatusFlowClick}
+            disabled={statusFlowDisabled}
+            className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
+              statusFlowDisabled 
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+            title={statusFlowDisabled ? "No status history available" : "View application status flow diagram"}
+          >
+            <FaChartLine className="mr-2" />
+            Status Flow
+          </button>
+          <button
+            onClick={() => setShowStatsConfig(!showStatsConfig)}
+            className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+          >
+            <FaCog className="mr-2" />
+            Customize Stats
+          </button>
+        </div>
       </div>
 
       {/* Stats Configuration Panel */}

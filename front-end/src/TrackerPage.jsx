@@ -707,11 +707,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             setSelectedStats={setSelectedStats}
             availableStats={availableStats}
             getStatColorClass={getStatColorClass}
+            onStatusFlowClick={() => setShowSankeyDiagram(true)}
+            statusFlowDisabled={jobs.length === 0}
           />
-          <SankeyDiagramButton 
-              onClick={() => setShowSankeyDiagram(true)}
-              disabled={jobs.length === 0}
-            />
           <StatsCards 
             selectedStats={selectedStats}
             availableStats={availableStats}
