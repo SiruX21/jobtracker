@@ -16,6 +16,7 @@ const SankeyDiagramButton = ({ onClick, disabled = false }) => {
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' 
             : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:ring-purple-500'
           }
+          flex items-center justify-center whitespace-nowrap
         `}
         title={disabled ? "No status history available" : "View application status flow diagram"}
       >

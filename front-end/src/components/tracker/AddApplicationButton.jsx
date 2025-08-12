@@ -13,6 +13,7 @@ function AddApplicationButton({ onOpenModal, loading = false }) {
           transform transition-all duration-300 hover:scale-105 hover:shadow-lg
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100
           dark:focus:ring-offset-gray-800
+          flex items-center justify-center whitespace-nowrap
           ${loading ? 'cursor-not-allowed opacity-75' : ''}
         `}
       >
