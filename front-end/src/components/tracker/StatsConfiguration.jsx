@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCog, FaChartLine } from 'react-icons/fa';
+import { FaCog, FaChartLine, FaTh, FaList } from 'react-icons/fa';
 
 function StatsConfiguration({ 
   showStatsConfig, 
@@ -9,7 +9,9 @@ function StatsConfiguration({
   setSelectedStats, 
   getStatColorClass,
   onStatusFlowClick,
-  statusFlowDisabled = false
+  statusFlowDisabled = false,
+  viewMode,
+  setViewMode
 }) {
   return (
     <div className="relative mb-8 animate-fadeIn">
@@ -29,6 +31,35 @@ function StatsConfiguration({
             <FaChartLine className="mr-2" />
             Status Flow
           </button>
+          
+          {/* View Toggle Buttons */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`flex items-center px-3 py-1 text-sm rounded-md transition ${
+                viewMode === 'card'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              title="Card View"
+            >
+              <FaTh className="mr-1" />
+              Card View
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center px-3 py-1 text-sm rounded-md transition ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+              title="List View"
+            >
+              <FaList className="mr-1" />
+              List View
+            </button>
+          </div>
+          
           <button
             onClick={() => setShowStatsConfig(!showStatsConfig)}
             className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"

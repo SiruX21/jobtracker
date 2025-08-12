@@ -19,6 +19,7 @@ import StatsCards from "./components/tracker/StatsCards";
 import AddApplicationButton from "./components/tracker/AddApplicationButton";
 import SearchAndFilters from "./components/tracker/SearchAndFilters";
 import JobCards from "./components/tracker/JobCards";
+import ListView from "./components/tracker/ListView";
 import AddJobModal from "./components/tracker/AddJobModal";
 import EditJobModal from "./components/tracker/EditJobModal";
 import LoadingOverlay from "./components/tracker/LoadingOverlay";
@@ -170,6 +171,10 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   });
   const [dashboardFilter, setDashboardFilter] = useState(null);
   const [showSankeyDiagram, setShowSankeyDiagram] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('viewMode');
+    return saved || 'card';
+  });
 
   // Available stats configuration
   const availableStats = [
@@ -680,6 +685,11 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Save view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem('viewMode', viewMode);
+  }, [viewMode]);
+
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} isMobile={isMobile} />
@@ -714,6 +724,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             getStatColorClass={getStatColorClass}
             onStatusFlowClick={() => setShowSankeyDiagram(true)}
             statusFlowDisabled={jobs.length === 0}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
           />
           
           <StatsCards 
@@ -745,18 +757,33 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             setDashboardFilter={setDashboardFilter}
           />
           
-          <JobCards 
-            filteredJobs={filteredJobs}
-            jobs={jobs}
-            statusColorMap={statusColorMap}
-            editJob={openEditModal}
-            deleteJob={deleteJob}
-            setSearchTerm={setSearchTerm}
-            setStatusFilter={setStatusFilter}
-            setDateFilter={setDateFilter}
-            setCompanyFilter={setCompanyFilter}
-            setDashboardFilter={setDashboardFilter}
-          />
+          {viewMode === 'card' ? (
+            <JobCards 
+              filteredJobs={filteredJobs}
+              jobs={jobs}
+              statusColorMap={statusColorMap}
+              editJob={openEditModal}
+              deleteJob={deleteJob}
+              setSearchTerm={setSearchTerm}
+              setStatusFilter={setStatusFilter}
+              setDateFilter={setDateFilter}
+              setCompanyFilter={setCompanyFilter}
+              setDashboardFilter={setDashboardFilter}
+            />
+          ) : (
+            <ListView
+              filteredJobs={filteredJobs}
+              jobs={jobs}
+              editJob={openEditModal}
+              deleteJob={deleteJob}
+              setSearchTerm={setSearchTerm}
+              setStatusFilter={setStatusFilter}
+              setDateFilter={setDateFilter}
+              setCompanyFilter={setCompanyFilter}
+              setDashboardFilter={setDashboardFilter}
+              darkMode={darkMode}
+            />
+          )}
           
           <AddJobModal 
             isOpen={isAddModalOpen}
