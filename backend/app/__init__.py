@@ -207,39 +207,8 @@ def create_tables():
         """)
         print("Job applications table checked/created successfully.")
 
-        # Job statuses table for dynamic status management
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS job_statuses (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            status_name VARCHAR(50) UNIQUE NOT NULL,
-            color_code VARCHAR(7) NOT NULL,
-            is_default BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-        """)
         
-        # Insert default statuses if they don't exist
-        default_statuses = [
-            ('Applied', '#3B82F6', True),      # Blue
-            ('Interview', '#10B981', False),   # Green  
-            ('Offer', '#8B5CF6', False),       # Purple (changed from 'Offered' to 'Offer')
-            ('Rejected', '#EF4444', False),    # Red
-            ('Reviewing', '#F59E0B', False),   # Amber
-            ('OA', '#06B6D4', False),          # Cyan
-            ('Ghosted', '#6B7280', False)      # Gray
-        ]
-        
-        for status_name, color_code, is_default in default_statuses:
-            try:
-                cursor.execute("""
-                INSERT IGNORE INTO job_statuses (status_name, color_code, is_default) 
-                VALUES (?, ?, ?)
-                """, (status_name, color_code, is_default))
-            except mariadb.Error:
-                pass  # Status already exists
-        
-        print("Job statuses table checked/created successfully.")
+        print("Database tables checked/created successfully.")
 
     except mariadb.Error as e:
         print(f"Error during table creation: {e}")

@@ -8,6 +8,7 @@ import { debugLog } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
+import { JOB_STATUSES, getStatusColorMap } from './data/jobStatuses';
 import { 
   FaUsers, FaBriefcase, FaChartBar, FaCog, FaExclamationTriangle, FaUserShield, FaExternalLinkAlt
 } from 'react-icons/fa';
@@ -270,62 +271,11 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
 
   const fetchJobStatuses = async () => {
     try {
-      const token = Cookies.get('authToken');
-      const response = await axios.get(`${API_BASE_URL}/api/admin/job-statuses`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Handle both array response and object with statuses property
-      const statuses = Array.isArray(response.data) ? response.data : response.data.statuses;
-      
-      // Ensure statuses is an array
-      if (Array.isArray(statuses)) {
-        setJobStatuses(statuses);
-        
-        // Create color mapping
-        const colorMap = {};
-        statuses.forEach(status => {
-          colorMap[status.status_name] = status.color_code;
-        });
-        setStatusColorMap(colorMap);
-      } else {
-        console.error("Job statuses response is not an array:", response.data);
-        // Set default statuses if backend fails
-        const defaultStatuses = [
-          { status_name: "Applied", color_code: "#3B82F6" },
-          { status_name: "Interview", color_code: "#10B981" },
-          { status_name: "Offered", color_code: "#8B5CF6" },
-          { status_name: "Rejected", color_code: "#EF4444" },
-          { status_name: "Ghosted", color_code: "#6B7280" }
-        ];
-        setJobStatuses(defaultStatuses);
-        
-        const colorMap = {};
-        defaultStatuses.forEach(status => {
-          colorMap[status.status_name] = status.color_code;
-        });
-        setStatusColorMap(colorMap);
-      }
-      
+      // Use static job statuses instead of fetching from backend
+      setJobStatuses(JOB_STATUSES);
+      setStatusColorMap(getStatusColorMap());
     } catch (error) {
-      console.error("Error fetching job statuses:", error);
-      
-      // Set default statuses on error
-      const defaultStatuses = [
-        { status_name: "Applied", color_code: "#3B82F6" },
-        { status_name: "Interview", color_code: "#10B981" },
-        { status_name: "Offered", color_code: "#8B5CF6" },
-        { status_name: "Rejected", color_code: "#EF4444" },
-        { status_name: "Ghosted", color_code: "#6B7280" }
-      ];
-      setJobStatuses(defaultStatuses);
-      
-      const colorMap = {};
-      defaultStatuses.forEach(status => {
-        colorMap[status.status_name] = status.color_code;
-      });
-      setStatusColorMap(colorMap);
-      
+      console.error("Error setting job statuses:", error);
       setError('Failed to load job statuses');
     }
   };
@@ -766,8 +716,6 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
             jobsStatusFilter={jobsStatusFilter}
             jobsPagination={jobsPagination}
             jobsPage={jobsPage}
-            jobStatuses={jobStatuses}
-            statusColorMap={statusColorMap}
             loading={jobsLoading}
             setJobsSearch={setJobsSearch}
             setJobsStatusFilter={setJobsStatusFilter}
@@ -838,7 +786,6 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
           newJob={newJob}
           setNewJob={setNewJob}
           editingJob={editingJob}
-          jobStatuses={jobStatuses}
           onSubmit={updateJob}
           loading={loading}
           darkMode={darkMode}

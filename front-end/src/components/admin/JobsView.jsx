@@ -5,6 +5,7 @@ import { formatDate } from './utils';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import SkeletonThemeProvider from '../shared/SkeletonThemeProvider';
+import { JOB_STATUSES, getStatusColorMap } from '../../data/jobStatuses';
 
 function JobsView({
   jobs,
@@ -12,8 +13,6 @@ function JobsView({
   jobsStatusFilter,
   jobsPagination,
   jobsPage,
-  jobStatuses,
-  statusColorMap,
   loading,
   setJobsSearch,
   setJobsStatusFilter,
@@ -25,6 +24,10 @@ function JobsView({
   initialLoading = false, // Add initial loading prop
   darkMode = false // Add darkMode prop
 }) {
+  // Use static job statuses and color map
+  const jobStatuses = JOB_STATUSES;
+  const statusColorMap = getStatusColorMap();
+  
   // Show inline loading skeleton during initial load or when no jobs data
   if (initialLoading || (!jobs && loading) || !jobs) {
     return (
@@ -138,7 +141,7 @@ function JobsView({
                          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none relative cursor-default text-left w-full">
                   <span className="block truncate">
-                    {jobsStatusFilter === '' ? 'All Status' : jobStatuses.find(status => status.status_name === jobsStatusFilter)?.status_name || 'All Status'}
+                    {jobsStatusFilter === '' ? 'All Status' : jobStatuses.find(status => status.name === jobsStatusFilter)?.name || 'All Status'}
                   </span>
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                     <FaChevronDown className="h-3 w-3 text-gray-400" aria-hidden="true" />
@@ -174,8 +177,8 @@ function JobsView({
                     </Listbox.Option>
                     {jobStatuses.map(status => (
                       <Listbox.Option
-                        key={status.status_name}
-                        value={status.status_name}
+                        key={status.name}
+                        value={status.name}
                         className={({ active }) =>
                           `relative cursor-default select-none py-2 pl-10 pr-4 ${
                             active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
@@ -185,7 +188,7 @@ function JobsView({
                         {({ selected }) => (
                           <>
                             <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                              {status.status_name}
+                              {status.name}
                             </span>
                             {selected && (
                               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">

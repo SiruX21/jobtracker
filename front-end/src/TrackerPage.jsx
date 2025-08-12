@@ -7,6 +7,7 @@ import { debugLog, debugWarn } from './utils/debug';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import { getJobTitleSuggestions } from "./data/companySuggestions";
+import { JOB_STATUSES, getStatusColorMap, getStatusNames } from './data/jobStatuses';
 import { logoService } from "./services/logoService";
 import { FaSearch, FaBuilding, FaCalendar, FaClock, FaThumbsUp, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
@@ -127,8 +128,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("");
-  const [jobStatuses, setJobStatuses] = useState([]);
-  const [statusColorMap, setStatusColorMap] = useState({});
+  const [statusColorMap, setStatusColorMap] = useState(getStatusColorMap());
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("date_desc");
   const [newJob, setNewJob] = useState({ 
@@ -276,8 +276,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
 
   // Modal management functions
   const openAddModal = () => {
-    const defaultStatus = jobStatuses.length > 0 ? 
-      jobStatuses.find(s => s.status_name === "Applied")?.status_name || jobStatuses[0].status_name : 
+    const defaultStatus = JOB_STATUSES.length > 0 ? 
+      JOB_STATUSES.find(s => s.name === "Applied")?.name || JOB_STATUSES[0].name : 
       "Applied";
       
     setNewJob({
@@ -329,85 +329,6 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
   };
 
   // API functions
-  const fetchJobStatuses = async () => {
-    try {
-      const authToken = Cookies.get("authToken");
-      if (!authToken) {
-        debugWarn("No auth token found, redirecting to auth");
-        navigate("/auth");
-        return;
-      }
-
-      debugLog("Fetching job statuses from:", `${API_BASE_URL}/job-statuses`);
-      const response = await axios.get(`${API_BASE_URL}/job-statuses`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      
-      debugLog("Raw API response:", response.data);
-      
-      // The backend returns: { "statuses": [...] }
-      const statuses = response.data.statuses || [];
-      
-      if (Array.isArray(statuses) && statuses.length > 0) {
-        setJobStatuses(statuses);
-        const colorMap = {};
-        statuses.forEach(status => {
-          colorMap[status.status_name] = status.color_code;
-        });
-        setStatusColorMap(colorMap);
-        debugLog('Status color map loaded successfully:', colorMap);
-      } else {
-        debugWarn('No statuses found in API response. Expected statuses array, got:', statuses);
-        // Set default statuses if API doesn't return any
-        const defaultStatuses = [
-          { status_name: 'Applied', color_code: '#3B82F6' },
-          { status_name: 'Interview', color_code: '#10B981' },
-          { status_name: 'Offer', color_code: '#8B5CF6' },
-          { status_name: 'Rejected', color_code: '#EF4444' },
-          { status_name: 'Reviewing', color_code: '#F59E0B' },
-          { status_name: 'OA', color_code: '#06B6D4' },
-          { status_name: 'Ghosted', color_code: '#6B7280' }
-        ];
-        setJobStatuses(defaultStatuses);
-        const defaultColorMap = {};
-        defaultStatuses.forEach(status => {
-          defaultColorMap[status.status_name] = status.color_code;
-        });
-        setStatusColorMap(defaultColorMap);
-        debugLog('Using default status colors:', defaultColorMap);
-      }
-    } catch (error) {
-      console.error("Error fetching job statuses:", error);
-      console.error("Error details:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-      
-      // Set default statuses as fallback
-      const defaultStatuses = [
-        { status_name: 'Applied', color_code: '#3B82F6' },
-        { status_name: 'Interview', color_code: '#10B981' },
-        { status_name: 'Offer', color_code: '#8B5CF6' },
-        { status_name: 'Rejected', color_code: '#EF4444' },
-        { status_name: 'Reviewing', color_code: '#F59E0B' },
-        { status_name: 'OA', color_code: '#06B6D4' },
-        { status_name: 'Ghosted', color_code: '#6B7280' }
-      ];
-      setJobStatuses(defaultStatuses);
-      const defaultColorMap = {};
-      defaultStatuses.forEach(status => {
-        defaultColorMap[status.status_name] = status.color_code;
-      });
-      setStatusColorMap(defaultColorMap);
-      debugLog('Using fallback status colors due to API error:', defaultColorMap);
-      
-      if (error.response?.status === 401) {
-        Cookies.remove("authToken");
-        navigate("/auth");
-      }
-    }
-  };
 
   const fetchJobs = async (forceRefresh = false) => {
     try {
@@ -710,8 +631,6 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           isRefreshing: false
         });
         
-        await fetchJobStatuses();
-        // Force refresh to get latest data from server
         await fetchJobs(true);
       } catch (error) {
         console.error('Error initializing data:', error);
@@ -819,7 +738,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             setDateFilter={setDateFilter}
             companyFilter={companyFilter}
             setCompanyFilter={setCompanyFilter}
-            jobStatuses={jobStatuses}
+            jobStatuses={JOB_STATUSES}
             filteredJobs={filteredJobs}
             jobs={jobs}
             setDashboardFilter={setDashboardFilter}
@@ -846,7 +765,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             onPrevStep={prevStep}
             newJob={newJob}
             setNewJob={setNewJob}
-            jobStatuses={jobStatuses}
+            jobStatuses={JOB_STATUSES}
             onSubmit={addOrUpdateJob}
             loading={loading}
             companySearchTerm={companySearchTerm}
@@ -869,7 +788,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
             newJob={newJob}
             setNewJob={setNewJob}
             editingJob={editingJob}
-            jobStatuses={jobStatuses}
+            jobStatuses={JOB_STATUSES}
             onSubmit={addOrUpdateJob}
             loading={loading}
             darkMode={darkMode}

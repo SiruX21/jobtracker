@@ -54,32 +54,6 @@ def ensure_status_history_table(cursor):
     except Exception as e:
         print(f"Error ensuring status history table: {e}")
 
-def generate_random_color():
-    """Generate a random color code for new statuses"""
-    colors = [
-        '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', 
-        '#06B6D4', '#EC4899', '#84CC16', '#F97316', '#6366F1',
-        '#14B8A6', '#EAB308', '#DC2626', '#7C3AED', '#059669',
-        '#DB2777', '#65A30D', '#EA580C', '#4F46E5', '#0D9488'
-    ]
-    return random.choice(colors)
-
-def ensure_status_exists(cursor, status_name):
-    """Ensure a status exists in the job_statuses table, create if it doesn't"""
-    if not status_name:
-        return
-    
-    # Check if status exists
-    cursor.execute("SELECT id FROM job_statuses WHERE status_name = ?", (status_name,))
-    if not cursor.fetchone():
-        # Create new status with random color
-        color_code = generate_random_color()
-        cursor.execute("""
-            INSERT INTO job_statuses (status_name, color_code, is_default) 
-            VALUES (?, ?, FALSE)
-        """, (status_name, color_code))
-        print(f"Created new status: {status_name} with color {color_code}")
-
 from functools import wraps
 
 def set_user_id_in_request(f):
@@ -148,9 +122,6 @@ def create_job(current_user):
 
     try:
         conn, cursor = get_db()
-        
-        # Ensure the status exists in job_statuses table
-        ensure_status_exists(cursor, status)
         
         sql = """
             INSERT INTO job_applications
@@ -318,9 +289,8 @@ def update_job(current_user, job_id):
         if current_job['user_id'] != user_id and not is_admin:
             return jsonify({"error": "Access denied"}), 403
 
-        # If status is being updated, ensure it exists in job_statuses table
+        # If status is being updated, track status change
         if 'status' in update_fields:
-            ensure_status_exists(cursor, update_fields['status'])
             # Track status change if status is different
             old_status = current_job['status']
             new_status = update_fields['status']
@@ -398,152 +368,6 @@ def delete_job(current_user, job_id):
         return jsonify({"error": "Failed to delete job application"}), 500
     except Exception as e:
         print(f"Unexpected error deleting job {job_id}: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-@jobs_bp.route("/job-statuses", methods=["GET"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("30 per minute")
-def get_job_statuses(current_user):
-    """Get all available job statuses with their colors"""
-    try:
-        conn, cursor = get_db()
-        cursor.execute("""
-            SELECT status_name, color_code, is_default 
-            FROM job_statuses 
-            ORDER BY is_default DESC, status_name ASC
-        """)
-        statuses = cursor.fetchall()
-        
-        return jsonify({
-            "statuses": statuses
-        }), 200
-    except mariadb.Error as e:
-        print(f"Database error getting job statuses: {e}")
-        return jsonify({"error": "Failed to fetch job statuses"}), 500
-    except Exception as e:
-        print(f"Unexpected error getting job statuses: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-@jobs_bp.route("/job-statuses", methods=["POST"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("5 per minute")
-def create_job_status(current_user):
-    """Create a new job status with auto-generated color"""
-    data = request.json
-    status_name = data.get('status_name', '').strip()
-    custom_color = data.get('color_code')
-    
-    if not status_name or not isinstance(status_name, str) or len(status_name) > 50:
-        return jsonify({"error": "Status name is required and must be a string up to 50 characters."}), 400
-    
-    if custom_color:
-        import re
-        if not isinstance(custom_color, str) or not re.match(r'^#[0-9a-fA-F]{6}$', custom_color):
-            return jsonify({"error": "Invalid color code format. Must be a hex code (e.g., #RRGGBB)."}), 400
-
-    # Generate color if not provided
-    color_code = custom_color if custom_color else generate_random_color()
-    
-    try:
-        conn, cursor = get_db()
-        
-        # Check if status already exists
-        cursor.execute("SELECT id FROM job_statuses WHERE status_name = ?", (status_name,))
-        if cursor.fetchone():
-            return jsonify({"error": "Status already exists"}), 409
-        
-        # Insert new status
-        cursor.execute("""
-            INSERT INTO job_statuses (status_name, color_code, is_default) 
-            VALUES (?, ?, FALSE)
-        """, (status_name, color_code))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({
-            "message": "Status created successfully",
-            "status": {
-                "status_name": status_name,
-                "color_code": color_code,
-                "is_default": False
-            }
-        }), 201
-    except mariadb.Error as e:
-        print(f"Database error creating job status: {e}")
-        return jsonify({"error": "Failed to create job status"}), 500
-    except Exception as e:
-        print(f"Unexpected error creating job status: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-@jobs_bp.route("/job-statuses/<status_name>", methods=["GET"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("30 per minute")
-def get_job_status_color(current_user, status_name):
-    """Get a specific job status color"""
-    try:
-        conn, cursor = get_db()
-        cursor.execute("""
-            SELECT status_name, color_code, is_default 
-            FROM job_statuses 
-            WHERE status_name = ?
-        """, (status_name,))
-        status = cursor.fetchone()
-        
-        if status:
-            return jsonify(status), 200
-        else:
-            return jsonify({"error": "Status not found"}), 404
-    except mariadb.Error as e:
-        print(f"Database error getting job status: {e}")
-        return jsonify({"error": "Failed to fetch job status"}), 500
-    except Exception as e:
-        print(f"Unexpected error getting job status: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
-
-@jobs_bp.route("/job-statuses/<status_name>", methods=["PUT"])
-@token_required
-@set_user_id_in_request
-@limiter.limit("5 per minute")
-def update_job_status(current_user, status_name):
-    """Update a job status color"""
-    data = request.json
-    new_color = data.get('color_code')
-    
-    # --- Input Validation ---
-    if not new_color:
-        return jsonify({"error": "Color code is required"}), 400
-    
-    import re
-    if not isinstance(new_color, str) or not re.match(r'^#[0-9a-fA-F]{6}$', new_color):
-        return jsonify({"error": "Invalid color code format. Must be a hex code (e.g., #RRGGBB)."}), 400
-    # --- End Validation ---
-    
-    try:
-        conn, cursor = get_db()
-        
-        # Update status color
-        cursor.execute("""
-            UPDATE job_statuses 
-            SET color_code = ?, updated_at = CURRENT_TIMESTAMP 
-            WHERE status_name = ?
-        """, (new_color, status_name))
-        
-        if cursor.rowcount > 0:
-            conn.commit()
-            conn.close()
-            return jsonify({"message": "Status color updated successfully"}), 200
-        else:
-            conn.close()
-            return jsonify({"error": "Status not found"}), 404
-    except mariadb.Error as e:
-        print(f"Database error updating job status: {e}")
-        return jsonify({"error": "Failed to update job status"}), 500
-    except Exception as e:
-        print(f"Unexpected error updating job status: {e}")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=None):

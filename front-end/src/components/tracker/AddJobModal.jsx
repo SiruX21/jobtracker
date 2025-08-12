@@ -224,7 +224,7 @@ function AddJobModal({
 
   // Filter status suggestions based on search term
   const filteredStatuses = jobStatuses?.filter(status => 
-    status.status_name.toLowerCase().includes((statusSearchTerm || newJob.status || "").toLowerCase())
+    status.name.toLowerCase().includes((statusSearchTerm || newJob.status || "").toLowerCase())
   ) || [];
 
   return (
@@ -746,13 +746,13 @@ function AddJobModal({
           >
             {filteredStatuses.map((status, index) => (
               <div
-                key={status.id || status.status_name}
+                key={status.id || status.name}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   
                   // Update the job with the selected status
-                  setNewJob(prev => ({ ...prev, status: status.status_name }));
+                  setNewJob(prev => ({ ...prev, status: status.name }));
                   
                   // Clear the search term and close the dropdown
                   setStatusSearchTerm("");
@@ -769,7 +769,7 @@ function AddJobModal({
                   className="w-4 h-4 rounded-full mr-3 flex-shrink-0"
                   style={{ backgroundColor: status.color || '#6b7280' }}
                 ></div>
-                <span className="text-gray-900 dark:text-gray-100">{status.status_name}</span>
+                <span className="text-gray-900 dark:text-gray-100">{status.name}</span>
               </div>
             ))}
           </div>,

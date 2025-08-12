@@ -173,7 +173,7 @@ function SearchAndFilters({
                     <span className="block truncate text-gray-900 dark:text-gray-100 pr-2">
                       {statusFilter === 'all' 
                         ? 'All Statuses' 
-                        : jobStatuses.find(status => status.status_name.toLowerCase() === statusFilter)?.status_name || 'All Statuses'
+                        : jobStatuses.find(status => status.name.toLowerCase() === statusFilter)?.name || 'All Statuses'
                       }
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
@@ -210,8 +210,8 @@ function SearchAndFilters({
                       </Listbox.Option>
                       {jobStatuses.map(status => (
                         <Listbox.Option
-                          key={status.status_name}
-                          value={status.status_name.toLowerCase()}
+                          key={status.name}
+                          value={status.name.toLowerCase()}
                           className={({ active }) =>
                             `relative cursor-default select-none py-2 pl-3 pr-9 ${
                               active ? 'bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100'
@@ -221,7 +221,7 @@ function SearchAndFilters({
                           {({ selected }) => (
                             <>
                               <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                {status.status_name}
+                                {status.name}
                               </span>
                               {selected && (
                                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600">

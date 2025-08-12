@@ -2,6 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { Dialog, Transition, Listbox } from '@headlessui/react';
 import { FaTimes, FaEdit, FaSpinner, FaTrash, FaHistory, FaChevronDown, FaCheck } from 'react-icons/fa';
 import StatusHistoryModal from './StatusHistoryModal';
+import { JOB_STATUSES } from '../../data/jobStatuses';
 
 function EditJobModal({ 
   isOpen, 
@@ -9,13 +10,15 @@ function EditJobModal({
   newJob, 
   setNewJob, 
   editingJob,
-  jobStatuses, 
   onSubmit, 
   loading,
   darkMode,
   onDelete // Add delete handler prop
 }) {
   const [showStatusHistory, setShowStatusHistory] = useState(false);
+  
+  // Use JOB_STATUSES instead of prop
+  const jobStatuses = JOB_STATUSES;
   
   const handleCloseStatusHistory = () => {
     setShowStatusHistory(false);
@@ -153,8 +156,8 @@ function EditJobModal({
                         </Listbox.Option>
                         {jobStatuses?.map((status) => (
                           <Listbox.Option
-                            key={status.id || status.status_name}
-                            value={status.status_name}
+                            key={status.id || status.name}
+                            value={status.name}
                             className={({ active }) =>
                               `relative cursor-default select-none py-2 pl-10 pr-4 ${
                                 active ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'
@@ -164,7 +167,7 @@ function EditJobModal({
                             {({ selected }) => (
                               <>
                                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                  {status.status_name}
+                                  {status.name}
                                 </span>
                                 {selected && (
                                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
