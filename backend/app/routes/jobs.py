@@ -98,19 +98,23 @@ def create_job(current_user):
     data = request.json
     user_id = current_user['id']
     
+    # Debug logging
+    print(f"📥 Received job creation request from user {user_id}")
+    print(f"📋 Request data: {data}")
+    
     # --- Input Validation & Sanitization ---
     errors = {}
-    job_title = data.get('job_title')
-    company_name = data.get('company_name')
-    status = data.get('status', 'Applied')
-    location = data.get('location')
-    job_url = data.get('job_url')
-    notes = data.get('notes')
+    job_title = data.get('job_title', '').strip() if data.get('job_title') else ''
+    company_name = data.get('company_name', '').strip() if data.get('company_name') else ''
+    status = data.get('status', 'Applied').strip() if data.get('status') else 'Applied'
+    location = data.get('location', '').strip() if data.get('location') else ''
+    job_url = data.get('job_url', '').strip() if data.get('job_url') else ''
+    notes = data.get('notes', '').strip() if data.get('notes') else ''
     application_date = data.get('application_date')
 
-    if not job_title or not isinstance(job_title, str) or len(job_title) > 100:
+    if not job_title or not isinstance(job_title, str) or len(job_title) == 0 or len(job_title) > 100:
         errors['job_title'] = "Job title is required and must be a string up to 100 characters."
-    if not company_name or not isinstance(company_name, str) or len(company_name) > 100:
+    if not company_name or not isinstance(company_name, str) or len(company_name) == 0 or len(company_name) > 100:
         errors['company_name'] = "Company name is required and must be a string up to 100 characters."
     if not isinstance(status, str) or len(status) > 50:
         errors['status'] = "Status must be a string up to 50 characters."
@@ -119,13 +123,27 @@ def create_job(current_user):
     if job_url:
         if not isinstance(job_url, str) or len(job_url) > 2048:
             errors['job_url'] = "Job URL must be a string up to 2048 characters."
-        else:
+        elif job_url:  # Only validate if URL is not empty
             import re
+            # Auto-prepend https:// if no protocol is specified
             if not re.match(r'^https?://', job_url):
-                errors['job_url'] = "Job URL must be a valid URL."
+                job_url = 'https://' + job_url
+            # Validate the URL format
+            if not re.match(r'^https?://[^\s]+', job_url):
+                errors['job_url'] = "Job URL must be a valid URL format."
     
     if errors:
+        print(f"❌ Validation errors: {errors}")
         return jsonify({"error": "Validation failed", "details": errors}), 400
+    
+    print(f"✅ Validation passed, creating job with data:")
+    print(f"   - job_title: {job_title}")
+    print(f"   - company_name: {company_name}")
+    print(f"   - status: {status}")
+    print(f"   - application_date: {application_date}")
+    print(f"   - location: {location}")
+    print(f"   - job_url: {job_url}")
+    print(f"   - notes: {notes}")
     # --- End Validation ---
 
     try:

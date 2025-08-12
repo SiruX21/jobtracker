@@ -501,6 +501,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
         closeEditModal();
       } else {
+        console.log('📤 Sending job data to backend:', newJob);
         const response = await axios.post(`${API_BASE_URL}/jobs`, newJob, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
@@ -513,6 +514,8 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       }
     } catch (error) {
       console.error("Error saving job:", error);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error response status:", error.response?.status);
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
         navigate("/auth");
