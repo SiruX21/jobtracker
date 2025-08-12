@@ -273,11 +273,6 @@ const ListView = ({
                 <SortableHeader field="date">Applied Date</SortableHeader>
               </div>
             </th>
-            <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-              <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                Notes
-              </div>
-            </th>
             <th className="px-3 py-2 text-center">
               <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
                 Actions
@@ -344,16 +339,6 @@ const ListView = ({
                   field="application_date"
                   value={job.application_date}
                   type="date"
-                  className="text-sm text-gray-700 dark:text-gray-300"
-                />
-              </td>
-
-              {/* Notes */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
-                <EditableCell
-                  job={job}
-                  field="notes"
-                  value={job.notes}
                   className="text-sm text-gray-700 dark:text-gray-300"
                 />
               </td>
