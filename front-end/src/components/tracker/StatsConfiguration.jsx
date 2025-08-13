@@ -35,7 +35,7 @@ function StatsConfiguration({
           {/* View Toggle Buttons */}
                     <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
-              onClick={() => onViewModeChange('cards')}
+              onClick={() => setViewMode('cards')}
               className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
                 viewMode === 'cards'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
@@ -46,7 +46,7 @@ function StatsConfiguration({
               Cards
             </button>
             <button
-              onClick={() => onViewModeChange('list')}
+              onClick={() => setViewMode('list')}
               className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
                 viewMode === 'list'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'

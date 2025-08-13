@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaExternalLinkAlt, FaEdit, FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaCheck, FaTimes, FaSortUp, FaSortDown, FaSort } from 'react-icons/fa';
 import { getStatusColor } from '../../data/jobStatuses';
 import { JOB_STATUSES } from '../../data/jobStatuses';
@@ -192,6 +192,23 @@ const ListView = ({
 
   const StatusDropdown = ({ value, onChange, onSave, onCancel }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [isOpen]);
 
     const StatusOption = ({ status, isSelected = false, onClick }) => (
       <div 
@@ -213,7 +230,7 @@ const ListView = ({
     );
 
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1" ref={dropdownRef}>
         <div className="relative">
           {/* Custom dropdown button showing current status badge */}
           <button
@@ -245,6 +262,7 @@ const ListView = ({
                   isSelected={status.name === value}
                   onClick={() => {
                     onChange(status.name);
+                    onSave();
                     setIsOpen(false);
                   }}
                 />
@@ -252,24 +270,6 @@ const ListView = ({
             </div>
           )}
         </div>
-        <button
-          onClick={() => {
-            onSave();
-            setIsOpen(false);
-          }}
-          className="text-green-500 hover:text-green-600 p-1"
-        >
-          <FaCheck className="w-3 h-3" />
-        </button>
-        <button
-          onClick={() => {
-            onCancel();
-            setIsOpen(false);
-          }}
-          className="text-red-500 hover:text-red-600 p-1"
-        >
-          <FaTimes className="w-3 h-3" />
-        </button>
       </div>
     );
   };
@@ -456,27 +456,6 @@ const ListView = ({
                   job={job}
                   field="location"
                   value={job.location}
-                  className="text-gray-700 dark:text-gray-300"
-                />
-              </td>
-
-              {/* Salary */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
-                <EditableCell
-                  job={job}
-                  field="salary"
-                  value={job.salary}
-                  className="text-gray-700 dark:text-gray-300"
-                />
-              </td>
-
-              {/* Notes */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top max-w-xs">
-                <EditableCell
-                  job={job}
-                  field="notes"
-                  value={job.notes}
-                  multiline={true}
                   className="text-gray-700 dark:text-gray-300"
                 />
               </td>
