@@ -1,9 +1,10 @@
 import { API_BASE_URL } from '../config';
+import { debugWarn, debugLog } from '../utils/debug';
 
 // Sync function to get company logo URL
 export const getCompanyLogoSync = (companyName) => {
   if (!companyName || typeof companyName !== 'string') {
-    console.warn('getCompanyLogoSync: Invalid company name provided:', companyName);
+    debugWarn('getCompanyLogoSync: Invalid company name provided:', companyName);
     return getFallbackLogo(companyName);
   }
 
@@ -11,7 +12,7 @@ export const getCompanyLogoSync = (companyName) => {
   const encodedName = encodeURIComponent(companyName.trim());
   const logoUrl = `${API_BASE_URL}/api/logos/company/${encodedName}`;
   
-  console.log(`🖼️ getCompanyLogoSync: Generated logo URL for "${companyName}": ${logoUrl}`);
+  debugLog(`🖼️ getCompanyLogoSync: Generated logo URL for "${companyName}": ${logoUrl}`);
   return logoUrl;
 };
 
@@ -19,7 +20,7 @@ export const getCompanyLogoSync = (companyName) => {
 const getFallbackLogo = (companyName) => {
   const name = companyName && typeof companyName === 'string' ? companyName : 'Company';
   const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=ffffff&size=40&bold=true`;
-  console.log(`🔄 getFallbackLogo: Using fallback for "${name}": ${fallbackUrl}`);
+  debugLog(`🔄 getFallbackLogo: Using fallback for "${name}": ${fallbackUrl}`);
   return fallbackUrl;
 };
 

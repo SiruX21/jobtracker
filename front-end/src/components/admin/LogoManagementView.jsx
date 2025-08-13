@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { debugWarn } from '../../utils/debug';
+import { debugWarn, debugError } from '../../utils/debug';
 import { 
   FaExternalLinkAlt, 
   FaTrash, 
@@ -82,7 +82,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
 
     } catch (error) {
       setError('Failed to load logo management data');
-      console.error('Error loading logo data:', error);
+      debugError('Error loading logo data:', error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       } else {
         toast.error('Failed to clear logo cache');
       }
-      console.error('Error clearing logo cache:', error);
+      debugError('Error clearing logo cache:', error);
     }
   };
 
@@ -167,7 +167,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       } else {
         toast.error(`Failed to clear logo cache for ${companyName}`);
       }
-      console.error('Error clearing specific logo cache:', error);
+      debugError('Error clearing specific logo cache:', error);
     }
   };
 
@@ -199,7 +199,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
         toast.error('Authentication required');
       } else {
         toast.error(`Failed to get logo URL for ${companyName}`);
-        console.error('Error getting logo URL:', error);
+        debugError('Error getting logo URL:', error);
       }
     }
   };
@@ -231,7 +231,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       } else {
         toast.error(`Failed to validate logo for ${companyName}`);
       }
-      console.error('Error validating logo:', error);
+      debugError('Error validating logo:', error);
     }
   };
 
@@ -268,7 +268,7 @@ function LogoManagementView({ darkMode, initialLoading = false }) {
       } else {
         toast.error('Failed to update logo configuration');
       }
-      console.error('Error updating logo config:', error);
+      debugError('Error updating logo config:', error);
     }
   };
 

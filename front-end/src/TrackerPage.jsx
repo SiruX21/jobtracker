@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { toast } from 'react-toastify';
-import { debugLog, debugWarn } from './utils/debug';
+import { debugLog, debugWarn, debugError } from './utils/debug';
 import { API_BASE_URL } from "./config";
 import Header from "./Header";
 import { getJobTitleSuggestions } from "./data/companySuggestions";
@@ -78,7 +78,7 @@ const cacheUtils = {
 
       return parsedData.jobs;
     } catch (error) {
-      console.error('Error reading from cache:', error);
+      debugError('Error reading from cache:', error);
       cacheUtils.clear();
       return null;
     }
@@ -381,7 +381,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       debugLog(`Fetched ${jobsData.length} jobs from server${forceRefresh ? ' (force refresh)' : ''}`);
       
     } catch (error) {
-      console.error("Error fetching jobs:", error);
+      debugError("Error fetching jobs:", error);
       setCacheStatus(prev => ({ ...prev, isRefreshing: false }));
       
       if (error.response?.status === 401) {
@@ -427,7 +427,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         setCacheStatus(prev => ({ ...prev, isFromCache: false, age: 0 }));
         closeEditModal();
       } else {
-        console.log('📤 Sending job data to backend:', newJob);
+        debugLog('📤 Sending job data to backend:', newJob);
         const response = await axios.post(`${API_BASE_URL}/jobs`, newJob, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
@@ -439,9 +439,9 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         closeAddModal();
       }
     } catch (error) {
-      console.error("Error saving job:", error);
-      console.error("Error response data:", error.response?.data);
-      console.error("Error response status:", error.response?.status);
+      debugError("Error saving job:", error);
+      debugError("Error response data:", error.response?.data);
+      debugError("Error response status:", error.response?.status);
       if (error.response?.status === 401) {
         Cookies.remove("authToken");
         navigate("/auth");
@@ -468,7 +468,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       toast.success('Job updated successfully!');
       
     } catch (error) {
-      console.error("Error updating job:", error);
+      debugError("Error updating job:", error);
       toast.error("Failed to update job. Please try again.");
       
       if (error.response?.status === 401) {
@@ -500,7 +500,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
       toast.success(`Job application for ${jobToDelete.company_name} - ${jobToDelete.job_title} deleted successfully!`);
       
     } catch (error) {
-      console.error("Error deleting job:", error);
+      debugError("Error deleting job:", error);
       toast.error("Failed to delete job application. Please try again.");
       
       if (error.response?.status === 401) {
@@ -624,7 +624,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
           
           setAutocompleteSuggestions(fixedSuggestions);
         } catch (error) {
-          console.error('Error searching companies via API:', error);
+          debugError('Error searching companies via API:', error);
           // Just set empty suggestions if API fails
           setAutocompleteSuggestions([]);
         } finally {
@@ -665,7 +665,7 @@ function TrackerPage({ darkMode, toggleTheme, isMobile }) {
         
         await fetchJobs(true);
       } catch (error) {
-        console.error('Error initializing data:', error);
+        debugError('Error initializing data:', error);
         toast.error('Failed to load data');
       } finally {
         setInitialLoading(false);

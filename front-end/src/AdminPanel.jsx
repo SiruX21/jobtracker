@@ -4,7 +4,7 @@ import { Transition } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
-import { debugLog } from './utils/debug';
+import { debugLog, debugError } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import { getCompanyLogoSync } from './data/companySuggestions';
@@ -226,7 +226,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       setUsersPagination(response.data.pagination || {});
       setError(''); // Clear any previous errors
     } catch (error) {
-      console.error('Error loading users:', error);
+      debugError('Error loading users:', error);
       setError('Failed to load users: ' + (error.response?.data?.message || error.message));
       setUsers([]);
       setUsersPagination({});
@@ -275,7 +275,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       setJobStatuses(JOB_STATUSES);
       setStatusColorMap(getStatusColorMap());
     } catch (error) {
-      console.error("Error setting job statuses:", error);
+      debugError("Error setting job statuses:", error);
       setError('Failed to load job statuses');
     }
   };
@@ -352,7 +352,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       });
       
     } catch (error) {
-      console.error('Error deleting job:', error);
+      debugError('Error deleting job:', error);
       
       // Show error toast notification
       toast.error('Failed to delete job application. Please try again.', {
@@ -435,7 +435,7 @@ function AdminPanel({ darkMode, toggleTheme, isMobile }) {
       toast.success(`Job application for ${newJob.company_name} - ${newJob.job_title} updated successfully!`);
       
     } catch (error) {
-      console.error("Error updating job:", error);
+      debugError("Error updating job:", error);
       toast.error("Failed to update job application. Please try again.");
       
       if (error.response?.status === 401) {

@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../config';
-import { debugLog } from '../utils/debug';
+import { debugLog, debugError } from '../utils/debug';
 
 class LogoService {
   constructor() {
@@ -41,7 +41,7 @@ class LogoService {
       
       return logoUrl;
     } catch (error) {
-      console.error(`Error fetching logo for ${companyName}:`, error);
+      debugError(`Error fetching logo for ${companyName}:`, error);
       this.pendingRequests.delete(cacheKey);
       
       // Return fallback logo on error
@@ -99,7 +99,7 @@ class LogoService {
           throw new Error(`HTTP ${response.status}`);
         }
       } catch (error) {
-        console.error('Error fetching batch logos:', error);
+        debugError('Error fetching batch logos:', error);
         
         // Use fallback for failed requests
         for (const companyName of uncachedCompanies) {
@@ -138,7 +138,7 @@ class LogoService {
         throw new Error(`Failed to fetch logo: ${response.status}`);
       }
     } catch (error) {
-      console.error(`Error checking logo for ${companyName}:`, error);
+      debugError(`Error checking logo for ${companyName}:`, error);
       return this.getFallbackLogo(companyName);
     }
   }
@@ -221,7 +221,7 @@ class LogoService {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      console.error('Error searching companies:', error);
+      debugError('Error searching companies:', error);
       
       // Return fallback suggestions
       return this.generateFallbackSuggestions(query, limit);
@@ -294,7 +294,7 @@ class LogoService {
         isNew: false
       }));
     } catch (error) {
-      console.error('Error getting company suggestions:', error);
+      debugError('Error getting company suggestions:', error);
       return [];
     }
   }
@@ -310,7 +310,7 @@ class LogoService {
       await this.getBatchLogos(companyNames);
       debugLog(`Preloaded ${companyNames.length} company logos`);
     } catch (error) {
-      console.error('Error preloading logos:', error);
+      debugError('Error preloading logos:', error);
     }
   }
 

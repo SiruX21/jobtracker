@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { debugError } from '../utils/debug';
 
 const PasswordStrengthIndicator = ({ 
   password, 
@@ -93,7 +94,7 @@ const PasswordStrengthIndicator = ({
         onValidationChange(response.data.details);
       }
     } catch (error) {
-      console.error('Password validation error:', error);
+      debugError('Password validation error:', error);
     } finally {
       setIsValidating(false);
     }

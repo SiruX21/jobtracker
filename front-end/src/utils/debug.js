@@ -1,6 +1,6 @@
 /**
  * Development-only console logging utility
- * Only logs messages when NODE_ENV is set to 'development'
+ * Only logs messages when in development mode
  */
 
 const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;

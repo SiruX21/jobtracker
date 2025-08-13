@@ -3,7 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { debugLog } from './utils/debug';
+import { debugLog, debugError } from './utils/debug';
 import { API_BASE_URL } from './config';
 import Header from './Header';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
@@ -151,7 +151,7 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
         await loadUserProfile();
         await checkAdminStatus();
       } catch (error) {
-        console.error('Error initializing settings:', error);
+        debugError('Error initializing settings:', error);
       } finally {
         setInitialLoading(false);
       }
@@ -216,8 +216,8 @@ function SettingsPage({ darkMode, toggleTheme, isMobile }) {
       debugLog('Profile response:', response.data); // Debug log
       setUser(response.data);
     } catch (error) {
-      console.error('Error loading user profile:', error);
-      console.error('Error response:', error.response); // Debug log
+      debugError('Error loading user profile:', error);
+      debugError('Error response:', error.response); // Debug log
       toast.error('Failed to load user profile');
     }
   };

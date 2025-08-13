@@ -3,6 +3,8 @@
  * All external API calls go through the backend server
  */
 import { API_BASE_URL } from '../config';
+import { debugLog, debugError } from '../utils/debug';
+import { generateCompanySuggestions } from '../data/companySuggestions';
 
 // Fetch company suggestions from your backend (which handles external APIs)
 export const fetchCompanySuggestions = async (query) => {
@@ -10,25 +12,25 @@ export const fetchCompanySuggestions = async (query) => {
   
   try {
     const url = `${API_BASE_URL}/api/logos/search?q=${encodeURIComponent(query)}&limit=10`;
-    console.log('Fetching company suggestions from:', url);
+    debugLog('Fetching company suggestions from:', url);
     
     const response = await fetch(url);
     
-    console.log('Company API response status:', response.status);
+    debugLog('Company API response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`Backend API failed: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('Company API response data:', data);
+    debugLog('Company API response data:', data);
     
     // Transform backend response to match expected format
-    console.log('Raw backend data structure:', JSON.stringify(data, null, 2));
+    debugLog('Raw backend data structure:', JSON.stringify(data, null, 2));
     
     // Handle both array response and object with results array
     const responseArray = Array.isArray(data) ? data : (data.results || []);
-    console.log('Response array to process:', responseArray);
+    debugLog('Response array to process:', responseArray);
     
     const results = responseArray.map(company => ({
       name: company.name,
@@ -40,20 +42,20 @@ export const fetchCompanySuggestions = async (query) => {
       industry: company.industry || ''
     }));
     
-    console.log('Transformed results:', results);
+    debugLog('Transformed results:', results);
     
     // If no results from backend, use local fallback
     if (results.length === 0) {
-      console.log('No backend results, using local fallback...');
+      debugLog('No backend results, using local fallback...');
       const fallbackResults = getLocalFallbackSuggestions(query);
-      console.log('Fallback results:', fallbackResults);
+      debugLog('Fallback results:', fallbackResults);
       return fallbackResults;
     }
     
     return results;
     
   } catch (error) {
-    console.error('Company suggestion error:', error);
+    debugError('Company suggestion error:', error);
     
     // Fallback to local popular companies if backend fails
     return getLocalFallbackSuggestions(query);

@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from '../../config';
-import { debugLog } from '../../utils/debug';
+import { debugLog, debugError } from '../../utils/debug';
 import { FaHistory, FaClock, FaArrowRight, FaUser } from 'react-icons/fa';
 
 function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, darkMode }) {
@@ -41,7 +41,7 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
       const sortedHistory = response.data.sort((a, b) => new Date(b.changed_at) - new Date(a.changed_at));
       setHistory(sortedHistory);
     } catch (error) {
-      console.error('Error fetching status history:', error);
+      debugError('Error fetching status history:', error);
       if (error.response?.status === 404) {
         setError('Job not found or access denied');
       } else if (error.response?.status === 401) {
@@ -68,7 +68,7 @@ function StatusHistoryModal({ isOpen, onClose, jobId, jobTitle, companyName, dar
         hour12: true
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
+      debugError('Error formatting date:', error);
       return 'Invalid date';
     }
   };

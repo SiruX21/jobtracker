@@ -4,6 +4,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from '../../config';
 import { FaChartLine, FaTimes, FaSpinner } from 'react-icons/fa';
+import { debugLog, debugError } from '../../utils/debug';
 
 const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
   const [data, setData] = useState(null);
@@ -26,7 +27,7 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
       const sankeyData = processSankeyData(transitions, initial_statuses);
       setData(sankeyData);
     } catch (error) {
-      console.error('Error fetching status flow data:', error);
+      debugError('Error fetching status flow data:', error);
       setError('Failed to load status flow data');
     } finally {
       setLoading(false);
@@ -34,9 +35,9 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
   };
 
   const processSankeyData = (transitions, initialStatuses) => {
-    console.log("🔍 Debug: Raw data from API:");
-    console.log("Transitions:", transitions);
-    console.log("Initial statuses:", initialStatuses);
+    debugLog("🔍 Debug: Raw data from API:");
+    debugLog("Transitions:", transitions);
+    debugLog("Initial statuses:", initialStatuses);
     
     // Get all unique statuses
     const allStatuses = new Set();
@@ -56,7 +57,7 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
       statusToIndex[status] = index;
     });
 
-    console.log("🔍 Debug: Status mapping:", statusToIndex);
+    debugLog("🔍 Debug: Status mapping:", statusToIndex);
 
     // Create source, target, and value arrays for Sankey
     const source = [];
@@ -74,7 +75,7 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
       target.push(statusToIndex[item.status]);
       value.push(item.count);
       totalInitialApplications += item.count;
-      console.log(`🔍 Debug: Start -> ${item.status}: ${item.count} applications`);
+      debugLog(`🔍 Debug: Start -> ${item.status}: ${item.count} applications`);
     });
 
     // Add transitions
@@ -84,14 +85,14 @@ const SankeyDiagram = ({ isOpen, onClose, darkMode }) => {
       target.push(statusToIndex[t.to_status]);
       value.push(t.count);
       totalTransitions += t.count;
-      console.log(`🔍 Debug: ${t.from_status} -> ${t.to_status}: ${t.count} transitions`);
+      debugLog(`🔍 Debug: ${t.from_status} -> ${t.to_status}: ${t.count} transitions`);
     });
 
-    console.log(`🔍 Debug: Total initial applications: ${totalInitialApplications}`);
-    console.log(`🔍 Debug: Total transitions: ${totalTransitions}`);
-    console.log("🔍 Debug: Source array:", source);
-    console.log("🔍 Debug: Target array:", target);
-    console.log("🔍 Debug: Value array:", value);
+    debugLog(`🔍 Debug: Total initial applications: ${totalInitialApplications}`);
+    debugLog(`🔍 Debug: Total transitions: ${totalTransitions}`);
+    debugLog("🔍 Debug: Source array:", source);
+    debugLog("🔍 Debug: Target array:", target);
+    debugLog("🔍 Debug: Value array:", value);
 
     // Define colors for different statuses
     const statusColors = {

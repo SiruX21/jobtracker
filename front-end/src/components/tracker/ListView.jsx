@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaExternalLinkAlt, FaEdit, FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaCheck, FaTimes, FaSortUp, FaSortDown, FaSort } from 'react-icons/fa';
 import { getStatusColor } from '../../data/jobStatuses';
 import { JOB_STATUSES } from '../../data/jobStatuses';
+import { debugError } from '../../utils/debug';
 
 const ListView = ({ 
   filteredJobs, 
@@ -158,7 +159,7 @@ const ListView = ({
       setEditingCell(null);
       setEditValue('');
     } catch (error) {
-      console.error('Error saving edit:', error);
+      debugError('Error saving edit:', error);
     } finally {
       setSaving(false);
     }
