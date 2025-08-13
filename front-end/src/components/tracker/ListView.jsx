@@ -369,6 +369,11 @@ const ListView = ({
                   <SortableHeader field="status">Status</SortableHeader>
                 </div>
               </th>
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[120px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  <SortableHeader field="date">Applied Date</SortableHeader>
+                </div>
+              </th>
               <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[150px]">
                 <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   <SortableHeader field="location">Location</SortableHeader>
@@ -376,10 +381,15 @@ const ListView = ({
               </th>
               <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[120px]">
                 <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  <SortableHeader field="date">Applied Date</SortableHeader>
+                  <SortableHeader field="salary">Salary</SortableHeader>
                 </div>
               </th>
-              <th className="px-4 py-3 text-center min-w-[100px]">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[200px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Notes
+                </div>
+              </th>
+              <th className="px-4 py-3 text-center min-w-[140px]">
                 <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </div>
@@ -421,7 +431,12 @@ const ListView = ({
 
               {/* Status */}
               <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
-                <StatusDropdown job={job} />
+                <EditableCell
+                  job={job}
+                  field="status"
+                  value={job.status}
+                  className="text-gray-900 dark:text-gray-100"
+                />
               </td>
 
               {/* Date Applied */}
@@ -468,47 +483,29 @@ const ListView = ({
 
               {/* Actions */}
               <td className="px-4 py-3 align-top">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditJob(job)}
-                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-200 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteJob(job)}
-                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-200 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </td>
-
-              {/* Actions */}
-              <td className="px-3 py-2 align-top">
                 <div className="flex items-center justify-center space-x-2">
                   {job.job_url && (
                     <button
                       onClick={() => window.open(job.job_url, '_blank')}
-                      className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-1"
+                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all duration-200"
                       title="View Job Posting"
                     >
-                      <FaExternalLinkAlt className="w-3 h-3" />
+                      <FaExternalLinkAlt className="h-4 w-4" />
                     </button>
                   )}
                   <button
                     onClick={() => editJob(job, index)}
-                    className="text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors p-1"
+                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-200 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                     title="Edit Application"
                   >
-                    <FaEdit className="w-3 h-3" />
+                    <FaEdit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => deleteJob(index)}
-                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
+                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-200 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                     title="Delete Application"
                   >
-                    <FaTrash className="w-3 h-3" />
+                    <FaTrash className="h-4 w-4" />
                   </button>
                 </div>
               </td>
