@@ -94,7 +94,7 @@ function EditJobModal({
 
         {/* Custom dropdown menu */}
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
             <div 
               className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center text-gray-900 dark:text-white"
               onClick={() => {
@@ -283,7 +283,7 @@ function EditJobModal({
               {/* Delete Button - Left side */}
               <button
                 onClick={handleDelete}
-                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 flex items-center transition-all duration-200"
+                className="h-12 bg-red-500 text-white px-6 rounded-lg hover:bg-red-600 flex items-center justify-center transition-all duration-200"
               >
                 <FaTrash className="mr-2" />
                 Delete
@@ -293,14 +293,14 @@ function EditJobModal({
               <div className="flex space-x-3">
                 <button
                   onClick={onClose}
-                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                  className="h-12 bg-gray-500 text-white px-6 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={onSubmit}
                   disabled={loading || !newJob.company_name || !newJob.job_title}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center transition-all duration-200"
+                  className="h-12 bg-blue-500 text-white px-6 rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center justify-center transition-all duration-200"
                 >
                   {loading ? (
                     <>

@@ -395,7 +395,7 @@ function AddJobModal({
                 <button
                   onClick={onNextStep}
                   disabled={!newJob.company_name || !newJob.job_title}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 bg-blue-500 text-white px-6 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>
@@ -492,13 +492,13 @@ function AddJobModal({
               <div className="flex justify-between pt-4">
                 <button
                   onClick={onPrevStep}
-                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                  className="h-12 bg-gray-500 text-white px-6 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Back
                 </button>
                 <button
                   onClick={onNextStep}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                  className="h-12 bg-blue-500 text-white px-6 rounded-lg hover:bg-blue-600 transition-colors"
                 >
                   Next
                 </button>
@@ -561,14 +561,14 @@ function AddJobModal({
               <div className="flex justify-between pt-4">
                 <button
                   onClick={onPrevStep}
-                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+                  className="h-12 bg-gray-500 text-white px-6 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Back
                 </button>
                 <button
                   onClick={onSubmit}
                   disabled={loading}
-                  className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center transition-all duration-200"
+                  className="h-12 bg-green-500 text-white px-6 rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center justify-center transition-all duration-200"
                 >
                   {loading && <FaSpinner className="animate-spin mr-2" />}
                   Add Application

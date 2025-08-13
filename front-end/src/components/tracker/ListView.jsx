@@ -237,7 +237,7 @@ const ListView = ({
 
           {/* Custom dropdown menu */}
           {isOpen && (
-            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
               {JOB_STATUSES.map(status => (
                 <StatusOption
                   key={status.name}
@@ -346,41 +346,41 @@ const ListView = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
       {/* Excel-style Table with Horizontal Scroll */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse min-w-[800px]">
           {/* Table Header - Excel Style */}
           <thead>
-            <tr className="bg-gray-200 dark:bg-gray-700 border-b-2 border-gray-400 dark:border-gray-500">
-              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[200px]">
-                <div className="flex items-center text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                  <div className="w-6 h-6 mr-2"></div>
+            <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[200px]">
+                <div className="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="w-6 h-6 mr-3"></div>
                   <SortableHeader field="company">Company</SortableHeader>
                 </div>
               </th>
-              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[180px]">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[180px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   <SortableHeader field="title">Position</SortableHeader>
                 </div>
               </th>
-              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[130px]">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[130px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   <SortableHeader field="status">Status</SortableHeader>
                 </div>
               </th>
-              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[150px]">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[150px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   <SortableHeader field="location">Location</SortableHeader>
                 </div>
               </th>
-              <th className="border-r border-gray-300 dark:border-gray-600 px-3 py-2 text-left min-w-[120px]">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[120px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   <SortableHeader field="date">Applied Date</SortableHeader>
                 </div>
               </th>
-              <th className="px-3 py-2 text-center min-w-[100px]">
-                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <th className="px-4 py-3 text-center min-w-[100px]">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </div>
               </th>
@@ -392,61 +392,96 @@ const ListView = ({
           {filteredJobs.map((job, index) => (
             <tr 
               key={job.id || index} 
-              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:shadow-lg hover:border-l-4 hover:border-l-blue-500 dark:hover:border-l-blue-400 transition-all duration-200"
+              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:shadow-sm hover:border-l-4 hover:border-l-blue-500 dark:hover:border-l-blue-400 transition-all duration-200"
             >
               {/* Company */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <div className="flex items-center">
-                  <div className="w-6 h-6 mr-2 flex-shrink-0">
+                  <div className="w-6 h-6 mr-3 flex-shrink-0">
                     {getCompanyLogo(job.company_name)}
                   </div>
                   <EditableCell
                     job={job}
                     field="company_name"
                     value={job.company_name}
-                    className="font-medium text-gray-900 dark:text-white text-sm"
+                    className="font-medium text-gray-900 dark:text-white"
                   />
                 </div>
               </td>
 
               {/* Position */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <EditableCell
                   job={job}
                   field="job_title"
                   value={job.job_title}
-                  className="text-sm text-gray-900 dark:text-gray-100"
+                  className="text-gray-900 dark:text-gray-100"
                 />
               </td>
 
               {/* Status */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
+                <StatusDropdown job={job} />
+              </td>
+
+              {/* Date Applied */}
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <EditableCell
                   job={job}
-                  field="status"
-                  value={job.status}
+                  field="date_applied"
+                  value={job.date_applied}
+                  type="date"
+                  className="text-gray-900 dark:text-gray-100"
                 />
               </td>
 
               {/* Location */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <EditableCell
                   job={job}
                   field="location"
                   value={job.location}
-                  className="text-sm text-gray-700 dark:text-gray-300"
+                  className="text-gray-700 dark:text-gray-300"
                 />
               </td>
 
-              {/* Applied Date */}
-              <td className="border-r border-gray-200 dark:border-gray-700 px-3 py-2 align-top">
+              {/* Salary */}
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <EditableCell
                   job={job}
-                  field="application_date"
-                  value={job.application_date}
-                  type="date"
-                  className="text-sm text-gray-700 dark:text-gray-300"
+                  field="salary"
+                  value={job.salary}
+                  className="text-gray-700 dark:text-gray-300"
                 />
+              </td>
+
+              {/* Notes */}
+              <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top max-w-xs">
+                <EditableCell
+                  job={job}
+                  field="notes"
+                  value={job.notes}
+                  multiline={true}
+                  className="text-gray-700 dark:text-gray-300"
+                />
+              </td>
+
+              {/* Actions */}
+              <td className="px-4 py-3 align-top">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditJob(job)}
+                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-200 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJob(job)}
+                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-200 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
               </td>
 
               {/* Actions */}

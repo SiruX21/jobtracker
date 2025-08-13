@@ -33,30 +33,28 @@ function StatsConfiguration({
           </button>
           
           {/* View Toggle Buttons */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                    <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
-              onClick={() => setViewMode('card')}
-              className={`flex items-center px-3 py-1 text-sm rounded-md transition ${
-                viewMode === 'card'
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              onClick={() => onViewModeChange('cards')}
+              className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
+                viewMode === 'cards'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
-              title="Card View"
             >
-              <FaTh className="mr-1" />
-              Card View
+              <FaTh className="mr-2" />
+              Cards
             </button>
             <button
-              onClick={() => setViewMode('list')}
-              className={`flex items-center px-3 py-1 text-sm rounded-md transition ${
+              onClick={() => onViewModeChange('list')}
+              className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
                 viewMode === 'list'
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
-              title="List View"
             >
-              <FaList className="mr-1" />
-              List View
+              <FaList className="mr-2" />
+              List
             </button>
           </div>
           
