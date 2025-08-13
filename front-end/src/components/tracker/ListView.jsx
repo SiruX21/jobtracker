@@ -379,16 +379,6 @@ const ListView = ({
                   <SortableHeader field="location">Location</SortableHeader>
                 </div>
               </th>
-              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[120px]">
-                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  <SortableHeader field="salary">Salary</SortableHeader>
-                </div>
-              </th>
-              <th className="border-r border-gray-200 dark:border-gray-600 px-4 py-3 text-left min-w-[200px]">
-                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Notes
-                </div>
-              </th>
               <th className="px-4 py-3 text-center min-w-[140px]">
                 <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -443,8 +433,8 @@ const ListView = ({
               <td className="border-r border-gray-200 dark:border-gray-700 px-4 py-3 align-top">
                 <EditableCell
                   job={job}
-                  field="date_applied"
-                  value={job.date_applied}
+                  field="application_date"
+                  value={job.application_date}
                   type="date"
                   className="text-gray-900 dark:text-gray-100"
                 />
