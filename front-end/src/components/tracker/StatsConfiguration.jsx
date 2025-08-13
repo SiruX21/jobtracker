@@ -21,7 +21,7 @@ function StatsConfiguration({
           <button
             onClick={onStatusFlowClick}
             disabled={statusFlowDisabled}
-            className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
+            className={`flex items-center px-3 h-12 text-sm rounded-lg transition ${
               statusFlowDisabled 
                 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -36,7 +36,7 @@ function StatsConfiguration({
                     <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode('cards')}
-              className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
+              className={`flex items-center px-3 h-12 text-sm rounded-lg transition ${
                 viewMode === 'cards'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
@@ -47,7 +47,7 @@ function StatsConfiguration({
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex items-center px-3 py-2 text-sm rounded-lg transition ${
+              className={`flex items-center px-3 h-12 text-sm rounded-lg transition ${
                 viewMode === 'list'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
@@ -60,7 +60,7 @@ function StatsConfiguration({
           
           <button
             onClick={() => setShowStatsConfig(!showStatsConfig)}
-            className="flex items-center px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+            className="flex items-center px-3 h-12 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
             <FaCog className="mr-2" />
             Customize Stats
