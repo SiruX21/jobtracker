@@ -80,6 +80,10 @@ def create_app():
     env = os.getenv('ENVIRONMENT', 'development')
     app.config.from_object(config.get(env, config['default']))
     
+    # Set required Flask/Quart configuration keys
+    app.config['PROVIDE_AUTOMATIC_OPTIONS'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 43200
+    
     # Initialize Quart-Rate-Limiter
     limiter.init_app(app)
     

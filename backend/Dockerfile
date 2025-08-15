@@ -18,5 +18,5 @@ COPY . .
 
 EXPOSE 5000
 
-# Use Granian to run Quart application (Rust-based high-performance ASGI server)
-CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "5000", "--access-log", "run:app"]
+# Use Granian to run Quart application (single worker to avoid multiprocessing issues in containers)
+CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "5000", "--workers", "1", "--access-log", "run:app"]

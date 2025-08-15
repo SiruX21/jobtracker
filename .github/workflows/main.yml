@@ -49,7 +49,7 @@ jobs:
           EOF
 
       - name: Shut down current containers
-        run: docker-compose --env-file .env down || true
+        run: docker compose --env-file .env down || true
 
       - name: Build and start containers
-        run: docker-compose --env-file .env up -d --build
+        run: docker compose --env-file .env up -d --build

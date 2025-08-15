@@ -11,12 +11,12 @@ app = create_app()
 
 if __name__ == "__main__":
     # For local development, you can use Granian directly
-    # or run: granian --interface asgi --host 0.0.0.0 --port 5000 --reload run:app
+    # or run: granian --interface asgi --host 0.0.0.0 --port 5000 --reload --workers 1 run:app
     
     print("For development, run:")
-    print("granian --interface asgi --host 0.0.0.0 --port 5000 --reload run:app")
+    print("granian --interface asgi --host 0.0.0.0 --port 5000 --reload --workers 1 run:app")
     print("\nOr for production:")
-    print("granian --interface asgi --host 0.0.0.0 --port 5000 --access-log run:app")
+    print("granian --interface asgi --host 0.0.0.0 --port 5000 --access-log --workers 1 run:app")
     
     # Fallback: import and run with granian programmatically
     try:
@@ -29,6 +29,7 @@ if __name__ == "__main__":
             "--interface", "asgi",
             "--host", "0.0.0.0", 
             "--port", "5000",
+            "--workers", "1",  # Single worker for container compatibility
             "--access-log"
         ]
         
