@@ -6,7 +6,7 @@ email_bp = Blueprint('email', __name__)
 
 @email_bp.route("/verify-email", methods=["GET"])
 # Rate limiting temporarily disabled
-def verify_email_page():
+async def verify_email_page():
     """Handle email verification from email links"""
     token = request.args.get('token')
     

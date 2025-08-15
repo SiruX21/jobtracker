@@ -13,7 +13,7 @@ admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    async def decorated(*args, **kwargs):
         from app.utils.security import SecurityUtils
         
         token = None
@@ -88,14 +88,14 @@ def admin_required(f):
             Config.log_error(f"Unexpected error during admin verification: {e}", 'admin')
             return jsonify({"message": "Authentication failed"}), 500
 
-        return f(*args, **kwargs)
+        return await f(*args, **kwargs)
     return decorated
 
 
 @admin_bp.route("/admin/dashboard", methods=["GET"])
 @admin_required
 # Rate limiting temporarily disabled
-def admin_dashboard():
+async def admin_dashboard():
     """Get admin dashboard data"""
     from app.config import Config
     
@@ -175,7 +175,7 @@ def admin_dashboard():
 @admin_bp.route("/admin/users", methods=["GET"])
 @admin_required
 # Rate limiting temporarily disabled
-def get_users():
+async def get_users():
     """Get paginated users list"""
     try:
         page = int(request.args.get('page', 1))
@@ -238,7 +238,7 @@ def get_users():
 @admin_bp.route("/admin/jobs", methods=["GET"])
 @admin_required
 # Rate limiting temporarily disabled
-def get_all_jobs():
+async def get_all_jobs():
     """Get paginated job applications list"""
     try:
         page = int(request.args.get('page', 1))
@@ -309,10 +309,10 @@ def get_all_jobs():
 @admin_bp.route("/admin/users/<int:user_id>", methods=["PUT"])
 @admin_required
 # Rate limiting temporarily disabled
-def update_user(user_id):
+async def update_user(user_id):
     """Update user details"""
     try:
-        data = request.get_json()
+        data = await request.get_json()
         
         conn, cursor = get_db()
         
@@ -334,7 +334,7 @@ def update_user(user_id):
 @admin_bp.route("/admin/users/<int:user_id>", methods=["DELETE"])
 @admin_required
 # Rate limiting temporarily disabled
-def delete_user(user_id):
+async def delete_user(user_id):
     """Delete a user"""
     try:
         conn, cursor = get_db()
@@ -352,7 +352,7 @@ def delete_user(user_id):
 @admin_bp.route("/admin/jobs/<int:job_id>", methods=["DELETE"])
 @admin_required
 # Rate limiting temporarily disabled
-def delete_job_admin(job_id):
+async def delete_job_admin(job_id):
     """Delete a job application"""
     try:
         conn, cursor = get_db()
@@ -369,10 +369,10 @@ def delete_job_admin(job_id):
 @admin_bp.route("/admin/users", methods=["POST"])
 @admin_required
 # Rate limiting temporarily disabled
-def create_admin_user():
+async def create_admin_user():
     """Create a new admin user"""
     try:
-        data = request.get_json()
+        data = await request.get_json()
         
         # Hash password
         password_hash = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
@@ -397,7 +397,7 @@ def create_admin_user():
 
 @admin_bp.route("/admin/system/info", methods=["GET"])
 @admin_required
-def get_system_info():
+async def get_system_info():
     """Get system information"""
     try:
         conn, cursor = get_db()
@@ -436,7 +436,7 @@ def get_system_info():
 
 @admin_bp.route('/admin/system/clear-cache', methods=['POST'])
 @admin_required
-def clear_system_cache():
+async def clear_system_cache():
     """Clear system cache"""
     try:
         from app.services.logo_cache_service import logo_cache
@@ -448,7 +448,7 @@ def clear_system_cache():
 
 @admin_bp.route('/admin/system/environment', methods=['GET'])
 @admin_required
-def get_environment_variables():
+async def get_environment_variables():
     """Get environment variables (sensitive ones hidden)"""
     from app.utils.security import SecurityUtils
     
@@ -477,11 +477,11 @@ def get_environment_variables():
 
 @admin_bp.route('/admin/system/environment', methods=['PUT'])
 @admin_required
-def update_environment_variable():
+async def update_environment_variable():
     """Update an environment variable"""
     try:
         import os
-        data = request.get_json()
+        data = await request.get_json()
         
         if not data or 'key' not in data or 'value' not in data:
             return jsonify({'error': 'Key and value are required'}), 400
@@ -495,7 +495,7 @@ def update_environment_variable():
 
 @admin_bp.route('/admin/system/environment/<key>', methods=['DELETE'])
 @admin_required
-def delete_environment_variable(key):
+async def delete_environment_variable(key):
     """Delete an environment variable"""
     from app.utils.security import SecurityUtils
     
@@ -523,10 +523,10 @@ def delete_environment_variable(key):
 
 @admin_bp.route("/admin/system/reset-passwords", methods=["POST"])
 @admin_required
-def reset_passwords():
+async def reset_passwords():
     """Reset passwords for all users (emergency function)"""
     try:
-        data = request.get_json()
+        data = await request.get_json()
         new_password = data.get('new_password', secrets.token_urlsafe(12))
         
         # Hash the new password

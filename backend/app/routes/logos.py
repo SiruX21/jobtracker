@@ -5,7 +5,7 @@ from app.routes.admin import admin_required
 logos_bp = Blueprint('logos', __name__)
 
 @logos_bp.route("/logos/company/<company_name>", methods=["GET"])
-def get_company_logo(company_name):
+async def get_company_logo(company_name):
     """Get cached company logo image"""
     # --- Input Validation & Sanitization ---
     if not company_name or not isinstance(company_name, str) or len(company_name) > 100:
@@ -39,7 +39,7 @@ def get_company_logo(company_name):
         }), 500
 
 @logos_bp.route("/logos/url/<company_name>", methods=["GET"])
-def get_company_logo_url(company_name):
+async def get_company_logo_url(company_name):
     """Get company logo URL for API responses (returns internal URL)"""
     # --- Input Validation & Sanitization ---
     if not company_name or not isinstance(company_name, str) or len(company_name) > 100:
@@ -73,7 +73,7 @@ def get_company_logo_url(company_name):
         }), 500
 
 @logos_bp.route("/logos/search", methods=["GET"])
-def search_companies():
+async def search_companies():
     """Search for companies with autocomplete"""
     try:
         query = request.args.get('q', '').strip()
@@ -102,10 +102,10 @@ def search_companies():
         }), 500
 
 @logos_bp.route("/logos/batch", methods=["POST"])
-def get_batch_logos():
+async def get_batch_logos():
     """Get multiple company logo URLs in one request"""
     try:
-        data = request.get_json()
+        data = await request.get_json()
         company_names = data.get('companies', [])
         
         if not company_names:
@@ -139,7 +139,7 @@ def get_batch_logos():
         return jsonify({"error": "Failed to get batch logos"}), 500
 
 @logos_bp.route("/logos/validate/<company_name>", methods=["GET"])
-def validate_company_logo(company_name):
+async def validate_company_logo(company_name):
     """Get and validate company logo"""
     try:
         image_data, content_type = logo_cache.get_logo_data(company_name)
@@ -161,10 +161,10 @@ def validate_company_logo(company_name):
 
 @logos_bp.route("/logos/cache/clear", methods=["POST"])
 @admin_required
-def clear_logo_cache():
+async def clear_logo_cache():
     """Clear logo cache (admin endpoint)"""
     try:
-        data = request.get_json() or {}
+        data = await request.get_json() or {}
         company_name = data.get('company_name')
         
         # Get clear result with statistics
@@ -194,7 +194,7 @@ def clear_logo_cache():
 
 @logos_bp.route("/logos/cache/stats", methods=["GET"])
 @admin_required
-def get_cache_stats():
+async def get_cache_stats():
     """Get cache statistics (admin endpoint)"""
     try:
         stats = logo_cache.get_cache_stats()
@@ -206,7 +206,7 @@ def get_cache_stats():
         return jsonify({"error": "Failed to get cache stats"}), 500
 
 @logos_bp.route("/logos/health", methods=["GET"])
-def logo_service_health():
+async def logo_service_health():
     """Check logo service health"""
     try:
         # Test Redis connection
@@ -232,7 +232,7 @@ def logo_service_health():
 
 @logos_bp.route("/logos/config", methods=["GET", "POST"])
 @admin_required
-def logo_service_config():
+async def logo_service_config():
     """Get or set logo service configuration (admin endpoint)"""
     try:
         if request.method == "GET":
@@ -242,7 +242,7 @@ def logo_service_config():
         
         elif request.method == "POST":
             # Set configuration
-            data = request.get_json()
+            data = await request.get_json()
             service_type = data.get('service_type', 'auto')
             
             # Validate service type - only brandfetch allowed
