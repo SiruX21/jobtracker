@@ -442,7 +442,7 @@ async def get_job_status_history(current_user, job_id):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def get_status_flow_analytics(current_user):
+async def get_status_flow_analytics(current_user):
     """Get status flow data for Sankey diagram"""
     try:
         conn, cursor = get_db()
