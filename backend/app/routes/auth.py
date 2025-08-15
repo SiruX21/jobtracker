@@ -21,7 +21,7 @@ async def test_cors():
         "origin": request.headers.get('Origin', 'No origin header')
     }), 200
 
-async def token_required(f):
+def token_required(f):
     @wraps(f)
     async def decorated(*args, **kwargs):
         from app.utils.security import SecurityUtils
