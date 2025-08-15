@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  jobtrack-backend:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/logos/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      # These can be overridden by .env file
+      - ENVIRONMENT=production
+      - DEBUG=False
+    # Uncomment if you want to limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #       cpus: '0.5'
+    #     reservations:
+    #       memory: 256M
+    #       cpus: '0.25'
+    
+  # Optional: Add a reverse proxy (uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/ssl/certs:ro
+  #   depends_on:
+  #     - jobtrack-backend
+  #   restart: unless-stopped
+
+# Uncomment if you want to create a custom network
+# networks:
+#   jobtrack-network:
+#     driver: bridge

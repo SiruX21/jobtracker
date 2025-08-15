@@ -1,0 +1,18 @@
+# Simplified Service for nginx-proxy-manager (no ingress needed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: jobtrack-backend-service
+  namespace: jobtrack
+  labels:
+    app: jobtrack-backend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30080  # nginx-proxy-manager forwards to k3s-server:30080
+    protocol: TCP
+    name: http
+  selector:
+    app: jobtrack-backend

@@ -32,14 +32,32 @@ class LogoCacheService:
     def connect_redis(self):
         """Connect to Redis server"""
         try:
-            self.redis_client = redis.Redis(
-                host=Config.REDIS_HOST,
-                port=Config.REDIS_PORT,
-                db=Config.REDIS_DB,
-                decode_responses=False,  # Binary mode for images
-                socket_timeout=10,
-                socket_connect_timeout=10
-            )
+            redis_config = {
+                'host': Config.REDIS_HOST,
+                'port': Config.REDIS_PORT,
+                'db': Config.REDIS_DB,
+                'decode_responses': False,  # Binary mode for images
+                'socket_timeout': 10,
+                'socket_connect_timeout': 10
+            }
+            
+            # Add password if configured
+            if Config.REDIS_PASSWORD:
+                redis_config['password'] = Config.REDIS_PASSWORD
+            
+            # Add SSL configuration if enabled
+            if Config.REDIS_SSL:
+                redis_config['ssl'] = True
+                if Config.REDIS_SSL_CERT_REQS:
+                    import ssl
+                    if Config.REDIS_SSL_CERT_REQS.lower() == 'required':
+                        redis_config['ssl_cert_reqs'] = ssl.CERT_REQUIRED
+                    elif Config.REDIS_SSL_CERT_REQS.lower() == 'optional':
+                        redis_config['ssl_cert_reqs'] = ssl.CERT_OPTIONAL
+                    else:
+                        redis_config['ssl_cert_reqs'] = ssl.CERT_NONE
+            
+            self.redis_client = redis.Redis(**redis_config)
             # Test connection
             self.redis_client.ping()
             print("Redis connection successful")

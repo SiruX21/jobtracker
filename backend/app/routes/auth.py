@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from quart import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
 import bcrypt
@@ -11,13 +11,9 @@ from app.utils.password_validator import PasswordValidator
 
 auth_bp = Blueprint('auth', __name__)
 
-# Remove the after_request decorator since Flask-CORS handles CORS globally
-
-# Remove the create_cors_response function since Flask-CORS handles CORS globally
-
 # Test endpoint for CORS verification
 @auth_bp.route("/test", methods=["GET", "POST", "OPTIONS"])
-def test_cors():
+async def test_cors():
     """Test endpoint to verify CORS is working"""
     return jsonify({
         "message": "CORS test successful", 
@@ -27,7 +23,7 @@ def test_cors():
 
 def token_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    async def decorated(*args, **kwargs):
         from app.utils.security import SecurityUtils
         
         token = None

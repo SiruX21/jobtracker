@@ -14,10 +14,18 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD')
     DB_NAME = os.getenv('DB_NAME')
     
+    # Database SSL Configuration (optional)
+    DB_SSL_CA = os.getenv('DB_SSL_CA')
+    DB_SSL_CERT = os.getenv('DB_SSL_CERT')
+    DB_SSL_KEY = os.getenv('DB_SSL_KEY')
+    
     # Redis Configuration
     REDIS_HOST = os.getenv('REDIS_HOST')
     REDIS_PORT = int(os.getenv('REDIS_PORT')) if os.getenv('REDIS_PORT') else None
     REDIS_DB = int(os.getenv('REDIS_DB')) if os.getenv('REDIS_DB') else None
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+    REDIS_SSL = os.getenv('REDIS_SSL', 'False').lower() == 'true'
+    REDIS_SSL_CERT_REQS = os.getenv('REDIS_SSL_CERT_REQS', 'required')
     
     # Email Configuration
     MAIL_SERVER = os.getenv('MAIL_SERVER')

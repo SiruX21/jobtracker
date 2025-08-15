@@ -1,9 +1,11 @@
-Flask-Limiter
-Flask==2.3.3
-Flask-CORS==4.0.0
+quart==0.19.4
+quart-cors==0.7.0
+quart-rate-limiter==0.8.0
 mariadb==1.1.8
 PyJWT==2.8.0
 redis==5.0.1
 requests==2.31.0
 bcrypt==4.0.1
 python-dotenv==1.0.0
+granian==1.5.1
+asyncio-redis==0.16.0

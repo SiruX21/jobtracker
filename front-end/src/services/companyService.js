@@ -4,7 +4,6 @@
  */
 import { API_BASE_URL } from '../config';
 import { debugLog, debugError } from '../utils/debug';
-import { generateCompanySuggestions } from '../data/companySuggestions';
 
 // Fetch company suggestions from your backend (which handles external APIs)
 export const fetchCompanySuggestions = async (query) => {

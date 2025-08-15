@@ -18,4 +18,5 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["python", "run.py"]
+# Use Granian to run Quart application (Rust-based high-performance ASGI server)
+CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "5000", "--access-log", "run:app"]

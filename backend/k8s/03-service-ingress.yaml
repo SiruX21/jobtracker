@@ -1,0 +1,64 @@
+# Service for JobTrack Backend (nginx-proxy-manager compatible)
+apiVersion: v1
+kind: Service
+metadata:
+  name: jobtrack-backend-service
+  namespace: jobtrack
+  labels:
+    app: jobtrack-backend
+spec:
+  type: NodePort  # Expose on specific port for nginx-proxy-manager
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30080  # nginx-proxy-manager will forward to this port
+    protocol: TCP
+    name: http
+  selector:
+    app: jobtrack-backend
+---
+# Ingress for k3s internal routing (optional - can remove if using nginx-proxy-manager)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jobtrack-backend-ingress
+  namespace: jobtrack
+  annotations:
+    # k3s Traefik annotations (only needed if you want k3s to handle SSL too)
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # Remove websecure since nginx-proxy-manager handles SSL
+    
+    # Alternative: Disable ingress entirely and just use NodePort
+    # Comment out this entire Ingress resource if using only nginx-proxy-manager
+    
+    # Alternative: NGINX ingress controller annotations (uncomment if using NGINX)
+    # kubernetes.io/ingress.class: "nginx"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # CORS configuration (works with both Traefik and NGINX)
+    # For Traefik, you may need a middleware - see k3s docs
+    # nginx.ingress.kubernetes.io/enable-cors: "true"
+    # nginx.ingress.kubernetes.io/cors-allow-origin: "https://jobtrack.dev"
+    # nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    # nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization, X-Requested-With"
+    # nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+spec:
+  # TLS configuration (optional)
+  tls:
+  - hosts:
+    - api.jobtrack.dev
+    secretName: jobtrack-tls  # Create this secret separately if using TLS
+  
+  rules:
+  - host: api.jobtrack.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jobtrack-backend-service
+            port:
+              number: 80

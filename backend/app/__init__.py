@@ -1,11 +1,11 @@
-from flask import Flask
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from quart import Quart
+from quart_cors import cors
+from quart_rate_limiter import RateLimiter
 import mariadb
 import os
 import threading
 import functools
+import asyncio
 from .config import Config, config
 
 # Thread-local storage for database connections
@@ -14,7 +14,36 @@ db_local = threading.local()
 def db_operation(func):
     """Decorator to handle database operations with automatic retry on connection failure"""
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    async def async_wrapper(*args, **kwargs):
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                if asyncio.iscoroutinefunction(func):
+                    return await func(*args, **kwargs)
+                else:
+                    return func(*args, **kwargs)
+            except mariadb.Error as e:
+                if attempt < max_retries - 1 and ("server has gone away" in str(e).lower() or 
+                                                  "connection" in str(e).lower()):
+                    print(f"Database connection lost, retrying... (attempt {attempt + 1})")
+                    # Force reconnection on next get_db() call
+                    if hasattr(db_local, 'connection'):
+                        try:
+                            db_local.connection.close()
+                        except:
+                            pass
+                        delattr(db_local, 'connection')
+                    if hasattr(db_local, 'cursor'):
+                        delattr(db_local, 'cursor')
+                    continue
+                raise
+        if asyncio.iscoroutinefunction(func):
+            return await func(*args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+    
+    @functools.wraps(func)
+    def sync_wrapper(*args, **kwargs):
         max_retries = 2
         for attempt in range(max_retries):
             try:
@@ -35,19 +64,23 @@ def db_operation(func):
                     continue
                 raise
         return func(*args, **kwargs)
-    return wrapper
+    
+    if asyncio.iscoroutinefunction(func):
+        return async_wrapper
+    else:
+        return sync_wrapper
 
 # Global limiter instance
-limiter = Limiter(key_func=get_remote_address)
+limiter = RateLimiter()
 
 def create_app():
-    app = Flask(__name__)
+    app = Quart(__name__)
     
     # Load configuration based on environment
     env = os.getenv('ENVIRONMENT', 'development')
     app.config.from_object(config.get(env, config['default']))
     
-    # Initialize Flask-Limiter
+    # Initialize Quart-Rate-Limiter
     limiter.init_app(app)
     
     # Configure CORS - Use configurable origins
@@ -56,11 +89,12 @@ def create_app():
     print(f"Environment: {Config.ENVIRONMENT}")  # Debug logging
     print(f"Frontend URL: {Config.get_frontend_url()}")  # Debug logging
     
-    CORS(app, 
-         resources={r"/*": {"origins": cors_origins}}, 
-         supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+    # Apply CORS to Quart app
+    app = cors(app, 
+               allow_origin=cors_origins,
+               allow_credentials=True,
+               allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+               allow_methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
     
     # Configure app
     app.config['SECRET_KEY'] = Config.SECRET_KEY
@@ -106,17 +140,27 @@ def get_db():
 def create_db_connection():
     """Create a new database connection for the current thread"""
     try:
-        db_local.connection = mariadb.connect(
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            host=Config.DB_HOST,
-            port=Config.DB_PORT,
-            database=Config.DB_NAME,
-            autocommit=True,
-            connect_timeout=10,
-            read_timeout=10,
-            write_timeout=10
-        )
+        connection_params = {
+            'user': Config.DB_USER,
+            'password': Config.DB_PASSWORD,
+            'host': Config.DB_HOST,
+            'port': Config.DB_PORT,
+            'database': Config.DB_NAME,
+            'autocommit': True,
+            'connect_timeout': 10,
+            'read_timeout': 10,
+            'write_timeout': 10
+        }
+        
+        # Add SSL configuration if provided
+        if Config.DB_SSL_CA:
+            connection_params['ssl_ca'] = Config.DB_SSL_CA
+        if Config.DB_SSL_CERT:
+            connection_params['ssl_cert'] = Config.DB_SSL_CERT
+        if Config.DB_SSL_KEY:
+            connection_params['ssl_key'] = Config.DB_SSL_KEY
+            
+        db_local.connection = mariadb.connect(**connection_params)
         db_local.cursor = db_local.connection.cursor(dictionary=True)
         print(f"Database connection created for thread {threading.current_thread().ident}")
     except mariadb.Error as e:

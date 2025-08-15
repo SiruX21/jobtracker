@@ -1,0 +1,28 @@
+# k3s Registry Configuration
+# Place this file at /etc/rancher/k3s/registries.yaml on your k3s nodes
+# This allows k3s to pull from your local registry at localhost:5000
+
+mirrors:
+  "localhost:5000":
+    endpoint:
+      - "http://localhost:5000"
+
+configs:
+  "localhost:5000":
+    tls:
+      insecure_skip_verify: true
+    auth:
+      # Uncomment if your registry requires authentication
+      # username: your_username
+      # password: your_password
+
+# Alternative configuration if your registry is on a different host:
+# mirrors:
+#   "your-registry-host:5000":
+#     endpoint:
+#       - "http://your-registry-host:5000"
+# 
+# configs:
+#   "your-registry-host:5000":
+#     tls:
+#       insecure_skip_verify: true
