@@ -56,12 +56,12 @@ def ensure_status_history_table(cursor):
 
 from functools import wraps
 
-async def set_user_id_in_request(f):
+def set_user_id_in_request(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    async def decorated(*args, **kwargs):
         if 'current_user' in kwargs and kwargs['current_user']:
             request.current_user_id = kwargs['current_user']['id']
-        return f(*args, **kwargs)
+        return await f(*args, **kwargs)
     return decorated
 
 @jobs_bp.route("/jobs", methods=["POST"])
