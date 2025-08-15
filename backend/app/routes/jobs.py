@@ -69,7 +69,7 @@ def set_user_id_in_request(f):
 @set_user_id_in_request
 # Rate limiting temporarily disabled
 async def create_job(current_user):
-    data = await request.json
+    data = await request.get_json()
     user_id = current_user['id']
     
     # Debug logging
@@ -240,7 +240,7 @@ async def get_job(current_user, job_id):
 async def update_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
-    data = await request.json
+    data = await request.get_json()
 
     # Basic validation
     errors = {}

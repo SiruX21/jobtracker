@@ -83,7 +83,7 @@ def token_required(f):
             Config.log_error(f"Unexpected error during token verification: {e}", 'auth')
             return jsonify({"message": "Authentication failed"}), 500
 
-        return f(current_user, *args, **kwargs)
+        return await f(current_user, *args, **kwargs)
     return decorated
 
 @auth_bp.route("/register", methods=["POST"])
@@ -91,7 +91,7 @@ def token_required(f):
 async def register():
     from app.utils.security import SecurityUtils
     
-    data = await request.json
+    data = await request.get_json()
     
     # --- Input Validation & Sanitization ---
     errors = {}
@@ -130,7 +130,7 @@ async def login():
     
     Config.log_debug(f"Login request received from {request.remote_addr}", 'auth')
     
-    data = await request.json
+    data = await request.get_json()
     Config.log_debug(f"Login request data keys: {list(data.keys()) if data else 'None'}", 'auth')
     
     # --- Input Validation & Sanitization ---
@@ -182,7 +182,7 @@ def verify_email():
 @auth_bp.route("/resend-verification", methods=["POST"])
 # Rate limiting temporarily disabled
 async def resend_verification():
-    data = await request.json
+    data = await request.get_json()
     
     # --- Input Validation & Sanitization ---
     email = data.get("email")
@@ -207,7 +207,7 @@ async def resend_verification():
 async def forgot_password():
     from app.utils.security import SecurityUtils
     
-    data = await request.json
+    data = await request.get_json()
     
     # --- Input Validation & Sanitization ---
     email = data.get("email")
@@ -232,7 +232,7 @@ async def forgot_password():
 async def reset_password_route():
     from app.utils.security import SecurityUtils
     
-    data = await request.json
+    data = await request.get_json()
     
     # --- Input Validation & Sanitization ---
     token = data.get("token")
@@ -353,7 +353,7 @@ async def change_password():
         print(f"Unexpected error during token verification: {e}")
         return jsonify({"message": "Could not verify token"}), 500
     
-    data = await request.json
+    data = await request.get_json()
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
     
@@ -426,7 +426,7 @@ async def delete_account():
         print(f"Unexpected error during token verification: {e}")
         return jsonify({"message": "Could not verify token"}), 500
     
-    request_data = await request.json
+    request_data = await request.get_json()
     password = request_data.get("password")
     
     if not password:
