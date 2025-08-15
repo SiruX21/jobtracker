@@ -68,8 +68,8 @@ def set_user_id_in_request(f):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def create_job(current_user):
-    data = request.json
+async def create_job(current_user):
+    data = await request.json
     user_id = current_user['id']
     
     # Debug logging
@@ -237,10 +237,10 @@ def get_job(current_user, job_id):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def update_job(current_user, job_id):
+async def update_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
-    data = request.json
+    data = await request.json
 
     # Basic validation
     errors = {}

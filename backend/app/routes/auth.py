@@ -91,7 +91,7 @@ def token_required(f):
 async def register():
     from app.utils.security import SecurityUtils
     
-    data = request.json
+    data = await request.json
     
     # --- Input Validation & Sanitization ---
     errors = {}
@@ -125,12 +125,12 @@ async def register():
 
 @auth_bp.route("/login", methods=["POST"])
 # Rate limiting temporarily disabled
-def login():
+async def login():
     from app.config import Config
     
     Config.log_debug(f"Login request received from {request.remote_addr}", 'auth')
     
-    data = request.json
+    data = await request.json
     Config.log_debug(f"Login request data keys: {list(data.keys()) if data else 'None'}", 'auth')
     
     # --- Input Validation & Sanitization ---
@@ -181,8 +181,8 @@ def verify_email():
 
 @auth_bp.route("/resend-verification", methods=["POST"])
 # Rate limiting temporarily disabled
-def resend_verification():
-    data = request.json
+async def resend_verification():
+    data = await request.json
     
     # --- Input Validation & Sanitization ---
     email = data.get("email")
@@ -204,10 +204,10 @@ def resend_verification():
 
 @auth_bp.route("/forgot-password", methods=["POST"])
 # Rate limiting temporarily disabled
-def forgot_password():
+async def forgot_password():
     from app.utils.security import SecurityUtils
     
-    data = request.json
+    data = await request.json
     
     # --- Input Validation & Sanitization ---
     email = data.get("email")
@@ -225,12 +225,14 @@ def forgot_password():
     if "error" in result:
         return jsonify({"error": result["error"]}), result["code"]
     
-    return jsonify({"message": result["message"]}), 200@auth_bp.route("/reset-password", methods=["POST"])
+    return jsonify({"message": result["message"]}), 200
+
+@auth_bp.route("/reset-password", methods=["POST"])
 # Rate limiting temporarily disabled
-def reset_password_route():
+async def reset_password_route():
     from app.utils.security import SecurityUtils
     
-    data = request.json
+    data = await request.json
     
     # --- Input Validation & Sanitization ---
     token = data.get("token")
@@ -318,7 +320,7 @@ def get_profile():
 
 @auth_bp.route("/change-password", methods=["PUT"])
 # Rate limiting temporarily disabled
-def change_password():
+async def change_password():
     # For PUT requests, require authentication
     token = None
     if 'Authorization' in request.headers:
@@ -351,7 +353,7 @@ def change_password():
         print(f"Unexpected error during token verification: {e}")
         return jsonify({"message": "Could not verify token"}), 500
     
-    data = request.json
+    data = await request.json
     current_password = data.get("currentPassword")
     new_password = data.get("newPassword")
     
@@ -392,7 +394,7 @@ def change_password():
 
 @auth_bp.route('/delete-account', methods=['DELETE'])
 # Rate limiting temporarily disabled
-def delete_account():
+async def delete_account():
     token = None
     if 'Authorization' in request.headers:
         auth_header = request.headers['Authorization']
@@ -424,7 +426,7 @@ def delete_account():
         print(f"Unexpected error during token verification: {e}")
         return jsonify({"message": "Could not verify token"}), 500
     
-    request_data = request.json
+    request_data = await request.json
     password = request_data.get("password")
     
     if not password:
