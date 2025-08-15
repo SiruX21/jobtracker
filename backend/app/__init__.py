@@ -1,6 +1,5 @@
 from quart import Quart
 from quart_cors import cors
-from quart_rate_limiter import RateLimiter
 import mariadb
 import os
 import threading
@@ -70,9 +69,6 @@ def db_operation(func):
     else:
         return sync_wrapper
 
-# Global limiter instance
-limiter = RateLimiter()
-
 def create_app():
     app = Quart(__name__)
     
@@ -83,9 +79,6 @@ def create_app():
     # Set required Flask/Quart configuration keys
     app.config['PROVIDE_AUTOMATIC_OPTIONS'] = True
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 43200
-    
-    # Initialize Quart-Rate-Limiter
-    limiter.init_app(app)
     
     # Configure CORS - Use configurable origins
     cors_origins = Config.get_cors_origins()

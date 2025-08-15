@@ -1,8 +1,8 @@
-from flask import Blueprint, request, jsonify, current_app
+from quart import Blueprint, request, jsonify, current_app
 import jwt
 import mariadb
 from functools import wraps
-from app import get_db, limiter
+from app import get_db
 from app.config import Config
 import bcrypt
 from datetime import datetime, timedelta
@@ -94,7 +94,7 @@ def admin_required(f):
 
 @admin_bp.route("/admin/dashboard", methods=["GET"])
 @admin_required
-@limiter.limit("30 per minute")
+# Rate limiting temporarily disabled
 def admin_dashboard():
     """Get admin dashboard data"""
     from app.config import Config
@@ -174,7 +174,7 @@ def admin_dashboard():
 
 @admin_bp.route("/admin/users", methods=["GET"])
 @admin_required
-@limiter.limit("30 per minute")
+# Rate limiting temporarily disabled
 def get_users():
     """Get paginated users list"""
     try:
@@ -237,7 +237,7 @@ def get_users():
 
 @admin_bp.route("/admin/jobs", methods=["GET"])
 @admin_required
-@limiter.limit("30 per minute")
+# Rate limiting temporarily disabled
 def get_all_jobs():
     """Get paginated job applications list"""
     try:
@@ -308,7 +308,7 @@ def get_all_jobs():
 
 @admin_bp.route("/admin/users/<int:user_id>", methods=["PUT"])
 @admin_required
-@limiter.limit("10 per minute")
+# Rate limiting temporarily disabled
 def update_user(user_id):
     """Update user details"""
     try:
@@ -333,7 +333,7 @@ def update_user(user_id):
 
 @admin_bp.route("/admin/users/<int:user_id>", methods=["DELETE"])
 @admin_required
-@limiter.limit("5 per minute")
+# Rate limiting temporarily disabled
 def delete_user(user_id):
     """Delete a user"""
     try:
@@ -351,7 +351,7 @@ def delete_user(user_id):
 
 @admin_bp.route("/admin/jobs/<int:job_id>", methods=["DELETE"])
 @admin_required
-@limiter.limit("10 per minute")
+# Rate limiting temporarily disabled
 def delete_job_admin(job_id):
     """Delete a job application"""
     try:
@@ -368,7 +368,7 @@ def delete_job_admin(job_id):
 
 @admin_bp.route("/admin/users", methods=["POST"])
 @admin_required
-@limiter.limit("5 per minute")
+# Rate limiting temporarily disabled
 def create_admin_user():
     """Create a new admin user"""
     try:

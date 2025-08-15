@@ -1,6 +1,5 @@
 quart==0.19.9
 quart-cors==0.7.0
-quart-rate-limiter==0.8.0
 mariadb==1.1.8
 PyJWT==2.8.0
 redis==5.0.1

@@ -1,6 +1,5 @@
-from flask import Blueprint, request, jsonify, Response, current_app
+from quart import Blueprint, request, jsonify, Response, current_app
 from app.services.logo_cache_service import logo_cache
-from app import limiter
 from app.routes.admin import admin_required
 
 logos_bp = Blueprint('logos', __name__)

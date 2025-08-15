@@ -3,7 +3,7 @@ import jwt
 import mariadb
 import bcrypt
 from functools import wraps
-from app import get_db, limiter
+from app import get_db
 from app.config import Config
 from app.services.auth_service import register_user, login_user, verify_email_token, resend_verification_email, request_password_reset, reset_password, initiate_email_change, confirm_email_change_request, verify_new_email, verify_password
 from app.utils.password_validator import PasswordValidator
@@ -87,8 +87,8 @@ def token_required(f):
     return decorated
 
 @auth_bp.route("/register", methods=["POST"])
-@limiter.limit("3 per minute")
-def register():
+# Rate limiting temporarily disabled
+async def register():
     from app.utils.security import SecurityUtils
     
     data = request.json
@@ -124,7 +124,7 @@ def register():
     return jsonify({"message": result["message"]}), 201
 
 @auth_bp.route("/login", methods=["POST"])
-@limiter.limit("5 per minute")
+# Rate limiting temporarily disabled
 def login():
     from app.config import Config
     
@@ -165,7 +165,7 @@ def login():
     }), 200
 
 @auth_bp.route("/verify-email", methods=["GET"])
-@limiter.limit("10 per minute")
+# Rate limiting temporarily disabled
 def verify_email():
     token = request.args.get('token')
     
@@ -180,7 +180,7 @@ def verify_email():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/resend-verification", methods=["POST"])
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def resend_verification():
     data = request.json
     
@@ -203,7 +203,7 @@ def resend_verification():
     return jsonify({"message": result["message"]}), 200
 
 @auth_bp.route("/forgot-password", methods=["POST"])
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def forgot_password():
     from app.utils.security import SecurityUtils
     
@@ -226,7 +226,7 @@ def forgot_password():
         return jsonify({"error": result["error"]}), result["code"]
     
     return jsonify({"message": result["message"]}), 200@auth_bp.route("/reset-password", methods=["POST"])
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def reset_password_route():
     from app.utils.security import SecurityUtils
     
@@ -317,7 +317,7 @@ def get_profile():
         return jsonify({"message": "Failed to load profile"}), 500
 
 @auth_bp.route("/change-password", methods=["PUT"])
-@limiter.limit("5 per minute")
+# Rate limiting temporarily disabled
 def change_password():
     # For PUT requests, require authentication
     token = None
@@ -391,7 +391,7 @@ def change_password():
         return jsonify({"message": "Failed to change password"}), 500
 
 @auth_bp.route('/delete-account', methods=['DELETE'])
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def delete_account():
     token = None
     if 'Authorization' in request.headers:
@@ -463,7 +463,7 @@ def delete_account():
 
 @auth_bp.route("/request-email-change", methods=["POST"])
 @token_required
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def request_email_change_route(current_user):
     """Simplified email change endpoint that matches frontend expectations"""
     try:
@@ -559,7 +559,7 @@ def request_email_change_route(current_user):
 
 @auth_bp.route("/initiate-email-change", methods=["POST"])
 @token_required
-@limiter.limit("3 per minute")
+# Rate limiting temporarily disabled
 def initiate_email_change_route():
     """Step 1: Initiate email change process"""
     data = request.get_json()
@@ -581,7 +581,7 @@ def initiate_email_change_route():
     return jsonify(result), 200
 
 @auth_bp.route("/confirm-email-change", methods=["GET", "POST"])
-@limiter.limit("5 per minute")
+# Rate limiting temporarily disabled
 def confirm_email_change_route():
     """Step 2: Confirm email change and provide new email"""
     if request.method == "GET":
@@ -820,7 +820,7 @@ def verify_new_email_route():
     """
 
 @auth_bp.route('/validate-password', methods=['POST'])
-@limiter.limit("10 per minute")
+# Rate limiting temporarily disabled
 def validate_password_endpoint():
     """Validate password strength"""
     try:

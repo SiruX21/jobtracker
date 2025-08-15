@@ -1,12 +1,11 @@
-from flask import Blueprint, request, jsonify, redirect, url_for, current_app
+from quart import Blueprint, request, jsonify, redirect, url_for, current_app
 from app.services.auth_service import verify_email_token, resend_verification_email
-from app import limiter
 
 
 email_bp = Blueprint('email', __name__)
 
 @email_bp.route("/verify-email", methods=["GET"])
-@limiter.limit("10 per minute")
+# Rate limiting temporarily disabled
 def verify_email_page():
     """Handle email verification from email links"""
     token = request.args.get('token')
