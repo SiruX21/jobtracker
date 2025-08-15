@@ -56,7 +56,7 @@ def ensure_status_history_table(cursor):
 
 from functools import wraps
 
-def set_user_id_in_request(f):
+async def set_user_id_in_request(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'current_user' in kwargs and kwargs['current_user']:
