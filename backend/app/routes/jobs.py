@@ -160,7 +160,7 @@ async def create_job(current_user):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def get_jobs(current_user):
+async def get_jobs(current_user):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
     
@@ -205,7 +205,7 @@ def get_jobs(current_user):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def get_job(current_user, job_id):
+async def get_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
     try:
@@ -335,7 +335,7 @@ async def update_job(current_user, job_id):
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def delete_job(current_user, job_id):
+async def delete_job(current_user, job_id):
     user_id = current_user['id']
     is_admin = current_user.get('role') == 'admin'
     try:
@@ -389,7 +389,7 @@ def add_status_history(cursor, job_id, from_status, to_status, user_id, notes=No
 @token_required
 @set_user_id_in_request
 # Rate limiting temporarily disabled
-def get_job_status_history(current_user, job_id):
+async def get_job_status_history(current_user, job_id):
     """Get status history for a specific job"""
     try:
         conn, cursor = get_db()
